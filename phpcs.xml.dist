@@ -76,6 +76,7 @@
                 <element value="CMD"/>
                 <element value="cmd"/>
                 <element value="classic_menu_duplicator"/>
+                <element value="ClassicMenuDuplicator"/>
             </property>
         </properties>
     </rule>
