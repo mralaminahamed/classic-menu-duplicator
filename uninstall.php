@@ -32,21 +32,21 @@ if ( ! current_user_can( 'activate_plugins' ) ) {
  * Removes all options whose names begin with the plugin prefix.
  *
  * At version 1.0.0 the plugin stores no options; this function is present
- * so future versions can register options under the `wmd_` prefix and have
+ * so future versions can register options under the `cmd_` prefix and have
  * them cleaned up automatically without modifying the uninstall routine.
  *
  * @global \wpdb $wpdb WordPress database abstraction object.
  *
  * @return void
  */
-function wmd_delete_options(): void {
+function cmd_delete_options(): void {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( 'wmd_' ) . '%'
+			$wpdb->esc_like( 'cmd_' ) . '%'
 		)
 	);
 }
@@ -54,22 +54,22 @@ function wmd_delete_options(): void {
 /**
  * Removes all transients whose names begin with the plugin prefix.
  *
- * Covers both standard (`_transient_wmd_*`) and timeout
- * (`_transient_timeout_wmd_*`) rows, plus their site-wide equivalents
- * on multisite (`_site_transient_wmd_*`).
+ * Covers both standard (`_transient_cmd_*`) and timeout
+ * (`_transient_timeout_cmd_*`) rows, plus their site-wide equivalents
+ * on multisite (`_site_transient_cmd_*`).
  *
  * @global \wpdb $wpdb WordPress database abstraction object.
  *
  * @return void
  */
-function wmd_delete_transients(): void {
+function cmd_delete_transients(): void {
 	global $wpdb;
 
 	$patterns = array(
-		$wpdb->esc_like( '_transient_wmd_' ) . '%',
-		$wpdb->esc_like( '_transient_timeout_wmd_' ) . '%',
-		$wpdb->esc_like( '_site_transient_wmd_' ) . '%',
-		$wpdb->esc_like( '_site_transient_timeout_wmd_' ) . '%',
+		$wpdb->esc_like( '_transient_cmd_' ) . '%',
+		$wpdb->esc_like( '_transient_timeout_cmd_' ) . '%',
+		$wpdb->esc_like( '_site_transient_cmd_' ) . '%',
+		$wpdb->esc_like( '_site_transient_timeout_cmd_' ) . '%',
 	);
 
 	foreach ( $patterns as $pattern ) {
@@ -92,7 +92,7 @@ function wmd_delete_transients(): void {
  *
  * @return void
  */
-function wmd_network_uninstall(): void {
+function cmd_network_uninstall(): void {
 	if ( ! is_multisite() ) {
 		return;
 	}
@@ -109,8 +109,8 @@ function wmd_network_uninstall(): void {
 
 	foreach ( $blog_ids as $blog_id ) {
 		switch_to_blog( (int) $blog_id );
-		wmd_delete_options();
-		wmd_delete_transients();
+		cmd_delete_options();
+		cmd_delete_transients();
 		restore_current_blog();
 	}
 }
@@ -120,8 +120,8 @@ function wmd_network_uninstall(): void {
 // -------------------------------------------------------------------------
 
 if ( is_multisite() ) {
-	wmd_network_uninstall();
+	cmd_network_uninstall();
 } else {
-	wmd_delete_options();
-	wmd_delete_transients();
+	cmd_delete_options();
+	cmd_delete_transients();
 }

@@ -1,4 +1,4 @@
-/* global wmdData, jQuery */
+/* global cmdData, jQuery */
 ( function ( $ ) {
 	'use strict';
 
@@ -25,14 +25,14 @@
 	function sendDuplicateRequest( $btn, menuId ) {
 		$btn
 			.prop( 'disabled', true )
-			.val( wmdData.duplicatingLabel );
+			.val( cmdData.duplicatingLabel );
 
 		$.ajax( {
-			url:    wmdData.ajaxUrl,
+			url:    cmdData.ajaxUrl,
 			method: 'POST',
 			data:   {
-				action:  'wmd_duplicate_menu',
-				nonce:   wmdData.nonce,
+				action:  'cmd_duplicate_menu',
+				nonce:   cmdData.nonce,
 				menu_id: menuId,
 			},
 		} )
@@ -44,20 +44,20 @@
 
 				var msg = ( response.data && response.data.message )
 					? response.data.message
-					: wmdData.errorMessage;
+					: cmdData.errorMessage;
 
 				// eslint-disable-next-line no-alert
 				window.alert( msg );
 				$btn
 					.prop( 'disabled', false )
-					.val( wmdData.buttonLabel );
+					.val( cmdData.buttonLabel );
 			} )
 			.fail( function () {
 				// eslint-disable-next-line no-alert
-				window.alert( wmdData.errorMessage );
+				window.alert( cmdData.errorMessage );
 				$btn
 					.prop( 'disabled', false )
-					.val( wmdData.buttonLabel );
+					.val( cmdData.buttonLabel );
 			} );
 	}
 
@@ -105,10 +105,10 @@
 		// Build the button as <input type="button"> to inherit core .button
 		// styles without additional CSS specificity conflicts.
 		var $duplicateBtn = $( '<input>', {
-			id:    'wmd-duplicate-menu',
+			id:    'cmd-duplicate-menu',
 			type:  'button',
 			class: 'button button-secondary',
-			value: wmdData.buttonLabel,
+			value: cmdData.buttonLabel,
 		} ).css( { marginLeft: '6px' } );
 
 		// Insert immediately after the Save Menu button.
