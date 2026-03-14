@@ -5,6 +5,9 @@
  * @package ClassicMenuDuplicator
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 ?>
 <style id="cmd-inline-styles">
 	#cmd-duplicate-menu {
