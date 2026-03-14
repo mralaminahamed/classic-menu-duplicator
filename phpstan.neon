@@ -1,0 +1,49 @@
+# PHPStan configuration for GoCardless Payments for WooCommerce
+parameters:
+  level: 4
+  phpVersion: 70400
+
+  paths:
+    - wc-gocardless-payments.php
+    - includes/
+
+  excludePaths:
+    - vendor/
+    - node_modules/
+    - tests/
+    - views/
+
+  bootstrapFiles:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    - vendor/php-stubs/woocommerce-subscriptions-stubs/woocommerce-subscriptions-stubs.php
+
+  # WordPress-specific configuration
+  checkExplicitMixedMissingReturn: false
+  checkFunctionNameCase: false
+  checkInternalClassCaseSensitivity: false
+  checkMissingCallableSignature: false
+  checkTooWideReturnTypesInProtectedAndPublicMethods: false
+  checkUninitializedProperties: false
+  treatPhpDocTypesAsCertain: false
+
+  ignoreErrors:
+    # Plugin constants (defined at runtime)
+    - '#Constant WC_GOCARDLESS_[A-Z_]* not found#'
+
+    # WooCommerce stub property access issues
+    - '#Access to an undefined property WC_Meta_Data::\$.*#'
+
+  dynamicConstantNames:
+    - WC_GOCARDLESS_VERSION
+    - WC_GOCARDLESS_FILE
+    - WC_GOCARDLESS_PATH
+    - WC_GOCARDLESS_URL
+
+  universalObjectCratesClasses:
+    - WP_Post
+    - WP_User
+    - WP_Term
+    - WC_Product
+    - WC_Order
+    - WC_Customer

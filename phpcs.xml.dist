@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<ruleset name="wc-gocardless-payments">
+    <description>Razorpay OAuth2 for WooCommerce Coding Standards</description>
+
+    <!-- Set the memory limit to 256M -->
+    <ini name="memory_limit" value="256M"/>
+
+    <!-- Configs -->
+    <config name="minimum_supported_wp_version" value="6.0"/>
+    <config name="testVersion" value="7.4-"/>
+
+    <!-- Paths to check -->
+    <file>includes</file>
+    <file>wc-gocardless-payments.php</file>
+
+    <!-- Exclude patterns -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*.js</exclude-pattern>
+    <exclude-pattern>*.css</exclude-pattern>
+
+    <!-- Use WordPress Coding Standards -->
+    <rule ref="WordPress">
+        <!-- Exclude specific rules -->
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
+        <exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
+        <exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+        <exclude name="WordPress.DB.PreparedSQL.NotPrepared"/>
+        <exclude name="WordPress.PHP.DevelopmentFunctions.error_log_error_log"/>
+        <exclude name="WordPress.PHP.DontExtract.extract_extract"/>
+
+        <!-- Additional specific rules -->
+        <exclude name="Squiz.PHP.CommentedOutCode.Found"/>
+        <exclude name="Universal.Files.SeparateFunctionsFromOO.Mixed"/>
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.classFound"/>
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound"/>
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+        <exclude name="Generic.CodeAnalysis.AssignmentInCondition.Found"/>
+        <exclude name="Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure"/>
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed"/>
+    </rule>
+
+    <!-- Let's also check that everything is properly documented. -->
+    <rule ref="WordPress-Docs">
+        <!-- Exclude specific rules -->
+        <exclude name="Squiz.Commenting.FileComment.Missing"/>
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+    </rule>
+
+    <!-- Additional rules -->
+    <rule ref="PHPCompatibility"/>
+    <rule ref="WordPress.Security.EscapeOutput.OutputNotEscaped">
+        <exclude-pattern>*/views/*</exclude-pattern>
+    </rule>
+
+    <!-- Enforce short array syntax -->
+    <!-- <rule ref="Generic.Arrays.DisallowLongArraySyntax.Found"/> -->
+
+    <!-- Set text domain for WordPress functions -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wc-gocardless-payments"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="WC_GOCARDLESS"/>
+                <element value="wc_gocardless"/>
+                <element value="WC_GoCardless"/>
+                <element value="woocommerce"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Define the custom capability for woocommerce -->
+    <!-- Ref: https://github.com/woocommerce/woocommerce/blob/trunk/plugins/woocommerce/phpcs.xml#L57 -->
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="download_file"/>
+                <element value="read_product"/>
+                <element value="edit_products"/>
+                <element value="edit_private_products"/>
+                <element value="edit_others_products"/>
+                <element value="edit_product"/>
+                <element value="publish_shop_orders"/>
+                <element value="edit_shop_orders"/>
+                <element value="edit_others_shop_orders"/>
+                <element value="view_order"/>
+                <element value="pay_for_order"/>
+                <element value="order_again"/>
+                <element value="cancel_order"/>
+                <element value="read_private_shop_orders"/>
+                <element value="customer"/>
+                <element value="manage_options"/>
+                <element value="manage_woocommerce"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>

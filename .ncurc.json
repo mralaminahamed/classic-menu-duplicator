@@ -1,0 +1,14 @@
+{
+  "upgrade": true,
+  "peer": true,
+  "concurrency": 40,
+  "packageManager": "yarn",
+  "reject": [
+    "@types/react",
+    "@types/react-dom",
+    "eslint",
+    "react",
+    "react-dom",
+    "react-is"
+  ]
+}

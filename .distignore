@@ -1,0 +1,78 @@
+# Development and build files
+/node_modules/
+webpack*.js
+package.*
+package-*.*
+composer.*
+yarn.*
+*.config.js
+
+# Development tools and configuration
+/.yarn/
+.*.json
+.eslint*
+.stylelint*
+.yarnrc.yml
+.editorconfig
+.gitignore
+.distignore
+phpstan.neon
+phpunit.xml
+phpcs.xml.dist
+jest.*.js
+.phpunit.result.cache
+readme.md
+
+# Documentation and project files
+/docs/
+/spa/
+
+# Testing and CI
+tests/
+.github/
+
+# IDE and editor files
+/.vscode/
+/.idea/
+*.sublime-*
+.DS_Store*
+._*
+.Spotlight-*
+.Trashes
+*thumbs.db
+
+# Build and release directories
+/release/
+/dist/
+
+# Git files
+/.git/
+
+# Temporary files
+*.{tmp,log,cache}
+*.{swp,swo}
+*~
+
+# Archives (development)
+*.{zip,tar.gz,tar,rar}
+
+# WordPress specific files
+/svn-assets/
+
+# Development configuration files
+AGENTS.md
+tsconfig.json
+tree.sh
+
+# Cache directories
+/.cache/
+/tmp/
+
+# Additional common exclusions
+.nyc_output/
+*.tgz
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.hugo_build.lock
