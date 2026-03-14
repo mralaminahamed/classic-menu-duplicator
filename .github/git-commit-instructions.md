@@ -1,4 +1,4 @@
-# Git Commit Instructions for WooCommerce GoCardless Payments
+# Git Commit Instructions for WP Menu Duplicator
 
 Consistent commit messages improve readability, changelog generation, and release automation.
 
@@ -20,35 +20,35 @@ Consistent commit messages improve readability, changelog generation, and releas
 
 | Type | Purpose | Examples |
 |------|---------|----------|
-| feat | New user-facing feature | feat(gateway): add Instant Bank Pay |
-| fix | Bug fix | fix(webhook): correct signature validation |
-| perf | Performance improvement | perf(api): cache order queries |
-| refactor | Code change w/o feature/bug impact | refactor(gateway): extract refund handler |
-| docs | Documentation only | docs(readme): add webhook URL |
-| test | Tests added/updated | test(api): add client test |
+| feat | New user-facing feature | feat(admin): add duplicate button |
+| fix | Bug fix | fix(ajax): correct menu ID retrieval |
+| perf | Performance improvement | perf(core): cache menu items |
+| refactor | Code change w/o feature/bug impact | refactor: extract duplication logic |
+| docs | Documentation only | docs(readme): add installation steps |
+| test | Tests added/updated | test(core): add duplication test |
 | chore | Repo maintenance (no src impact) | chore: update .gitignore |
 | build | Build system / tooling | build: add phpcs config |
-| ci | Continuous integration config | ci: add php 8.3 to matrix |
-| security | Security-related fix | security(webhook): validate HMAC signature |
+| ci | Continuous integration config | ci: add php 8.2 to matrix |
+| security | Security-related fix | security: validate nonce |
 
 (Use one primary type; secondary concerns go in body.)
 
 ## 3. Scopes (Optional)
 
-Common scopes: `gateway`, `webhook`, `refund`, `subscription`, `admin`, `api`, `settings`.
+Common scopes: `admin`, `frontend`, `core`, `i18n`.
 Use lowercase; add new scopes sparingly.
 
 ## 4. Breaking Changes
 
 - Start a body line with `BREAKING CHANGE:` followed by explanation & migration steps.
-- Optionally append `!` after type/scope (e.g., `feat(gateway)!:`) – still include the body note.
+- Optionally append `!` after type/scope (e.g., `feat(core)!:`) – still include the body note.
 
 Example:
 ```
-feat(gateway)!: change order amount calculation
+feat(core)!: change menu item duplication
 
-BREAKING CHANGE: amounts now include tax by default.
-Update existing integrations accordingly.
+BREAKING CHANGE: custom menu item meta is no longer copied.
+Update existing workflows accordingly.
 ```
 
 ## 5. Referencing Issues & PRs
@@ -70,31 +70,31 @@ Explain:
 ## 7. Examples
 
 ```
-feat(gateway): add Instant Bank Pay support
+feat(admin): add duplicate menu button to menu editor
 
-Adds real-time bank payments via GoCardless Instant Bank Pay.
+Adds a Duplicate Menu button to the nav-menus.php editor.
 Closes #10
 
-fix(webhook): validate HMAC signature before processing
+fix(ajax): validate nonce before processing request
 
-Prevents forged webhook payloads.
+Prevents unauthorized duplication requests.
 
-perf(api): cache GoCardless payment lookups
+perf(core): cache menu items query
 
-Adds 5-minute transient cache for payment queries.
+Adds transient cache for menu items lookups.
 
-refactor(gateway): extract Refund_Handler class
+refactor(core): extract Menu_Duplicator class
 
 No behavior change; improves testability.
 
-security(webhook): enforce signature verification
+security: enforce capability check
 
-Adds hash_equals() HMAC-SHA256 validation.
+Adds manage_options capability verification.
 Closes #25
 
-docs(readme): document webhook URL format
+docs(readme): document new filter hook
 
-test(api): add regression test for get request
+test(core): add regression test for menu duplication
 ```
 
 ## 8. Security / Sensitive Fixes
@@ -105,7 +105,7 @@ test(api): add regression test for get request
 ## 9. Translation & Escaping Notes
 
 If adding user-facing strings: mention i18n + escaping (e.g., "All new strings wrapped in `__()`; output escaped with `esc_html`").
-Text domain: `wc-gocardless-payments`
+Text domain: `wp-menu-duplicator`
 
 ## 10. Tests Reference
 
@@ -116,7 +116,7 @@ When logic changes: add/adjust tests. If deferred (rare), justify in body.
 - PHPCS / linters pass.
 - No debug output (`var_dump`, `console.log`).
 - Inputs validated & output escaped.
-- i18n applied (text domain: `wc-gocardless-payments`).
+- i18n applied (text domain: `wp-menu-duplicator`).
 - No obvious performance regressions (N+1 queries, etc.).
 - Tests updated/added.
 
@@ -139,6 +139,6 @@ Default: feat (new behavior), fix (defect), refactor (internal), chore (maintena
 
 ---
 
-Following these conventions keeps WooCommerce GoCardless Payments history clean, searchable, and automatable.
+Following these conventions keeps WP Menu Duplicator history clean, searchable, and automatable.
 
 Thank you for contributing!
