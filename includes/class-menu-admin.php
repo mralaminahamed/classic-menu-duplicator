@@ -27,9 +27,9 @@ class Menu_Admin {
 	 * @return void
 	 */
 	public function register_hooks(): void {
-		add_action( 'admin_enqueue_scripts',      array( $this, 'enqueue_scripts' ) );
-		add_action( 'admin_head',                 array( $this, 'output_inline_styles' ) );
-		add_action( 'wp_ajax_wmd_duplicate_menu', array( $this, 'handle_ajax' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_head', array( $this, 'output_inline_styles' ) );
+		add_action( 'wp_ajax_cmd_duplicate_menu', array( $this, 'handle_ajax' ) );
 	}
 
 	/**
@@ -49,14 +49,8 @@ class Menu_Admin {
 		if ( 'nav-menus.php' !== $pagenow ) {
 			return;
 		}
-		?>
-		<style id="wmd-inline-styles">
-			#wmd-duplicate-menu {
-				vertical-align: middle;
-				margin-left: 6px;
-			}
-		</style>
-		<?php
+
+		include CLASSIC_MENU_DUPLICATOR_DIR . 'templates/admin/inline-styles.php';
 	}
 
 	/**
@@ -77,7 +71,7 @@ class Menu_Admin {
 		$asset_file = CLASSIC_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
 
 		wp_enqueue_script(
-			'wmd-admin',
+			'cmd-admin',
 			CLASSIC_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			file_exists( $asset_file )
@@ -87,11 +81,11 @@ class Menu_Admin {
 		);
 
 		wp_localize_script(
-			'wmd-admin',
-			'wmdData',
+			'cmd-admin',
+			'cmdData',
 			array(
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'nonce'            => wp_create_nonce( 'wmd_duplicate_menu' ),
+				'nonce'            => wp_create_nonce( 'cmd_duplicate_menu' ),
 				'currentMenuId'    => absint( $_GET['menu'] ?? 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'buttonLabel'      => __( 'Duplicate Menu', 'classic-menu-duplicator' ),
 				'duplicatingLabel' => __( 'Duplicating...', 'classic-menu-duplicator' ),
@@ -101,7 +95,7 @@ class Menu_Admin {
 	}
 
 	/**
-	 * Handles the wmd_duplicate_menu AJAX request.
+	 * Handles the cmd_duplicate_menu AJAX request.
 	 *
 	 * Verifies the nonce, confirms the current user has the required
 	 * capability, validates the submitted menu ID, then delegates to
@@ -113,7 +107,7 @@ class Menu_Admin {
 		// 1. Nonce verification.
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 
-		if ( ! wp_verify_nonce( $nonce, 'wmd_duplicate_menu' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'cmd_duplicate_menu' ) ) {
 			wp_send_json_error(
 				array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ),
 				403
