@@ -34,7 +34,7 @@ class Menu_Duplicator {
 	 *
 	 * @return int|\WP_Error New menu term ID on success, WP_Error on failure.
 	 */
-	public function duplicate( int $source_menu_id ): int|\WP_Error {
+	public function duplicate( int $source_menu_id ) {
 		$source_term = get_term( $source_menu_id, 'nav_menu' );
 
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
@@ -126,7 +126,7 @@ class Menu_Duplicator {
 	 *
 	 * @return int|\WP_Error New post ID, or WP_Error on failure.
 	 */
-	private function duplicate_menu_item( \WP_Post $item, int $new_menu_id, array $id_map ): int|\WP_Error {
+	private function duplicate_menu_item( \WP_Post $item, int $new_menu_id, array $id_map ) {
 		// Insert the cloned post.
 		$new_item_id = wp_insert_post(
 			array(
