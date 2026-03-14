@@ -1,13 +1,13 @@
-# AGENTS.md - WooCommerce GoCardless Payments
+# AGENTS.md - WP Menu Duplicator
 
-Agent-specific documentation for the WooCommerce GoCardless Payments WordPress plugin.
+Agent-specific documentation for the WP Menu Duplicator WordPress plugin.
 
 ## Overview
 
-WooCommerce payment gateway integrating GoCardless for Direct Debit (ACH/BACS/SEPA), Instant Bank Pay, Variable Recurring Payments (VRP), and Payment Intentions.
+A simple WordPress plugin that allows users to duplicate navigation menus with a single click.
 
-- **PHP**: 7.4+ | **WordPress**: 6.2+ | **WooCommerce**: 8.0+
-- **Namespace**: `WC_GoCardless` | **Text Domain**: `wc-gocardless-payments`
+- **PHP**: 7.4+ | **WordPress**: 6.0+ | **WooCommerce**: Not required
+- **Text Domain**: `wp-menu-duplicator`
 
 ---
 
@@ -16,7 +16,7 @@ WooCommerce payment gateway integrating GoCardless for Direct Debit (ACH/BACS/SE
 ### PHP Code Sniffer
 ```bash
 # Full plugin
-./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ wc-gocardless-payments.php
+./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ wp-menu-duplicator.php
 
 # Custom ruleset
 ./vendor/bin/phpcs --standard=phpcs.xml.dist includes/
@@ -36,17 +36,13 @@ WooCommerce payment gateway integrating GoCardless for Direct Debit (ACH/BACS/SE
 ./vendor/bin/phpunit
 
 # Single test file
-./vendor/bin/phpunit tests/php/src/Api/API_Client_Test.php
-
-# Specific test method
-./vendor/bin/phpunit --filter test_get_request
+./vendor/bin/phpunit tests/php/src/Menu_Duplicator_Test.php
 ```
 
 ### Other
 ```bash
 npm run lint          # JS linting
 composer makepot     # Generate .pot file
-composer release     # Create release zip
 ```
 
 ---
@@ -57,60 +53,32 @@ composer release     # Create release zip
 - Always use `declare( strict_types=1 );` at the top of PHP files
 - Follow WordPress Coding Standards (WPCS)
 - Use PHP 7.4+ syntax (typed properties, null coalescing, arrow functions)
-- Use dependency injection via constructors; avoid globals
 
-### Namespaces & Class Files
+### Class Files
 ```
-WC_GoCardless\
-├── API\
-├── Admin\
-├── Gateway\
-├── Webhooks\
-├── Subscriptions\
-├── Utilities\
-├── Frontend\
-└── Payment_Token\
+includes/
+├── class-menu-admin.php       # Admin UI and AJAX
+└── class-menu-duplicator.php  # Core duplication logic
 ```
-
-Class file format: `class-wc-gocardless-*.php`
 
 ### Naming Conventions
-- Classes: `PascalCase` (e.g., `API_Client`)
-- Methods/Properties: `snake_case` (e.g., `process_payment`, `$api_client`)
+- Classes: `PascalCase` (e.g., `Menu_Duplicator`)
+- Methods/Properties: `snake_case` (e.g., `duplicate_menu`, `$menu_id`)
 - Constants: `UPPER_SNAKE_CASE`
 - Hooks: lowercase with underscores
 
-### Imports
-Use explicit class imports. Avoid fully qualified names in code:
-
-```php
-// Good
-use WC_GoCardless\API\API_Client;
-use WC_GoCardless\Gateway\Gateway;
-
-// Bad
-$client = \WC_GoCardless\API\API_Client::get_instance();
-```
-
 ### PHPDoc
-Document all public methods with `@param`, `@return`, `@throws`:
+Document all public methods with `@param`, `@return`:
 
 ```php
 /**
- * Process a payment for the given order.
+ * Duplicate a navigation menu.
  *
- * @param  \WC_Order $order    Order object.
- * @param  array      $payload Payment payload.
- * @return array{result: string, redirect: string}
- * @throws API_Exception On API error.
+ * @param int $menu_id Term ID of the menu to duplicate.
+ * @return int|WP_Error New menu term ID or WP_Error on failure.
  */
-public function process_payment( $order, $payload = [] ): array {}
+public function duplicate_menu( int $menu_id ) {}
 ```
-
-### Error Handling
-- Throw domain-specific exceptions
-- Catch at appropriate levels (controller/gateway)
-- Use `\WP_Error` for WordPress-specific errors
 
 ---
 
@@ -119,32 +87,31 @@ public function process_payment( $order, $payload = [] ): array {}
 - **Escape output**: `esc_html__()`, `esc_attr__()`, `esc_url()`, `esc_js()`
 - **Sanitize input**: `sanitize_text_field()`, `absint()`, `wp_kses()`
 - **Nonces**: `wp_create_nonce()`, `check_admin_referer()`
-- **Capabilities**: `current_user_can( 'manage_woocommerce' )`
+- **Capabilities**: `current_user_can( 'manage_options' )`
 - **Database**: `$wpdb->prepare()` with placeholders
-- **Webhooks**: Verify HMAC-SHA256 with `hash_equals()`
 
 ```php
 // Always escape
-echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'wc-gocardless-payments' ) . '</a>';
+echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'wp-menu-duplicator' ) . '</a>';
 
 // Always sanitize
-$order_id = absint( $_POST['order_id'] );
+$menu_id = absint( $_POST['menu_id'] );
 ```
 
 ---
 
 ## 4. Internationalization (i18n)
 
-- Wrap all user-facing strings: `__( 'Text', 'wc-gocardless-payments' )`
+- Wrap all user-facing strings: `__( 'Text', 'wp-menu-duplicator' )`
 - Use escape variants: `esc_html__()`, `esc_html_e()`, `esc_attr__()`
 - Never concatenate translatable strings; use `sprintf()`:
 
 ```php
 // Bad
-$msg = __( 'Order #' . $order_id, 'wc-gocardless-payments' );
+$msg = __( 'Menu #' . $menu_id, 'wp-menu-duplicator' );
 
 // Good
-$msg = sprintf( __( 'Order #%d', 'wc-gocardless-payments' ), $order_id );
+$msg = sprintf( __( 'Menu #%d', 'wp-menu-duplicator' ), $menu_id );
 ```
 
 ---
@@ -170,15 +137,14 @@ $msg = sprintf( __( 'Order #%d', 'wc-gocardless-payments' ), $order_id );
 
 ```
 includes/
-├── class-wc-gocardless-payments.php   # Main plugin class
-├── api/                               # API clients
-├── admin/                             # Admin settings
-├── gateway/                           # Payment gateways
-├── frontend/                          # Checkout handling
-├── webhooks/                          # Webhook processing
-├── subscriptions/                     # WooCommerce Subscriptions
-├── utilities/                         # Helpers
-└── payment-token/                     # Payment tokens
+├── class-menu-admin.php       # Admin UI, enqueue scripts, AJAX handler
+└── class-menu-duplicator.php  # Core duplication logic
+
+assets/js/
+└── admin.js                   # Frontend JavaScript
+
+languages/
+└── wp-menu-duplicator.pot     # Translation template
 ```
 
 ---
@@ -190,11 +156,11 @@ includes/
 - Test naming: `ClassNameTest.php`
 
 ```php
-class API_Client_Test extends \PHPUnit\Framework\TestCase {
-    public function test_get_returns_array() {
-        $client = new API_Client();
-        $result = $client->get( 'payments/payment_xxx' );
-        $this->assertIsArray( $result );
+class Menu_Duplicator_Test extends \PHPUnit\Framework\TestCase {
+    public function test_duplicate_menu_returns_new_id() {
+        $duplicator = new Menu_Duplicator();
+        $result = $duplicator->duplicate_menu( 1 );
+        $this->assertIsInt( $result );
     }
 }
 ```
@@ -211,21 +177,18 @@ Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
 
 ## 9. Important Hooks
 
-- `woocommerce_payment_gateways` — Register gateway
-- `rest_api_init` — Register REST routes
-- `woocommerce_update_options_payment_gateways` — Save settings
-- `woocommerce_order_refunded` — Process refunds
+- `admin_enqueue_scripts` — Enqueue admin assets
+- `wp_ajax_wmd_duplicate_menu` — Handle AJAX duplication request
 
 ---
 
 ## 10. Key Security Considerations
 
-1. Never expose secrets — API tokens, webhook secret
-2. Validate webhook signatures using `hash_equals()` with HMAC-SHA256
-3. Use nonces for all AJAX/admin form submissions
-4. Check capabilities before privileged operations
-5. Sanitize all input — never trust `$_GET`, `$_POST`, `$_REQUEST`
-6. Escape all output
+1. Validate nonce using `wp_verify_nonce()` or `check_admin_referer()`
+2. Use nonces for all AJAX/admin form submissions
+3. Check capabilities before privileged operations (`manage_options`)
+4. Sanitize all input — never trust `$_GET`, `$_POST`, `$_REQUEST`
+5. Escape all output
 
 ---
 
