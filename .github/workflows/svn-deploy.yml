@@ -62,11 +62,6 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
       - name: Cache Composer dependencies
         uses: actions/cache@v5
         with:
@@ -77,25 +72,9 @@ jobs:
           restore-keys: |
             composer-${{ runner.os }}-
 
-      - name: Cache Node modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            node-${{ runner.os }}-
-
       - name: Install PHP dependencies (with dev for build tooling)
         run: |
           composer install --no-interaction --prefer-dist
-
-      - name: Build assets (yarn)
-        run: |
-           corepack enable yarn
-           yarn set version stable
-           yarn install --frozen-lockfile
-           yarn build
 
       - name: Optimize production autoloader (remove dev deps)
         run: |
