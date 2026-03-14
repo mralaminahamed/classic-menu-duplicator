@@ -18,16 +18,14 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 define( 'CLASSIC_MENU_DUPLICATOR_VERSION', '1.0.0' );
-define( 'CLASSIC_MENU_DUPLICATOR_FILE',    __FILE__ );
-define( 'CLASSIC_MENU_DUPLICATOR_DIR',     plugin_dir_path( __FILE__ ) );
-define( 'CLASSIC_MENU_DUPLICATOR_URL',     plugin_dir_url( __FILE__ ) );
+define( 'CLASSIC_MENU_DUPLICATOR_FILE', __FILE__ );
+define( 'CLASSIC_MENU_DUPLICATOR_DIR', plugin_dir_path( __FILE__ ) );
+define( 'CLASSIC_MENU_DUPLICATOR_URL', plugin_dir_url( __FILE__ ) );
 
 require_once CLASSIC_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
 
@@ -36,7 +34,8 @@ require_once CLASSIC_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
  *
  * @return void
  */
-function bootstrap(): void {
+function classic_menu_duplicator_bootstrap(): void {
 	( new Menu_Admin() )->register_hooks();
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\\bootstrap' );
+
+add_action( 'plugins_loaded', __NAMESPACE__ . '\\classic_menu_duplicator_bootstrap' );
