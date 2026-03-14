@@ -5,7 +5,7 @@
  * Description:       Adds a Duplicate Menu button to the nav-menus.php screen.
  * Version:           1.0.0
  * Requires at least: 6.0
- * Requires PHP:      8.0
+ * Requires PHP:      7.4
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
  * License:           GPL-2.0-or-later
@@ -29,8 +29,7 @@ define( 'WP_MENU_DUPLICATOR_FILE',    __FILE__ );
 define( 'WP_MENU_DUPLICATOR_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'WP_MENU_DUPLICATOR_URL',     plugin_dir_url( __FILE__ ) );
 
-require_once WP_MENU_DUPLICATOR_DIR . 'includes/class-menu-duplicator.php';
-require_once WP_MENU_DUPLICATOR_DIR . 'includes/class-menu-admin.php';
+require_once WP_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
 
 /**
  * Initialises the plugin on plugins_loaded.
