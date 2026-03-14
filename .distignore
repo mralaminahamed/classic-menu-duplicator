@@ -3,7 +3,7 @@
 webpack*.js
 package.*
 package-*.*
-composer.*
+composer.lock
 yarn.*
 *.config.js
 
