@@ -39,7 +39,7 @@ if ( ! current_user_can( 'activate_plugins' ) ) {
  *
  * @return void
  */
-function cmd_delete_options(): void {
+function classic_menu_duplicator_delete_options(): void {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -62,7 +62,7 @@ function cmd_delete_options(): void {
  *
  * @return void
  */
-function cmd_delete_transients(): void {
+function classic_menu_duplicator_delete_transients(): void {
 	global $wpdb;
 
 	$patterns = array(
@@ -92,25 +92,25 @@ function cmd_delete_transients(): void {
  *
  * @return void
  */
-function cmd_network_uninstall(): void {
+function classic_menu_duplicator_network_uninstall(): void {
 	if ( ! is_multisite() ) {
 		return;
 	}
 
 	$blog_ids = get_sites(
 		array(
-			'fields'     => 'ids',
-			'number'     => 0, // Retrieve all sites.
-			'spam'       => 0,
-			'deleted'    => 0,
-			'archived'   => 0,
+			'fields'   => 'ids',
+			'number'   => 0, // Retrieve all sites.
+			'spam'     => 0,
+			'deleted'  => 0,
+			'archived' => 0,
 		)
 	);
 
 	foreach ( $blog_ids as $blog_id ) {
 		switch_to_blog( (int) $blog_id );
-		cmd_delete_options();
-		cmd_delete_transients();
+		classic_menu_duplicator_delete_options();
+		classic_menu_duplicator_delete_transients();
 		restore_current_blog();
 	}
 }
@@ -120,8 +120,8 @@ function cmd_network_uninstall(): void {
 // -------------------------------------------------------------------------
 
 if ( is_multisite() ) {
-	cmd_network_uninstall();
+	classic_menu_duplicator_network_uninstall();
 } else {
-	cmd_delete_options();
-	cmd_delete_transients();
+	classic_menu_duplicator_delete_options();
+	classic_menu_duplicator_delete_transients();
 }
