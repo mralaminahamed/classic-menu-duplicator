@@ -1,5 +1,7 @@
 # Classic Menu Duplicator
 
+> **Notice:** This plugin has been submitted to WordPress.org for review and approval. Once approved and after completing the plugin review, it will be available at [wordpress.org/plugins/classic-menu-duplicator](https://wordpress.org/plugins/classic-menu-duplicator/).
+
 A simple WordPress plugin that allows users to duplicate navigation menus with a single click.
 
 ## Description
