@@ -10,7 +10,7 @@
         <env name="WP_PHPUNIT__TESTS_CONFIG" value="tests/php/phpunit-wp-config.php" />
     </php>
 	<testsuites>
-		<testsuite name="GoCardless Test Suite">
+		<testsuite name="Classic Menu Duplicator Test Suite">
 			<directory prefix="" suffix=".php">./tests/php/src</directory>
 			<exclude>./tests/php/phpunit-wp-config.php</exclude>
 		</testsuite>
