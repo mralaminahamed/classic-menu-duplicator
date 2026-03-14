@@ -28,7 +28,35 @@ class Menu_Admin {
 	 */
 	public function register_hooks(): void {
 		add_action( 'admin_enqueue_scripts',      array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_head',                 array( $this, 'output_inline_styles' ) );
 		add_action( 'wp_ajax_wmd_duplicate_menu', array( $this, 'handle_ajax' ) );
+	}
+
+	/**
+	 * Outputs inline CSS scoped to nav-menus.php.
+	 *
+	 * Ensures the Duplicate Menu button aligns correctly inside
+	 * #save_menu_footer alongside the native Save Menu submit input and the
+	 * Delete Menu link without requiring a separate stylesheet asset.
+	 *
+	 * @global string $pagenow Current admin page filename.
+	 *
+	 * @return void
+	 */
+	public function output_inline_styles(): void {
+		global $pagenow;
+
+		if ( 'nav-menus.php' !== $pagenow ) {
+			return;
+		}
+		?>
+		<style id="wmd-inline-styles">
+			#wmd-duplicate-menu {
+				vertical-align: middle;
+				margin-left: 6px;
+			}
+		</style>
+		<?php
 	}
 
 	/**
@@ -64,8 +92,9 @@ class Menu_Admin {
 			array(
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'wmd_duplicate_menu' ),
+				'currentMenuId'    => absint( $_GET['menu'] ?? 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'buttonLabel'      => __( 'Duplicate Menu', 'wp-menu-duplicator' ),
-				'duplicatingLabel' => __( 'Duplicating\u2026', 'wp-menu-duplicator' ),
+				'duplicatingLabel' => __( 'Duplicating...', 'wp-menu-duplicator' ),
 				'errorMessage'     => __( 'Duplication failed. Please try again.', 'wp-menu-duplicator' ),
 			)
 		);
