@@ -3,7 +3,7 @@ Contributors:      mralaminahamed
 Tags:              menus, navigation, duplicate, copy
 Requires at least: 6.0
 Tested up to:      6.7
-Requires PHP:      8.0
+Requires PHP:      7.4
 Stable tag:        1.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,11 +12,11 @@ Adds a Duplicate Menu button to the nav-menus.php screen, enabling one-click dup
 
 == Description ==
 
-WP Menu Duplicator places a **Duplicate Menu** button immediately after the **Select** button on the *Appearance → Menus* screen. Clicking it creates an exact copy of the currently selected menu — including all items, nesting hierarchy, and item metadata — and redirects the editor to the newly duplicated menu.
+WP Menu Duplicator places a **Duplicate Menu** button in the menu editor footer on the *Appearance → Menus* screen. Clicking it creates an exact copy of the currently selected menu — including all items, nesting hierarchy, and item metadata — and redirects the editor to the newly duplicated menu.
 
 **Features**
 
-* One-click duplication from the standard nav-menus.php toolbar.
+* One-click duplication from the menu editor footer.
 * Preserves complete item hierarchy (parent–child relationships).
 * Copies all menu item postmeta: type, object, target, CSS classes, XFN, URL.
 * New menu is named `{Original Name} (Copy)` and is immediately editable.
