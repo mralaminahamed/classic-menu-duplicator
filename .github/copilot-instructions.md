@@ -1,4 +1,4 @@
-# Copilot Instructions for WP Menu Duplicator
+# Copilot Instructions for Classic Menu Duplicator
 
 Guidance for using GitHub Copilot (or similar AI assistants) while contributing to this WordPress menu duplicator plugin.
 
@@ -19,7 +19,7 @@ Avoid (require human authored or thorough review):
 
 - Run PHPCS with WordPress Coding Standards before committing:
   ```bash
-  ./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ wp-menu-duplicator.php
+  ./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ classic-menu-duplicator.php
   ```
 - Follow WordPress escaping/sanitizing conventions: `esc_html__`, `esc_attr__`, `esc_url`, `sanitize_text_field`, `wp_kses`, `wp_create_nonce`, `check_admin_referer`.
 - Keep functions small & single responsibility.
@@ -27,7 +27,7 @@ Avoid (require human authored or thorough review):
 
 ## 3. File / Architectural Conventions
 
-- Main plugin file (`wp-menu-duplicator.php`) defines constants and bootstraps.
+- Main plugin file (`classic-menu-duplicator.php`) defines constants and bootstraps.
 - `includes/` contains core logic:
   - `class-menu-admin.php` - Admin UI and AJAX handling
   - `class-menu-duplicator.php` - Core duplication logic
@@ -47,9 +47,9 @@ Avoid (require human authored or thorough review):
 
 ## 6. Internationalization (i18n)
 
-- All user-facing strings must be wrapped: `__( 'Text', 'wp-menu-duplicator' )` or `esc_html__()`.
+- All user-facing strings must be wrapped: `__( 'Text', 'classic-menu-duplicator' )` or `esc_html__()`.
 - Do not concatenate translatable strings with variables; use placeholders (sprintf).
-- Text domain: `wp-menu-duplicator`
+- Text domain: `classic-menu-duplicator`
 
 ## 7. Testing
 
@@ -83,7 +83,7 @@ Closes #42
 
 ## 11. Versioning
 
-- Bump version in `wp-menu-duplicator.php` only when preparing a release.
+- Bump version in `classic-menu-duplicator.php` only when preparing a release.
 - Document notable changes in readme.txt.
 
 ## 12. Handling Sensitive / Proprietary Logic
@@ -95,7 +95,7 @@ Closes #42
 
 - [ ] Escaping / sanitizing applied where needed.
 - [ ] No raw input trust (`$_REQUEST`, `$_GET`, `$_POST`) without validation.
-- [ ] Translation functions used for user text with 'wp-menu-duplicator' domain.
+- [ ] Translation functions used for user text with 'classic-menu-duplicator' domain.
 - [ ] Memory / query usage reasonable.
 - [ ] No dead or commented-out large blocks.
 - [ ] Follows commit message spec.
@@ -129,4 +129,4 @@ public function duplicate_menu( int $menu_id ) {
 
 ---
 
-Thank you for contributing to WP Menu Duplicator! Use Copilot responsibly — human judgment remains essential.
+Thank you for contributing to Classic Menu Duplicator! Use Copilot responsibly — human judgment remains essential.

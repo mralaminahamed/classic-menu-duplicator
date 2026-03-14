@@ -1,10 +1,10 @@
-# PHPStan configuration for WP Menu Duplicator
+# PHPStan configuration for Classic Menu Duplicator
 parameters:
   level: 4
   phpVersion: 70400
 
   paths:
-    - wp-menu-duplicator.php
+    - classic-menu-duplicator.php
     - includes/
 
   excludePaths:
@@ -26,16 +26,16 @@ parameters:
 
   ignoreErrors:
     # Plugin constants (defined at runtime)
-    - '#Constant WMD_[A-Z_]* not found#'
+    - '#Constant CMD_[A-Z_]* not found#'
 
     # WordPress stub property access issues
     - '#Access to an undefined property WC_Meta_Data::\$.*#'
 
   dynamicConstantNames:
-    - WMD_VERSION
-    - WMD_FILE
-    - WMD_PATH
-    - WMD_URL
+    - CLASSIC_MENU_DUPLICATOR_VERSION
+    - CLASSIC_MENU_DUPLICATOR_FILE
+    - CLASSIC_MENU_DUPLICATOR_DIR
+    - CLASSIC_MENU_DUPLICATOR_URL
 
   universalObjectCratesClasses:
     - WP_Post

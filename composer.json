@@ -1,5 +1,5 @@
 {
-	"name": "alaminahamed/wp-menu-duplicator",
+	"name": "mralaminahamed/classic-menu-duplicator",
 	"description": "A simple WordPress plugin that allows users to duplicate navigation menus with a single click.",
 	"type": "wordpress-plugin",
 	"version": "1.0.0",
@@ -34,7 +34,17 @@
 		]
 	},
 	"scripts": {
-		"makepot": "wp i18n make-pot . languages/wp-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests"
+		"makepot": "wp i18n make-pot . languages/classic-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
+		"release": [
+			"rm -rf release vendor build/*",
+			"@makepot",
+			"mkdir -p release",
+			"composer install --no-dev --optimize-autoloader",
+			"rsync -av --exclude-from=.distignore . release/classic-menu-duplicator/",
+			"cd release && zip -r classic-menu-duplicator.zip classic-menu-duplicator/",
+			"rm -rf release/classic-menu-duplicator/",
+			"composer install"
+		]
 	},
 	"config": {
 		"platform": {

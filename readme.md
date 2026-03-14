@@ -1,10 +1,10 @@
-# WP Menu Duplicator
+# Classic Menu Duplicator
 
 A simple WordPress plugin that allows users to duplicate navigation menus with a single click.
 
 ## Description
 
-WP Menu Duplicator adds a **Duplicate Menu** button to the WordPress menu editor. With just one click, you can duplicate any navigation menu along with all its items, hierarchy, and settings.
+Classic Menu Duplicator adds a **Duplicate Menu** button to the WordPress menu editor. With just one click, you can duplicate any navigation menu along with all its items, hierarchy, and settings.
 
 ## Features
 
@@ -23,7 +23,7 @@ WP Menu Duplicator adds a **Duplicate Menu** button to the WordPress menu editor
 
 ## Installation
 
-1. Upload the `wp-menu-duplicator` directory to `/wp-content/plugins/`
+1. Upload the `classic-menu-duplicator` directory to `/wp-content/plugins/`
 2. Activate the plugin through *Plugins → Installed Plugins*
 3. Navigate to *Appearance → Menus*, select a menu, and click **Duplicate Menu**
 

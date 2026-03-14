@@ -1,48 +1,75 @@
-# Copyright (C) 2024 Al Amin Ahamed
-# This file is distributed under the GPL-2.0-or-later license.
+# Copyright (C) 2026 Al Amin Ahamed
+# This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
 "Project-Id-Version: WP Menu Duplicator 1.0.0\n"
-"Report-Msgid-Bugs-To: https://github.com/mralaminahamed/wp-menu-duplicator/issues\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-menu-duplicator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-01T00:00:00+00:00\n"
+"POT-Creation-Date: 2026-03-14T20:37:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.x\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wp-menu-duplicator\n"
 
-#. translators: %s: original menu name
-#: includes/class-menu-duplicator.php
-msgid "%s (Copy)"
+#. Plugin Name of the plugin
+#: wp-menu-duplicator.php
+msgid "WP Menu Duplicator"
 msgstr ""
 
-#: includes/class-menu-duplicator.php
-msgid "Source menu not found."
+#. Plugin URI of the plugin
+#: wp-menu-duplicator.php
+msgid "https://github.com/mralaminahamed/wp-menu-duplicator"
 msgstr ""
 
-#: includes/class-menu-admin.php
+#. Description of the plugin
+#: wp-menu-duplicator.php
+msgid "Adds a Duplicate Menu button to the nav-menus.php screen."
+msgstr ""
+
+#. Author of the plugin
+#: wp-menu-duplicator.php
+msgid "Al Amin Ahamed"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-menu-duplicator.php
+msgid "https://github.com/mralaminahamed"
+msgstr ""
+
+#: includes/class-menu-admin.php:96
 msgid "Duplicate Menu"
 msgstr ""
 
-#: includes/class-menu-admin.php
-msgid "Duplicating\u2026"
+#: includes/class-menu-admin.php:97
+msgid "Duplicating..."
 msgstr ""
 
-#: includes/class-menu-admin.php
+#: includes/class-menu-admin.php:98
 msgid "Duplication failed. Please try again."
 msgstr ""
 
-#: includes/class-menu-admin.php
+#: includes/class-menu-admin.php:118
 msgid "Security check failed."
 msgstr ""
 
-#: includes/class-menu-admin.php
+#: includes/class-menu-admin.php:126
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/class-menu-admin.php
+#: includes/class-menu-admin.php:136
 msgid "Invalid menu ID."
+msgstr ""
+
+#: includes/class-menu-duplicator.php:43
+msgid "Source menu not found."
+msgstr ""
+
+#. translators: %s: original menu name
+#: includes/class-menu-duplicator.php:52
+#, php-format
+msgctxt "duplicated menu name suffix"
+msgid "%s (Copy)"
 msgstr ""

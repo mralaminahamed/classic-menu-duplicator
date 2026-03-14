@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Uninstall routine for WP Menu Duplicator.
  *
@@ -36,9 +35,9 @@ if ( ! current_user_can( 'activate_plugins' ) ) {
  * so future versions can register options under the `wmd_` prefix and have
  * them cleaned up automatically without modifying the uninstall routine.
  *
- * @return void
  * @global \wpdb $wpdb WordPress database abstraction object.
  *
+ * @return void
  */
 function wmd_delete_options(): void {
 	global $wpdb;
@@ -59,9 +58,9 @@ function wmd_delete_options(): void {
  * (`_transient_timeout_wmd_*`) rows, plus their site-wide equivalents
  * on multisite (`_site_transient_wmd_*`).
  *
- * @return void
  * @global \wpdb $wpdb WordPress database abstraction object.
  *
+ * @return void
  */
 function wmd_delete_transients(): void {
 	global $wpdb;
@@ -100,11 +99,11 @@ function wmd_network_uninstall(): void {
 
 	$blog_ids = get_sites(
 		array(
-			'fields'   => 'ids',
-			'number'   => 0, // Retrieve all sites.
-			'spam'     => 0,
-			'deleted'  => 0,
-			'archived' => 0,
+			'fields'     => 'ids',
+			'number'     => 0, // Retrieve all sites.
+			'spam'       => 0,
+			'deleted'    => 0,
+			'archived'   => 0,
 		)
 	);
 

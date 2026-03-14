@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="wp-menu-duplicator">
-    <description>WP Menu Duplicator Coding Standards</description>
+<ruleset name="classic-menu-duplicator">
+    <description>Classic Menu Duplicator Coding Standards</description>
 
     <!-- Set the memory limit to 256M -->
     <ini name="memory_limit" value="256M"/>
@@ -11,7 +11,7 @@
 
     <!-- Paths to check -->
     <file>includes</file>
-    <file>wp-menu-duplicator.php</file>
+    <file>classic-menu-duplicator.php</file>
 
     <!-- Exclude patterns -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
@@ -65,7 +65,7 @@
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
-                <element value="wp-menu-duplicator"/>
+                <element value="classic-menu-duplicator"/>
             </property>
         </properties>
     </rule>
@@ -73,9 +73,9 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="WMD"/>
-                <element value="wmd"/>
-                <element value="menu_duplicator"/>
+                <element value="CMD"/>
+                <element value="cmd"/>
+                <element value="classic_menu_duplicator"/>
             </property>
         </properties>
     </rule>

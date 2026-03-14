@@ -1,4 +1,4 @@
-=== WP Menu Duplicator ===
+=== Classic Menu Duplicator ===
 Contributors:      mralaminahamed
 Tags:              menus, navigation, duplicate, copy
 Requires at least: 6.0
@@ -12,7 +12,7 @@ Adds a Duplicate Menu button to the nav-menus.php screen, enabling one-click dup
 
 == Description ==
 
-WP Menu Duplicator places a **Duplicate Menu** button in the menu editor footer on the *Appearance → Menus* screen. Clicking it creates an exact copy of the currently selected menu — including all items, nesting hierarchy, and item metadata — and redirects the editor to the newly duplicated menu.
+Classic Menu Duplicator places a **Duplicate Menu** button in the menu editor footer on the *Appearance → Menus* screen. Clicking it creates an exact copy of the currently selected menu — including all items, nesting hierarchy, and item metadata — and redirects the editor to the newly duplicated menu.
 
 **Features**
 
@@ -26,7 +26,7 @@ WP Menu Duplicator places a **Duplicate Menu** button in the menu editor footer 
 
 == Installation ==
 
-1. Upload the `wp-menu-duplicator` directory to `/wp-content/plugins/`.
+1. Upload the `classic-menu-duplicator` directory to `/wp-content/plugins/`.
 2. Activate the plugin through *Plugins → Installed Plugins*.
 3. Navigate to *Appearance → Menus*, select a menu, and click **Duplicate Menu**.
 

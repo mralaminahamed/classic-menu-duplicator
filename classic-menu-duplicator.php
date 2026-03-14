@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       WP Menu Duplicator
- * Plugin URI:        https://github.com/mralaminahamed/wp-menu-duplicator
+ * Plugin Name:       Classic Menu Duplicator
+ * Plugin URI:        https://github.com/mralaminahamed/classic-menu-duplicator
  * Description:       Adds a Duplicate Menu button to the nav-menus.php screen.
  * Version:           1.0.0
  * Requires at least: 6.0
@@ -10,26 +10,26 @@
  * Author URI:        https://github.com/mralaminahamed
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       wp-menu-duplicator
+ * Text Domain:       classic-menu-duplicator
  * Domain Path:       /languages
  *
- * @package WPMenuDuplicator
+ * @package ClassicMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace WPMenuDuplicator;
+namespace ClassicMenuDuplicator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_MENU_DUPLICATOR_VERSION', '1.0.0' );
-define( 'WP_MENU_DUPLICATOR_FILE',    __FILE__ );
-define( 'WP_MENU_DUPLICATOR_DIR',     plugin_dir_path( __FILE__ ) );
-define( 'WP_MENU_DUPLICATOR_URL',     plugin_dir_url( __FILE__ ) );
+define( 'CLASSIC_MENU_DUPLICATOR_VERSION', '1.0.0' );
+define( 'CLASSIC_MENU_DUPLICATOR_FILE',    __FILE__ );
+define( 'CLASSIC_MENU_DUPLICATOR_DIR',     plugin_dir_path( __FILE__ ) );
+define( 'CLASSIC_MENU_DUPLICATOR_URL',     plugin_dir_url( __FILE__ ) );
 
-require_once WP_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
+require_once CLASSIC_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
 
 /**
  * Initialises the plugin on plugins_loaded.

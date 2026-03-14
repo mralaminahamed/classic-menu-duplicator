@@ -2,12 +2,12 @@
 /**
  * Admin integration: script enqueuing and AJAX handler.
  *
- * @package WPMenuDuplicator
+ * @package ClassicMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace WPMenuDuplicator;
+namespace ClassicMenuDuplicator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -74,15 +74,15 @@ class Menu_Admin {
 			return;
 		}
 
-		$asset_file = WP_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
+		$asset_file = CLASSIC_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
 
 		wp_enqueue_script(
 			'wmd-admin',
-			WP_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
+			CLASSIC_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
-				: WP_MENU_DUPLICATOR_VERSION,
+				: CLASSIC_MENU_DUPLICATOR_VERSION,
 			true
 		);
 
@@ -93,9 +93,9 @@ class Menu_Admin {
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'wmd_duplicate_menu' ),
 				'currentMenuId'    => absint( $_GET['menu'] ?? 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				'buttonLabel'      => __( 'Duplicate Menu', 'wp-menu-duplicator' ),
-				'duplicatingLabel' => __( 'Duplicating...', 'wp-menu-duplicator' ),
-				'errorMessage'     => __( 'Duplication failed. Please try again.', 'wp-menu-duplicator' ),
+				'buttonLabel'      => __( 'Duplicate Menu', 'classic-menu-duplicator' ),
+				'duplicatingLabel' => __( 'Duplicating...', 'classic-menu-duplicator' ),
+				'errorMessage'     => __( 'Duplication failed. Please try again.', 'classic-menu-duplicator' ),
 			)
 		);
 	}
@@ -115,7 +115,7 @@ class Menu_Admin {
 
 		if ( ! wp_verify_nonce( $nonce, 'wmd_duplicate_menu' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Security check failed.', 'wp-menu-duplicator' ) ),
+				array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ),
 				403
 			);
 		}
@@ -123,7 +123,7 @@ class Menu_Admin {
 		// 2. Capability check.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Insufficient permissions.', 'wp-menu-duplicator' ) ),
+				array( 'message' => __( 'Insufficient permissions.', 'classic-menu-duplicator' ) ),
 				403
 			);
 		}
@@ -133,7 +133,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid menu ID.', 'wp-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid menu ID.', 'classic-menu-duplicator' ) ),
 				400
 			);
 		}

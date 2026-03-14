@@ -1,13 +1,13 @@
-# AGENTS.md - WP Menu Duplicator
+# AGENTS.md - Classic Menu Duplicator
 
-Agent-specific documentation for the WP Menu Duplicator WordPress plugin.
+Agent-specific documentation for the Classic Menu Duplicator WordPress plugin.
 
 ## Overview
 
 A simple WordPress plugin that allows users to duplicate navigation menus with a single click.
 
 - **PHP**: 7.4+ | **WordPress**: 6.0+ | **WooCommerce**: Not required
-- **Text Domain**: `wp-menu-duplicator`
+- **Text Domain**: `classic-menu-duplicator`
 
 ---
 
@@ -16,7 +16,7 @@ A simple WordPress plugin that allows users to duplicate navigation menus with a
 ### PHP Code Sniffer
 ```bash
 # Full plugin
-./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ wp-menu-duplicator.php
+./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ classic-menu-duplicator.php
 
 # Custom ruleset
 ./vendor/bin/phpcs --standard=phpcs.xml.dist includes/
@@ -92,7 +92,7 @@ public function duplicate_menu( int $menu_id ) {}
 
 ```php
 // Always escape
-echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'wp-menu-duplicator' ) . '</a>';
+echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'classic-menu-duplicator' ) . '</a>';
 
 // Always sanitize
 $menu_id = absint( $_POST['menu_id'] );
@@ -102,16 +102,16 @@ $menu_id = absint( $_POST['menu_id'] );
 
 ## 4. Internationalization (i18n)
 
-- Wrap all user-facing strings: `__( 'Text', 'wp-menu-duplicator' )`
+- Wrap all user-facing strings: `__( 'Text', 'classic-menu-duplicator' )`
 - Use escape variants: `esc_html__()`, `esc_html_e()`, `esc_attr__()`
 - Never concatenate translatable strings; use `sprintf()`:
 
 ```php
 // Bad
-$msg = __( 'Menu #' . $menu_id, 'wp-menu-duplicator' );
+$msg = __( 'Menu #' . $menu_id, 'classic-menu-duplicator' );
 
 // Good
-$msg = sprintf( __( 'Menu #%d', 'wp-menu-duplicator' ), $menu_id );
+$msg = sprintf( __( 'Menu #%d', 'classic-menu-duplicator' ), $menu_id );
 ```
 
 ---
@@ -144,7 +144,7 @@ assets/js/
 └── admin.js                   # Frontend JavaScript
 
 languages/
-└── wp-menu-duplicator.pot     # Translation template
+└── classic-menu-duplicator.pot     # Translation template
 ```
 
 ---

@@ -1,4 +1,4 @@
-# Git Commit Instructions for WP Menu Duplicator
+# Git Commit Instructions for Classic Menu Duplicator
 
 Consistent commit messages improve readability, changelog generation, and release automation.
 
@@ -105,7 +105,7 @@ test(core): add regression test for menu duplication
 ## 9. Translation & Escaping Notes
 
 If adding user-facing strings: mention i18n + escaping (e.g., "All new strings wrapped in `__()`; output escaped with `esc_html`").
-Text domain: `wp-menu-duplicator`
+Text domain: `classic-menu-duplicator`
 
 ## 10. Tests Reference
 
@@ -116,7 +116,7 @@ When logic changes: add/adjust tests. If deferred (rare), justify in body.
 - PHPCS / linters pass.
 - No debug output (`var_dump`, `console.log`).
 - Inputs validated & output escaped.
-- i18n applied (text domain: `wp-menu-duplicator`).
+- i18n applied (text domain: `classic-menu-duplicator`).
 - No obvious performance regressions (N+1 queries, etc.).
 - Tests updated/added.
 
@@ -139,6 +139,6 @@ Default: feat (new behavior), fix (defect), refactor (internal), chore (maintena
 
 ---
 
-Following these conventions keeps WP Menu Duplicator history clean, searchable, and automatable.
+Following these conventions keeps Classic Menu Duplicator history clean, searchable, and automatable.
 
 Thank you for contributing!

@@ -2,12 +2,12 @@
 /**
  * Core menu-duplication logic.
  *
- * @package WPMenuDuplicator
+ * @package ClassicMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace WPMenuDuplicator;
+namespace ClassicMenuDuplicator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -40,7 +40,7 @@ class Menu_Duplicator {
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
 			return new \WP_Error(
 				'invalid_menu',
-				__( 'Source menu not found.', 'wp-menu-duplicator' )
+				__( 'Source menu not found.', 'classic-menu-duplicator' )
 			);
 		}
 
@@ -49,7 +49,7 @@ class Menu_Duplicator {
 		// ---------------------------------------------------------------
 		$new_menu_name = sprintf(
 			/* translators: %s: original menu name */
-			_x( '%s (Copy)', 'duplicated menu name suffix', 'wp-menu-duplicator' ),
+			_x( '%s (Copy)', 'duplicated menu name suffix', 'classic-menu-duplicator' ),
 			$source_term->name
 		);
 
@@ -88,7 +88,7 @@ class Menu_Duplicator {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log(
 					sprintf(
-						'WP Menu Duplicator: failed to clone item %d — %s',
+						'Classic Menu Duplicator: failed to clone item %d — %s',
 						$item->ID,
 						$new_item_id->get_error_message()
 					)
