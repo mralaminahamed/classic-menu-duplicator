@@ -13,8 +13,9 @@
 	"minimum-stability": "stable",
 	"require": {
 		"php": ">=7.4",
-		"ext-json": "*"
-	},
+		"ext-json": "*",
+      "ext-zip": "*"
+    },
 	"require-dev": {
 		"wp-coding-standards/wpcs": "^3.3.0",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",

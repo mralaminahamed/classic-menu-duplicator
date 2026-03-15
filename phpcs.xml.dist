@@ -36,6 +36,8 @@
         <exclude name="WordPress.DB.PreparedSQL.NotPrepared"/>
         <exclude name="WordPress.PHP.DevelopmentFunctions.error_log_error_log"/>
         <exclude name="WordPress.PHP.DontExtract.extract_extract"/>
+        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
+        <exclude name="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents"/>
 
         <!-- Additional specific rules -->
         <exclude name="Squiz.PHP.CommentedOutCode.Found"/>
@@ -58,7 +60,7 @@
     <!-- Additional rules -->
     <rule ref="PHPCompatibility"/>
     <rule ref="WordPress.Security.EscapeOutput.OutputNotEscaped">
-        <exclude-pattern>*/views/*</exclude-pattern>
+        <exclude-pattern>*/templates/*</exclude-pattern>
     </rule>
 
     <!-- Set text domain for WordPress functions -->
@@ -73,8 +75,8 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="CMD"/>
-                <element value="cmd"/>
+                <element value="cmd"/> <!-- WPML integration -->
+                <element value="wpml"/> <!-- WPML integration -->
                 <element value="classic_menu_duplicator"/>
                 <element value="ClassicMenuDuplicator"/>
             </property>
@@ -86,6 +88,7 @@
         <properties>
             <property name="custom_capabilities" type="array">
                 <element value="manage_options"/>
+                <element value="delete_theme_options"/>
             </property>
         </properties>
     </rule>
