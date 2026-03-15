@@ -5,6 +5,12 @@
  * @package ClassicMenuDuplicator
  */
 
+// Hide PHP notices, warnings, and deprecated messages
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING & ~E_DEPRECATED & ~E_STRICT);
+
 define( 'TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_FILE', dirname( __DIR__, 2 ) . '/classic-menu-duplicator.php' );
 define( 'TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_DIR', dirname( __DIR__, 2 ) );
 
