@@ -339,8 +339,8 @@ class Menu_Duplicator {
 	 * Saves a snapshot of the current menu state.
 	 *
 	 * Snapshots are stored as a serialised JSON blob in the term-meta table
-	 * under the key `_cmd_snapshots`, as a LIFO stack capped at
-	 * CMD_SNAPSHOT_LIMIT revisions (default 10).
+	 * under the key `_cmdu_snapshots`, as a LIFO stack capped at
+	 * cmdu_SNAPSHOT_LIMIT revisions (default 10).
 	 *
 	 * @param int    $menu_id Term ID of the menu.
 	 * @param string $label   Optional. Human-readable label for the snapshot.
@@ -374,7 +374,7 @@ class Menu_Duplicator {
 			$snapshots = array_slice( $snapshots, 0, $limit );
 		}
 
-		return (bool) update_term_meta( $menu_id, '_cmd_snapshots', $snapshots );
+		return (bool) update_term_meta( $menu_id, '_cmdu_snapshots', $snapshots );
 	}
 
 	/**
@@ -385,7 +385,7 @@ class Menu_Duplicator {
 	 * @return array<int,array<string,mixed>> Ordered list of snapshots (newest first).
 	 */
 	public function get_snapshots( int $menu_id ): array {
-		$raw = get_term_meta( $menu_id, '_cmd_snapshots', true );
+		$raw = get_term_meta( $menu_id, '_cmdu_snapshots', true );
 
 		if ( ! is_array( $raw ) ) {
 			return array();
@@ -417,7 +417,7 @@ class Menu_Duplicator {
 			return false; // Nothing was removed.
 		}
 
-		update_term_meta( $menu_id, '_cmd_snapshots', $filtered );
+		update_term_meta( $menu_id, '_cmdu_snapshots', $filtered );
 
 		return true;
 	}

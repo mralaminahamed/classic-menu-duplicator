@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $active_tab    = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'menus'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$transient_key = 'cmd_import_state_' . get_current_user_id();
+$transient_key = 'cmdu_import_state_' . get_current_user_id();
 $import_state  = get_transient( $transient_key );
 $deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
@@ -20,7 +20,7 @@ if ( $import_state ) {
 	delete_transient( $transient_key );
 }
 ?>
-<div class="wrap cmd-manager-wrap">
+<div class="wrap cmdu-manager-wrap">
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Menu Manager', 'classic-menu-duplicator' ); ?></h1>
 	<a href="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>" class="page-title-action">
 		<?php esc_html_e( '+ New Menu', 'classic-menu-duplicator' ); ?>
@@ -42,17 +42,17 @@ if ( $import_state ) {
 	<?php endif; ?>
 
 	<!-- ── Tab navigation ──────────────────────────────────── -->
-	<nav class="nav-tab-wrapper cmd-tab-nav">
-		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmd-menu-manager&tab=menus' ) ); ?>"
+	<nav class="nav-tab-wrapper cmdu-tab-nav">
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmdu-menu-manager&tab=menus' ) ); ?>"
 			class="nav-tab <?php echo 'menus' === $active_tab ? 'nav-tab-active' : ''; ?>">
 			<?php esc_html_e( 'All Menus', 'classic-menu-duplicator' ); ?>
 		</a>
-		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmd-menu-manager&tab=import' ) ); ?>"
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmdu-menu-manager&tab=import' ) ); ?>"
 			class="nav-tab <?php echo 'import' === $active_tab ? 'nav-tab-active' : ''; ?>">
 			<?php esc_html_e( 'Import JSON', 'classic-menu-duplicator' ); ?>
 		</a>
 		<?php if ( is_multisite() && current_user_can( 'manage_network' ) ) : ?>
-		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmd-menu-manager&tab=multisite' ) ); ?>"
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmdu-menu-manager&tab=multisite' ) ); ?>"
 			class="nav-tab <?php echo 'multisite' === $active_tab ? 'nav-tab-active' : ''; ?>">
 			<?php esc_html_e( 'Copy to Site', 'classic-menu-duplicator' ); ?>
 		</a>
@@ -61,10 +61,10 @@ if ( $import_state ) {
 
 	<!-- ── All Menus tab ───────────────────────────────────── -->
 	<?php if ( 'menus' === $active_tab ) : ?>
-	<div class="cmd-tab-panel">
-		<form id="cmd-menu-table-form" method="post">
-			<?php wp_nonce_field( 'cmd_bulk_delete', 'cmd_bulk_nonce' ); ?>
-			<input type="hidden" name="action" value="cmd_bulk_delete" />
+	<div class="cmdu-tab-panel">
+		<form id="cmdu-menu-table-form" method="post">
+			<?php wp_nonce_field( 'cmdu_bulk_delete', 'cmdu_bulk_nonce' ); ?>
+			<input type="hidden" name="action" value="cmdu_bulk_delete" />
 			<?php
 			$table->display();
 			?>
@@ -73,7 +73,7 @@ if ( $import_state ) {
 
 	<!-- ── Import JSON tab ─────────────────────────────────── -->
 	<?php elseif ( 'import' === $active_tab ) : ?>
-	<div class="cmd-tab-panel">
+	<div class="cmdu-tab-panel">
 
 		<?php if ( ! empty( $import_state['error'] ) ) : ?>
 			<div class="notice notice-error is-dismissible">
@@ -102,9 +102,9 @@ if ( $import_state ) {
 
 		<?php if ( ! empty( $import_state['preview'] ) ) : ?>
 		<!-- Preview panel -->
-		<div class="cmd-import-preview">
+		<div class="cmdu-import-preview">
 			<h2><?php esc_html_e( 'Import Preview', 'classic-menu-duplicator' ); ?></h2>
-			<table class="widefat cmd-preview-table">
+			<table class="widefat cmdu-preview-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Title', 'classic-menu-duplicator' ); ?></th>
@@ -137,17 +137,17 @@ if ( $import_state ) {
 
 			<!-- Confirm import form -->
 			<form method="post" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'cmd_import_menu' ); ?>
-				<input type="hidden" name="_cmd_import_action" value="import" />
-				<input type="hidden" name="cmd_json_data" value="<?php echo esc_attr( $import_state['json_data'] ?? '' ); ?>" />
-				<input type="hidden" name="cmd_find"    value="<?php echo esc_attr( $import_state['find'] ?? '' ); ?>" />
-				<input type="hidden" name="cmd_replace" value="<?php echo esc_attr( $import_state['replace'] ?? '' ); ?>" />
-				<input type="hidden" name="cmd_menu_name" value="<?php echo esc_attr( $import_state['name'] ?? '' ); ?>" />
+				<?php wp_nonce_field( 'cmdu_import_menu' ); ?>
+				<input type="hidden" name="_cmdu_import_action" value="import" />
+				<input type="hidden" name="cmdu_json_data" value="<?php echo esc_attr( $import_state['json_data'] ?? '' ); ?>" />
+				<input type="hidden" name="cmdu_find"    value="<?php echo esc_attr( $import_state['find'] ?? '' ); ?>" />
+				<input type="hidden" name="cmdu_replace" value="<?php echo esc_attr( $import_state['replace'] ?? '' ); ?>" />
+				<input type="hidden" name="cmdu_menu_name" value="<?php echo esc_attr( $import_state['name'] ?? '' ); ?>" />
 				<p>
 					<button type="submit" class="button button-primary">
 						<?php esc_html_e( 'Confirm Import', 'classic-menu-duplicator' ); ?>
 					</button>
-					<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmd-menu-manager&tab=import' ) ); ?>" class="button">
+					<a href="<?php echo esc_url( admin_url( 'themes.php?page=cmdu-menu-manager&tab=import' ) ); ?>" class="button">
 						<?php esc_html_e( 'Cancel', 'classic-menu-duplicator' ); ?>
 					</a>
 				</p>
@@ -156,31 +156,31 @@ if ( $import_state ) {
 		<?php else : ?>
 
 		<!-- Upload form -->
-		<div class="cmd-import-form-wrap">
+		<div class="cmdu-import-form-wrap">
 			<h2><?php esc_html_e( 'Import Menu from JSON', 'classic-menu-duplicator' ); ?></h2>
 			<p class="description">
 				<?php esc_html_e( 'Upload a JSON file exported by Classic Menu Duplicator. Optionally replace URLs before importing to adapt menus from a different environment.', 'classic-menu-duplicator' ); ?>
 			</p>
 
-			<form method="post" enctype="multipart/form-data" class="cmd-import-form">
-				<?php wp_nonce_field( 'cmd_import_menu' ); ?>
-				<input type="hidden" name="_cmd_import_action" value="preview" />
+			<form method="post" enctype="multipart/form-data" class="cmdu-import-form">
+				<?php wp_nonce_field( 'cmdu_import_menu' ); ?>
+				<input type="hidden" name="_cmdu_import_action" value="preview" />
 
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="cmd_json_file"><?php esc_html_e( 'JSON File', 'classic-menu-duplicator' ); ?></label>
+							<label for="cmdu_json_file"><?php esc_html_e( 'JSON File', 'classic-menu-duplicator' ); ?></label>
 						</th>
 						<td>
-							<input type="file" id="cmd_json_file" name="cmd_json_file" accept=".json" required />
+							<input type="file" id="cmdu_json_file" name="cmdu_json_file" accept=".json" required />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="cmd_menu_name_import"><?php esc_html_e( 'Menu Name', 'classic-menu-duplicator' ); ?></label>
+							<label for="cmdu_menu_name_import"><?php esc_html_e( 'Menu Name', 'classic-menu-duplicator' ); ?></label>
 						</th>
 						<td>
-							<input type="text" id="cmd_menu_name_import" name="cmd_menu_name" class="regular-text"
+							<input type="text" id="cmdu_menu_name_import" name="cmdu_menu_name" class="regular-text"
 									placeholder="<?php esc_attr_e( 'Leave blank to use name from file', 'classic-menu-duplicator' ); ?>" />
 						</td>
 					</tr>
@@ -188,13 +188,13 @@ if ( $import_state ) {
 						<th scope="row"><?php esc_html_e( 'URL Replacement', 'classic-menu-duplicator' ); ?></th>
 						<td>
 							<p>
-								<label for="cmd_find"><?php esc_html_e( 'Find:', 'classic-menu-duplicator' ); ?></label>
-								<input type="text" id="cmd_find" name="cmd_find" class="regular-text"
+								<label for="cmdu_find"><?php esc_html_e( 'Find:', 'classic-menu-duplicator' ); ?></label>
+								<input type="text" id="cmdu_find" name="cmdu_find" class="regular-text"
 										placeholder="https://staging.example.com" />
 							</p>
 							<p>
-								<label for="cmd_replace"><?php esc_html_e( 'Replace:', 'classic-menu-duplicator' ); ?></label>
-								<input type="text" id="cmd_replace" name="cmd_replace" class="regular-text"
+								<label for="cmdu_replace"><?php esc_html_e( 'Replace:', 'classic-menu-duplicator' ); ?></label>
+								<input type="text" id="cmdu_replace" name="cmdu_replace" class="regular-text"
 										placeholder="https://example.com" />
 							</p>
 							<p class="description">
@@ -216,19 +216,19 @@ if ( $import_state ) {
 
 	<!-- ── Copy to Site tab (multisite only) ───────────────── -->
 	<?php elseif ( 'multisite' === $active_tab && is_multisite() && current_user_can( 'manage_network' ) ) : ?>
-	<div class="cmd-tab-panel">
+	<div class="cmdu-tab-panel">
 		<h2><?php esc_html_e( 'Copy Menu to Another Site', 'classic-menu-duplicator' ); ?></h2>
 		<p class="description">
 			<?php esc_html_e( 'Copies the selected menu — including all items and hierarchy — to another site in this network. The copied menu is not assigned to any theme location on the destination site.', 'classic-menu-duplicator' ); ?>
 		</p>
-		<div id="cmd-copy-to-site-form">
+		<div id="cmdu-copy-to-site-form">
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="cmd-copy-source-menu"><?php esc_html_e( 'Source Menu', 'classic-menu-duplicator' ); ?></label>
+						<label for="cmdu-copy-source-menu"><?php esc_html_e( 'Source Menu', 'classic-menu-duplicator' ); ?></label>
 					</th>
 					<td>
-						<select id="cmd-copy-source-menu" class="regular-text">
+						<select id="cmdu-copy-source-menu" class="regular-text">
 							<option value=""><?php esc_html_e( '— Select a menu —', 'classic-menu-duplicator' ); ?></option>
 							<?php foreach ( wp_get_nav_menus() as $m ) : ?>
 								<option value="<?php echo esc_attr( (string) $m->term_id ); ?>">
@@ -240,10 +240,10 @@ if ( $import_state ) {
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cmd-copy-target-site"><?php esc_html_e( 'Destination Site', 'classic-menu-duplicator' ); ?></label>
+						<label for="cmdu-copy-target-site"><?php esc_html_e( 'Destination Site', 'classic-menu-duplicator' ); ?></label>
 					</th>
 					<td>
-						<select id="cmd-copy-target-site" class="regular-text">
+						<select id="cmdu-copy-target-site" class="regular-text">
 							<option value=""><?php esc_html_e( '— Select a site —', 'classic-menu-duplicator' ); ?></option>
 							<?php
 							$sites = get_sites(
@@ -275,20 +275,20 @@ if ( $import_state ) {
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="cmd-copy-menu-name"><?php esc_html_e( 'Menu Name on Destination', 'classic-menu-duplicator' ); ?></label>
+						<label for="cmdu-copy-menu-name"><?php esc_html_e( 'Menu Name on Destination', 'classic-menu-duplicator' ); ?></label>
 					</th>
 					<td>
-						<input type="text" id="cmd-copy-menu-name" class="regular-text"
+						<input type="text" id="cmdu-copy-menu-name" class="regular-text"
 								placeholder="<?php esc_attr_e( 'Leave blank to keep original name', 'classic-menu-duplicator' ); ?>" />
 					</td>
 				</tr>
 			</table>
 			<p>
-				<button type="button" id="cmd-copy-to-site-submit" class="button button-primary">
+				<button type="button" id="cmdu-copy-to-site-submit" class="button button-primary">
 					<?php esc_html_e( 'Copy Menu', 'classic-menu-duplicator' ); ?>
 				</button>
 			</p>
-			<div id="cmd-copy-result"></div>
+			<div id="cmdu-copy-result"></div>
 		</div>
 	</div>
 	<?php endif; ?>
