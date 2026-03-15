@@ -7,8 +7,10 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Admin;
 
+use ClassicMenuDuplicator\Core\Menu_Duplicator;
+use ClassicMenuDuplicator\Import\Menu_Importer;
 use WP_Term;
 use ZipArchive;
 

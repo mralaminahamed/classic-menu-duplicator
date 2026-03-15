@@ -7,8 +7,9 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Rest;
 
+use ClassicMenuDuplicator\Core\Menu_Duplicator;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;

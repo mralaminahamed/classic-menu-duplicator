@@ -7,7 +7,7 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Core;
 
 use WP_Error;
 use WP_Post;
@@ -171,8 +171,8 @@ class Menu_Duplicator {
 	 * Clones the given item post, re-maps its parent reference, and
 	 * recursively clones every direct child found in $all_items.
 	 *
-	 * @param int             $item_id    Post ID of the nav_menu_item to duplicate.
-	 * @param int             $menu_id    Term ID of the menu that owns the item.
+	 * @param int            $item_id    Post ID of the nav_menu_item to duplicate.
+	 * @param int            $menu_id    Term ID of the menu that owns the item.
 	 * @param WP_Post[]|null $all_items  All items belonging to the menu, used for
 	 *                                    descendant lookup. Fetched automatically when
 	 *                                    null (useful for direct AJAX calls).
@@ -429,7 +429,7 @@ class Menu_Duplicator {
 	/**
 	 * Duplicates a single nav_menu_item post and its postmeta.
 	 *
-	 * @param WP_Post       $item        Original menu item post object.
+	 * @param WP_Post        $item        Original menu item post object.
 	 * @param int            $new_menu_id Term ID of the destination menu.
 	 * @param array<int,int> $id_map      Already-processed original=>new ID pairs.
 	 *
@@ -474,9 +474,9 @@ class Menu_Duplicator {
 	 * Recursively clones a menu item and all its descendants.
 	 *
 	 * @param WP_Post              $item          Item to clone.
-	 * @param int                   $menu_id       Destination menu term ID.
+	 * @param int                  $menu_id       Destination menu term ID.
 	 * @param array<int,WP_Post[]> $children_map  parent_id => child items.
-	 * @param array<int,int>        $id_map        Accumulates old=>new IDs.
+	 * @param array<int,int>       $id_map        Accumulates old=>new IDs.
 	 *
 	 * @return int|WP_Error New post ID of the cloned item, or WP_Error.
 	 */

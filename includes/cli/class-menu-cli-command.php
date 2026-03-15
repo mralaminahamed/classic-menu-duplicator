@@ -7,8 +7,10 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Cli;
 
+use ClassicMenuDuplicator\Core\Menu_Duplicator;
+use ClassicMenuDuplicator\Import\Menu_Importer;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_Term;
@@ -142,8 +144,8 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @subcommand export
 	 *
-	 * @param string[] $args
-	 * @param string[] $assoc_args
+	 * @param string[] $args       Positional arguments (menu-id).
+	 * @param string[] $assoc_args Named arguments (--output).
 	 *
 	 * @return void
 	 */
@@ -225,8 +227,8 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @subcommand import
 	 *
-	 * @param string[] $args
-	 * @param string[] $assoc_args
+	 * @param string[] $args       Positional arguments (file path).
+	 * @param string[] $assoc_args Named arguments (--name, --find, --replace, --dry-run, --porcelain).
 	 *
 	 * @return void
 	 */
@@ -348,8 +350,8 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @subcommand copy-to-site
 	 *
-	 * @param string[] $args
-	 * @param string[] $assoc_args
+	 * @param string[] $args       Positional arguments (menu-id).
+	 * @param string[] $assoc_args Named arguments (--target-blog, --name, --find, --replace, --porcelain).
 	 *
 	 * @return void
 	 */

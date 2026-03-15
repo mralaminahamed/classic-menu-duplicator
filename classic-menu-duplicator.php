@@ -28,11 +28,11 @@
 
 declare( strict_types=1 );
 
-use ClassicMenuDuplicator\Menu_Admin;
-use ClassicMenuDuplicator\Menu_Admin_Page;
-use ClassicMenuDuplicator\Menu_CLI_Command;
-use ClassicMenuDuplicator\Menu_Compat;
-use ClassicMenuDuplicator\Menu_REST_Controller;
+use ClassicMenuDuplicator\Admin\Menu_Admin;
+use ClassicMenuDuplicator\Admin\Menu_Admin_Page;
+use ClassicMenuDuplicator\Cli\Menu_CLI_Command;
+use ClassicMenuDuplicator\Compat\Menu_Compat;
+use ClassicMenuDuplicator\Rest\Menu_REST_Controller;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

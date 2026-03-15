@@ -7,7 +7,7 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Admin;
 
 use WP_List_Table;
 

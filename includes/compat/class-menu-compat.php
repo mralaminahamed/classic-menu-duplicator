@@ -7,7 +7,7 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Compat;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

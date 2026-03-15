@@ -7,7 +7,9 @@
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator;
+namespace ClassicMenuDuplicator\Import;
+
+use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -28,17 +30,17 @@ class Menu_Importer {
 	 *
 	 * @param string $json Raw JSON string.
 	 *
-	 * @return array<string,mixed>|\WP_Error Decoded payload or WP_Error on failure.
+	 * @return array<string,mixed>|WP_Error Decoded payload or WP_Error on failure.
 	 */
 	public function parse( string $json ) {
 		if ( '' === trim( $json ) ) {
-			return new \WP_Error( 'empty_json', __( 'The uploaded file is empty.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'empty_json', __( 'The uploaded file is empty.', 'classic-menu-duplicator' ) );
 		}
 
 		$data = json_decode( $json, true );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'invalid_json',
 				sprintf(
 				/* translators: %s: JSON error message */
@@ -49,7 +51,7 @@ class Menu_Importer {
 		}
 
 		if ( ! is_array( $data ) ) {
-			return new \WP_Error( 'invalid_structure', __( 'Unexpected JSON structure.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'invalid_structure', __( 'Unexpected JSON structure.', 'classic-menu-duplicator' ) );
 		}
 
 		return $this->validate( $data );
@@ -60,14 +62,14 @@ class Menu_Importer {
 	 *
 	 * @param array<string,mixed> $data Decoded JSON payload.
 	 *
-	 * @return array<string,mixed>|\WP_Error Validated payload or WP_Error.
+	 * @return array<string,mixed>|WP_Error Validated payload or WP_Error.
 	 */
 	public function validate( array $data ) {
 		$required = array( 'menu', 'items' );
 
 		foreach ( $required as $key ) {
 			if ( empty( $data[ $key ] ) ) {
-				return new \WP_Error(
+				return new WP_Error(
 					'missing_key',
 					sprintf(
 					/* translators: %s: missing key name */
@@ -79,11 +81,11 @@ class Menu_Importer {
 		}
 
 		if ( empty( $data['menu']['name'] ) ) {
-			return new \WP_Error( 'missing_menu_name', __( 'Import file does not contain a menu name.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'missing_menu_name', __( 'Import file does not contain a menu name.', 'classic-menu-duplicator' ) );
 		}
 
 		if ( ! is_array( $data['items'] ) ) {
-			return new \WP_Error( 'invalid_items', __( 'Import file "items" key must be an array.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'invalid_items', __( 'Import file "items" key must be an array.', 'classic-menu-duplicator' ) );
 		}
 
 		return $data;
@@ -150,7 +152,7 @@ class Menu_Importer {
 	 * @param string              $find Optional. URL string to search for.
 	 * @param string              $replace Optional. URL string to replace with.
 	 *
-	 * @return int|\WP_Error New menu term ID on success, WP_Error on failure.
+	 * @return int|WP_Error New menu term ID on success, WP_Error on failure.
 	 */
 	public function import(
 		array $payload,
@@ -247,7 +249,7 @@ class Menu_Importer {
 	 * @param string              $find URL find string.
 	 * @param string              $replace URL replace string.
 	 *
-	 * @return int|\WP_Error New post ID or WP_Error.
+	 * @return int|WP_Error New post ID or WP_Error.
 	 */
 	private function insert_item( array $item, int $new_menu_id, string $find, string $replace ) {
 		$new_id = wp_insert_post(
