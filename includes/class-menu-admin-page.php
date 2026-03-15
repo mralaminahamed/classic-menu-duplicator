@@ -9,6 +9,9 @@ declare( strict_types=1 );
 
 namespace ClassicMenuDuplicator;
 
+use WP_Term;
+use ZipArchive;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -109,7 +112,7 @@ class Menu_Admin_Page {
 			foreach ( $sites as $site ) {
 				$blog_id = (int) $site->blog_id;
 
-				if ( $blog_id === get_current_blog_id() ) {
+				if ( get_current_blog_id() === $blog_id ) {
 					continue;
 				}
 
@@ -384,7 +387,7 @@ class Menu_Admin_Page {
 			}
 
 			$term = get_term( $ids[0], 'nav_menu' );
-			$slug = ( $term instanceof \WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu';
+			$slug = ( $term instanceof WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu';
 
 			header( 'Content-Type: application/json; charset=utf-8' );
 			header( 'Content-Disposition: attachment; filename="' . $slug . '-menu-export.json"' );
@@ -404,9 +407,9 @@ class Menu_Admin_Page {
 		}
 
 		$zip_file = wp_tempnam( 'cmd-export' );
-		$zip      = new \ZipArchive();
+		$zip      = new ZipArchive();
 
-		if ( true !== $zip->open( $zip_file, \ZipArchive::OVERWRITE ) ) {
+		if ( true !== $zip->open( $zip_file, ZipArchive::OVERWRITE ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not create ZIP archive.', 'classic-menu-duplicator' ) ), 500 );
 		}
 
@@ -418,7 +421,7 @@ class Menu_Admin_Page {
 			}
 
 			$term = get_term( $id, 'nav_menu' );
-			$slug = ( $term instanceof \WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu-' . $id;
+			$slug = ( $term instanceof WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu-' . $id;
 
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			$zip->addFromString(

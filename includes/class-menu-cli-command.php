@@ -9,6 +9,10 @@ declare( strict_types=1 );
 
 namespace ClassicMenuDuplicator;
 
+use WP_CLI;
+use function WP_CLI\Utils\format_items;
+use function WP_CLI\Utils\get_flag_value;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -77,34 +81,34 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		$source_id = (int) ( $args[0] ?? 0 );
 
 		if ( $source_id <= 0 ) {
-			\WP_CLI::error( 'Please provide a valid menu term ID.' );
+			WP_CLI::error( 'Please provide a valid menu term ID.' );
 		}
 
 		$source_term = get_term( $source_id, 'nav_menu' );
 
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
-			\WP_CLI::error( sprintf( 'Menu with ID %d not found.', $source_id ) );
+			WP_CLI::error( sprintf( 'Menu with ID %d not found.', $source_id ) );
 		}
 
-		$name      = \WP_CLI\Utils\get_flag_value( $assoc_args, 'name', '' );
-		$porcelain = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain', false );
+		$name      = get_flag_value( $assoc_args, 'name', '' );
+		$porcelain = (bool) get_flag_value( $assoc_args, 'porcelain', false );
 
 		$duplicator = new Menu_Duplicator();
 		$result     = $duplicator->duplicate( $source_id, (string) $name );
 
 		if ( is_wp_error( $result ) ) {
-			\WP_CLI::error( $result->get_error_message() );
+			WP_CLI::error( $result->get_error_message() );
 		}
 
 		if ( $porcelain ) {
-			\WP_CLI::line( (string) $result );
+			WP_CLI::line( (string) $result );
 
 			return;
 		}
 
 		$new_term = get_term( $result, 'nav_menu' );
 
-		\WP_CLI::success(
+		WP_CLI::success(
 			sprintf(
 				'Duplicated "%s" → "%s" (ID: %d)',
 				$source_term->name,
@@ -145,37 +149,37 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		$menu_id = (int) ( $args[0] ?? 0 );
 
 		if ( $menu_id <= 0 ) {
-			\WP_CLI::error( 'Please provide a valid menu term ID.' );
+			WP_CLI::error( 'Please provide a valid menu term ID.' );
 		}
 
 		$term = get_term( $menu_id, 'nav_menu' );
 
 		if ( is_wp_error( $term ) || ! $term instanceof \WP_Term ) {
-			\WP_CLI::error( sprintf( 'Menu with ID %d not found.', $menu_id ) );
+			WP_CLI::error( sprintf( 'Menu with ID %d not found.', $menu_id ) );
 		}
 
 		$duplicator = new Menu_Duplicator();
 		$payload    = $duplicator->export( $menu_id );
 
 		if ( is_wp_error( $payload ) ) {
-			\WP_CLI::error( $payload->get_error_message() );
+			WP_CLI::error( $payload->get_error_message() );
 		}
 
 		$default_file = sanitize_file_name( $term->slug ) . '-menu-export.json';
-		$output_file  = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'output', $default_file );
+		$output_file  = (string) get_flag_value( $assoc_args, 'output', $default_file );
 
 		$json = wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 
 		if ( false === $json ) {
-			\WP_CLI::error( 'Failed to encode export payload to JSON.' );
+			WP_CLI::error( 'Failed to encode export payload to JSON.' );
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		if ( false === file_put_contents( $output_file, $json ) ) {
-			\WP_CLI::error( sprintf( 'Could not write to file: %s', $output_file ) );
+			WP_CLI::error( sprintf( 'Could not write to file: %s', $output_file ) );
 		}
 
-		\WP_CLI::success(
+		WP_CLI::success(
 			sprintf( 'Exported "%s" to %s', $term->name, $output_file )
 		);
 	}
@@ -228,45 +232,45 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		$file = $args[0] ?? '';
 
 		if ( '' === $file || ! file_exists( $file ) ) {
-			\WP_CLI::error( sprintf( 'File not found: %s', $file ) );
+			WP_CLI::error( sprintf( 'File not found: %s', $file ) );
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json = file_get_contents( $file );
 
 		if ( false === $json ) {
-			\WP_CLI::error( sprintf( 'Could not read file: %s', $file ) );
+			WP_CLI::error( sprintf( 'Could not read file: %s', $file ) );
 		}
 
 		$importer = new Menu_Importer();
 		$payload  = $importer->parse( $json );
 
 		if ( is_wp_error( $payload ) ) {
-			\WP_CLI::error( $payload->get_error_message() );
+			WP_CLI::error( $payload->get_error_message() );
 		}
 
-		$name    = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'name', '' );
-		$find    = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'find', '' );
-		$replace = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'replace', '' );
-		$dry_run = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
+		$name    = (string) get_flag_value( $assoc_args, 'name', '' );
+		$find    = (string) get_flag_value( $assoc_args, 'find', '' );
+		$replace = (string) get_flag_value( $assoc_args, 'replace', '' );
+		$dry_run = (bool) get_flag_value( $assoc_args, 'dry-run', false );
 
 		if ( $dry_run ) {
 			$preview = $importer->preview( $payload, $name, $find, $replace );
 
-			\WP_CLI::log( '(Dry run — no changes were made)' );
-			\WP_CLI::log( sprintf( 'Menu name   : %s', $preview['menu_name'] ) );
-			\WP_CLI::log( sprintf( 'Items       : %d', $preview['item_count'] ) );
+			WP_CLI::log( '(Dry run — no changes were made)' );
+			WP_CLI::log( sprintf( 'Menu name   : %s', $preview['menu_name'] ) );
+			WP_CLI::log( sprintf( 'Items       : %d', $preview['item_count'] ) );
 
 			if ( ! empty( $preview['source_url'] ) ) {
-				\WP_CLI::log( sprintf( 'Source site : %s', $preview['source_url'] ) );
+				WP_CLI::log( sprintf( 'Source site : %s', $preview['source_url'] ) );
 			}
 
 			if ( ! empty( $preview['exported'] ) ) {
-				\WP_CLI::log( sprintf( 'Exported at : %s', $preview['exported'] ) );
+				WP_CLI::log( sprintf( 'Exported at : %s', $preview['exported'] ) );
 			}
 
 			if ( ! empty( $preview['items'] ) ) {
-				\WP_CLI::log( '' );
+				WP_CLI::log( '' );
 				$table_data = array_map(
 					static function ( array $item ): array {
 						return array(
@@ -279,7 +283,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 					$preview['items']
 				);
 
-				\WP_CLI\Utils\format_items( 'table', $table_data, array( 'title', 'type', 'url', 'parent' ) );
+				format_items( 'table', $table_data, array( 'title', 'type', 'url', 'parent' ) );
 			}
 
 			return;
@@ -288,13 +292,13 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		$new_menu_id = $importer->import( $payload, $name, $find, $replace );
 
 		if ( is_wp_error( $new_menu_id ) ) {
-			\WP_CLI::error( $new_menu_id->get_error_message() );
+			WP_CLI::error( $new_menu_id->get_error_message() );
 		}
 
-		$porcelain = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain', false );
+		$porcelain = (bool) get_flag_value( $assoc_args, 'porcelain', false );
 
 		if ( $porcelain ) {
-			\WP_CLI::line( (string) $new_menu_id );
+			WP_CLI::line( (string) $new_menu_id );
 
 			return;
 		}
@@ -302,7 +306,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		$new_term = get_term( $new_menu_id, 'nav_menu' );
 		$name_out = $new_term instanceof \WP_Term ? $new_term->name : (string) $new_menu_id;
 
-		\WP_CLI::success(
+		WP_CLI::success(
 			sprintf(
 				'Imported "%s" (ID: %d, %d items)',
 				$name_out,
@@ -349,35 +353,35 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 	 */
 	public function copy_to_site( array $args, array $assoc_args ): void {
 		if ( ! is_multisite() ) {
-			\WP_CLI::error( 'This command is only available on multisite installations.' );
+			WP_CLI::error( 'This command is only available on multisite installations.' );
 		}
 
 		$source_id      = (int) ( $args[0] ?? 0 );
-		$target_blog_id = (int) \WP_CLI\Utils\get_flag_value( $assoc_args, 'target-blog', 0 );
+		$target_blog_id = (int) get_flag_value( $assoc_args, 'target-blog', 0 );
 
 		if ( $source_id <= 0 ) {
-			\WP_CLI::error( 'Please provide a valid source menu term ID.' );
+			WP_CLI::error( 'Please provide a valid source menu term ID.' );
 		}
 
 		if ( $target_blog_id <= 0 ) {
-			\WP_CLI::error( 'Please provide a --target-blog=<id> value.' );
+			WP_CLI::error( 'Please provide a --target-blog=<id> value.' );
 		}
 
 		$source_term = get_term( $source_id, 'nav_menu' );
 
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
-			\WP_CLI::error( sprintf( 'Menu with ID %d not found on the current site.', $source_id ) );
+			WP_CLI::error( sprintf( 'Menu with ID %d not found on the current site.', $source_id ) );
 		}
 
-		$name    = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'name', '' );
-		$find    = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'find', '' );
-		$replace = (string) \WP_CLI\Utils\get_flag_value( $assoc_args, 'replace', '' );
+		$name    = (string) get_flag_value( $assoc_args, 'name', '' );
+		$find    = (string) get_flag_value( $assoc_args, 'find', '' );
+		$replace = (string) get_flag_value( $assoc_args, 'replace', '' );
 
 		$duplicator = new Menu_Duplicator();
 		$payload    = $duplicator->export( $source_id );
 
 		if ( is_wp_error( $payload ) ) {
-			\WP_CLI::error( $payload->get_error_message() );
+			WP_CLI::error( $payload->get_error_message() );
 		}
 
 		switch_to_blog( $target_blog_id );
@@ -388,18 +392,18 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		restore_current_blog();
 
 		if ( is_wp_error( $new_menu_id ) ) {
-			\WP_CLI::error( $new_menu_id->get_error_message() );
+			WP_CLI::error( $new_menu_id->get_error_message() );
 		}
 
-		$porcelain = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'porcelain', false );
+		$porcelain = (bool) get_flag_value( $assoc_args, 'porcelain', false );
 
 		if ( $porcelain ) {
-			\WP_CLI::line( (string) $new_menu_id );
+			WP_CLI::line( (string) $new_menu_id );
 
 			return;
 		}
 
-		\WP_CLI::success(
+		WP_CLI::success(
 			sprintf(
 				'Copied "%s" to site %d (new ID: %d)',
 				$source_term->name,

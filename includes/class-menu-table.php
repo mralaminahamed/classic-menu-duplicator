@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace ClassicMenuDuplicator;
 
+use WP_List_Table;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -24,7 +26,7 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
  * with per-row actions (Duplicate, Export, Delete) and bulk actions
  * (Duplicate selected, Export selected, Delete selected).
  */
-class Menu_Table extends \WP_List_Table {
+class Menu_Table extends WP_List_Table {
 
 	/**
 	 * Constructs the list table.
