@@ -10,6 +10,8 @@ declare( strict_types=1 );
 namespace ClassicMenuDuplicator;
 
 use WP_CLI;
+use WP_CLI_Command;
+use WP_Term;
 use function WP_CLI\Utils\format_items;
 use function WP_CLI\Utils\get_flag_value;
 
@@ -45,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @when after_wp_load
  */
-class Menu_CLI_Command extends \WP_CLI_Command {
+class Menu_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * Duplicates a navigation menu.
@@ -86,7 +88,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 
 		$source_term = get_term( $source_id, 'nav_menu' );
 
-		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
+		if ( is_wp_error( $source_term ) || ! $source_term instanceof WP_Term ) {
 			WP_CLI::error( sprintf( 'Menu with ID %d not found.', $source_id ) );
 		}
 
@@ -112,7 +114,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 			sprintf(
 				'Duplicated "%s" → "%s" (ID: %d)',
 				$source_term->name,
-				$new_term instanceof \WP_Term ? $new_term->name : '',
+				$new_term instanceof WP_Term ? $new_term->name : '',
 				$result
 			)
 		);
@@ -154,7 +156,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 
 		$term = get_term( $menu_id, 'nav_menu' );
 
-		if ( is_wp_error( $term ) || ! $term instanceof \WP_Term ) {
+		if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
 			WP_CLI::error( sprintf( 'Menu with ID %d not found.', $menu_id ) );
 		}
 
@@ -304,7 +306,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 		}
 
 		$new_term = get_term( $new_menu_id, 'nav_menu' );
-		$name_out = $new_term instanceof \WP_Term ? $new_term->name : (string) $new_menu_id;
+		$name_out = $new_term instanceof WP_Term ? $new_term->name : (string) $new_menu_id;
 
 		WP_CLI::success(
 			sprintf(
@@ -369,7 +371,7 @@ class Menu_CLI_Command extends \WP_CLI_Command {
 
 		$source_term = get_term( $source_id, 'nav_menu' );
 
-		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
+		if ( is_wp_error( $source_term ) || ! $source_term instanceof WP_Term ) {
 			WP_CLI::error( sprintf( 'Menu with ID %d not found on the current site.', $source_id ) );
 		}
 
