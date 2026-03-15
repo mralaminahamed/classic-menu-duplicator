@@ -32,16 +32,16 @@ class Menu_Admin {
 		add_action( 'admin_head', array( $this, 'output_inline_styles' ) );
 
 		// Menu-level actions.
-		add_action( 'wp_ajax_cmd_duplicate_menu', array( $this, 'handle_ajax_duplicate_menu' ) );
-		add_action( 'wp_ajax_cmd_export_menu', array( $this, 'handle_ajax_export_menu' ) );
+		add_action( 'wp_ajax_cmdu_duplicate_menu', array( $this, 'handle_ajax_duplicate_menu' ) );
+		add_action( 'wp_ajax_cmdu_export_menu', array( $this, 'handle_ajax_export_menu' ) );
 
 		// Item-level actions.
-		add_action( 'wp_ajax_cmd_duplicate_item', array( $this, 'handle_ajax_duplicate_item' ) );
+		add_action( 'wp_ajax_cmdu_duplicate_item', array( $this, 'handle_ajax_duplicate_item' ) );
 
 		// Snapshot actions.
-		add_action( 'wp_ajax_cmd_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
-		add_action( 'wp_ajax_cmd_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
-		add_action( 'wp_ajax_cmd_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
+		add_action( 'wp_ajax_cmdu_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
+		add_action( 'wp_ajax_cmdu_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
+		add_action( 'wp_ajax_cmdu_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
 
 		// Auto-snapshot before core saves a menu so every manual save is captured.
 		add_action( 'wp_update_nav_menu', array( $this, 'auto_snapshot_on_save' ), 5 );
@@ -78,7 +78,7 @@ class Menu_Admin {
 		$asset_file = CLASSIC_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
 
 		wp_enqueue_script(
-			'cmd-admin',
+			'cmdu-admin',
 			CLASSIC_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			file_exists( $asset_file )
@@ -88,11 +88,11 @@ class Menu_Admin {
 		);
 
 		wp_localize_script(
-			'cmd-admin',
-			'cmdData',
+			'cmdu-admin',
+			'cmduData',
 			array(
 				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
-				'nonce'                => wp_create_nonce( 'cmd_menu_actions' ),
+				'nonce'                => wp_create_nonce( 'cmdu_menu_actions' ),
 				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				// Menu duplication strings.
@@ -127,7 +127,7 @@ class Menu_Admin {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Handles the cmd_duplicate_menu AJAX request.
+	 * Handles the cmdu_duplicate_menu AJAX request.
 	 *
 	 * Accepts an optional `menu_name` parameter; when omitted the server
 	 * falls back to the "{original} (Copy)" convention.
@@ -166,7 +166,7 @@ class Menu_Admin {
 	}
 
 	/**
-	 * Handles the cmd_export_menu AJAX request.
+	 * Handles the cmdu_export_menu AJAX request.
 	 *
 	 * Streams a JSON file download directly from the AJAX handler so the
 	 * browser triggers a Save dialog without any intermediate page.
@@ -212,7 +212,7 @@ class Menu_Admin {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Handles the cmd_duplicate_item AJAX request.
+	 * Handles the cmdu_duplicate_item AJAX request.
 	 *
 	 * @return void Sends a JSON response and exits.
 	 */
@@ -388,7 +388,7 @@ class Menu_Admin {
 			? sanitize_text_field( wp_unslash( $_POST['nonce'] ) )
 			: '';
 
-		if ( ! wp_verify_nonce( $nonce, 'cmd_menu_actions' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'cmdu_menu_actions' ) ) {
 			wp_send_json_error(
 				array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ),
 				403

@@ -125,15 +125,15 @@ class Menu_Duplicator_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_Duplicator::duplicate
 	 */
-	public function test_cmd_new_menu_name_filter_is_applied(): void {
+	public function test_cmdu_new_menu_name_filter_is_applied(): void {
 		$menu_id = $this->create_menu_with_items( 'Menu', 1 );
 
-		add_filter( 'cmd_new_menu_name', static fn () => 'Filtered Name', 10, 1 );
+		add_filter( 'cmdu_new_menu_name', static fn () => 'Filtered Name', 10, 1 );
 
 		$result   = $this->duplicator->duplicate( $menu_id );
 		$new_term = get_term( $result, 'nav_menu' );
 
-		remove_all_filters( 'cmd_new_menu_name' );
+		remove_all_filters( 'cmdu_new_menu_name' );
 
 		$this->assertEquals( 'Filtered Name', $new_term->name );
 	}
@@ -208,19 +208,19 @@ class Menu_Duplicator_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_Duplicator::duplicate_item
 	 */
-	public function test_cmd_after_duplicate_item_action_fires(): void {
+	public function test_cmdu_after_duplicate_item_action_fires(): void {
 		$menu_id = $this->create_menu_with_items( 'Menu', 1 );
 		$items   = wp_get_nav_menu_items( $menu_id );
 		$item_id = $items[0]->ID;
 
 		$fired = false;
-		add_action( 'cmd_after_duplicate_item', static function () use ( &$fired ) {
+		add_action( 'cmdu_after_duplicate_item', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		$this->duplicator->duplicate_item( $item_id, $menu_id );
 
-		remove_all_actions( 'cmd_after_duplicate_item' );
+		remove_all_actions( 'cmdu_after_duplicate_item' );
 
 		$this->assertTrue( $fired );
 	}
@@ -266,13 +266,13 @@ class Menu_Duplicator_Test extends ClassicMenuDuplicatorTestCase {
 	public function test_snapshot_limit_is_enforced(): void {
 		$menu_id = $this->create_menu_with_items( 'Menu', 1 );
 
-		add_filter( 'cmd_snapshot_limit', static fn () => 3 );
+		add_filter( 'cmdu_snapshot_limit', static fn () => 3 );
 
 		for ( $i = 1; $i <= 5; ++$i ) {
 			$this->duplicator->save_snapshot( $menu_id, "Snap {$i}" );
 		}
 
-		remove_all_filters( 'cmd_snapshot_limit' );
+		remove_all_filters( 'cmdu_snapshot_limit' );
 
 		$snapshots = $this->duplicator->get_snapshots( $menu_id );
 
@@ -394,11 +394,11 @@ class Menu_Duplicator_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_Duplicator::export
 	 */
-	public function test_cmd_export_payload_filter_is_applied(): void {
+	public function test_cmdu_export_payload_filter_is_applied(): void {
 		$menu_id = $this->create_menu_with_items( 'Filter Test', 1 );
 
 		add_filter(
-			'cmd_export_payload',
+			'cmdu_export_payload',
 			static function ( array $payload ): array {
 				$payload['custom_key'] = 'custom_value';
 				return $payload;
@@ -407,7 +407,7 @@ class Menu_Duplicator_Test extends ClassicMenuDuplicatorTestCase {
 
 		$payload = $this->duplicator->export( $menu_id );
 
-		remove_all_filters( 'cmd_export_payload' );
+		remove_all_filters( 'cmdu_export_payload' );
 
 		$this->assertArrayHasKey( 'custom_key', $payload );
 		$this->assertEquals( 'custom_value', $payload['custom_key'] );

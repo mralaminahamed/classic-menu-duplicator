@@ -279,13 +279,13 @@ class Menu_Importer_Test extends ClassicMenuDuplicatorTestCase {
 		$payload = $this->make_export_payload( 'Action Test', 1 );
 		$fired   = false;
 
-		add_action( 'cmd_after_import_menu', static function () use ( &$fired ) {
+		add_action( 'cmdu_after_import_menu', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		$this->importer->import( $payload );
 
-		remove_all_actions( 'cmd_after_import_menu' );
+		remove_all_actions( 'cmdu_after_import_menu' );
 
 		$this->assertTrue( $fired );
 	}
@@ -293,14 +293,14 @@ class Menu_Importer_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_Importer::import
 	 */
-	public function test_cmd_import_menu_name_filter_is_applied(): void {
+	public function test_cmdu_import_menu_name_filter_is_applied(): void {
 		$payload = $this->make_export_payload( 'Filter Menu', 1 );
 
-		add_filter( 'cmd_import_menu_name', static fn () => 'Filtered Import Name' );
+		add_filter( 'cmdu_import_menu_name', static fn () => 'Filtered Import Name' );
 
 		$new_menu_id = $this->importer->import( $payload );
 
-		remove_all_filters( 'cmd_import_menu_name' );
+		remove_all_filters( 'cmdu_import_menu_name' );
 
 		$term = get_term( $new_menu_id, 'nav_menu' );
 		$this->assertEquals( 'Filtered Import Name', $term->name );

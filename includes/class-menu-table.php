@@ -75,12 +75,12 @@ class Menu_Table extends WP_List_Table {
 	 */
 	protected function get_bulk_actions(): array {
 		$actions = array(
-			'cmd_bulk_duplicate' => __( 'Duplicate', 'classic-menu-duplicator' ),
-			'cmd_bulk_export'    => __( 'Export as JSON', 'classic-menu-duplicator' ),
+			'cmdu_bulk_duplicate' => __( 'Duplicate', 'classic-menu-duplicator' ),
+			'cmdu_bulk_export'    => __( 'Export as JSON', 'classic-menu-duplicator' ),
 		);
 
 		if ( current_user_can( 'delete_theme_options' ) ) {
-			$actions['cmd_bulk_delete'] = __( 'Delete', 'classic-menu-duplicator' );
+			$actions['cmdu_bulk_delete'] = __( 'Delete', 'classic-menu-duplicator' );
 		}
 
 		return $actions;
@@ -111,8 +111,8 @@ class Menu_Table extends WP_List_Table {
 		usort(
 			$menus,
 			static function ( \WP_Term $a, \WP_Term $b ) use ( $orderby, $order ): int {
-				$val_a = 'created' === $orderby ? (int) get_term_meta( $a->term_id, '_cmd_created', true ) : strtolower( $a->name );
-				$val_b = 'created' === $orderby ? (int) get_term_meta( $b->term_id, '_cmd_created', true ) : strtolower( $b->name );
+				$val_a = 'created' === $orderby ? (int) get_term_meta( $a->term_id, '_cmdu_created', true ) : strtolower( $a->name );
+				$val_b = 'created' === $orderby ? (int) get_term_meta( $b->term_id, '_cmdu_created', true ) : strtolower( $b->name );
 
 				$cmp = 'created' === $orderby ? ( $val_a <=> $val_b ) : strcmp( (string) $val_a, (string) $val_b );
 
@@ -121,7 +121,7 @@ class Menu_Table extends WP_List_Table {
 		);
 
 		// Pagination.
-		$per_page     = $this->get_items_per_page( 'cmd_menus_per_page', 20 );
+		$per_page     = $this->get_items_per_page( 'cmdu_menus_per_page', 20 );
 		$current_page = $this->get_pagenum();
 		$total_items  = count( $menus );
 
@@ -159,7 +159,7 @@ class Menu_Table extends WP_List_Table {
 	protected function column_name( $item ): string {
 		$edit_url = admin_url( 'nav-menus.php?action=edit&menu=' . $item->term_id );
 
-		$nonce = wp_create_nonce( 'cmd_menu_actions' );
+		$nonce = wp_create_nonce( 'cmdu_menu_actions' );
 
 		$actions = array(
 			'edit'      => sprintf(
@@ -168,14 +168,14 @@ class Menu_Table extends WP_List_Table {
 				esc_html__( 'Edit', 'classic-menu-duplicator' )
 			),
 			'duplicate' => sprintf(
-				'<a href="#" class="cmd-row-duplicate" data-menu-id="%d" data-menu-name="%s" data-nonce="%s">%s</a>',
+				'<a href="#" class="cmdu-row-duplicate" data-menu-id="%d" data-menu-name="%s" data-nonce="%s">%s</a>',
 				$item->term_id,
 				esc_attr( $item->name ),
 				esc_attr( $nonce ),
 				esc_html__( 'Duplicate', 'classic-menu-duplicator' )
 			),
 			'export'    => sprintf(
-				'<a href="#" class="cmd-row-export" data-menu-id="%d" data-nonce="%s">%s</a>',
+				'<a href="#" class="cmdu-row-export" data-menu-id="%d" data-nonce="%s">%s</a>',
 				$item->term_id,
 				esc_attr( $nonce ),
 				esc_html__( 'Export JSON', 'classic-menu-duplicator' )
@@ -234,7 +234,7 @@ class Menu_Table extends WP_List_Table {
 
 		return ! empty( $assigned )
 			? implode( ', ', $assigned )
-			: '<span class="cmd-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
+			: '<span class="cmdu-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
 	}
 
 	/**
@@ -249,10 +249,10 @@ class Menu_Table extends WP_List_Table {
 	 * @return string
 	 */
 	protected function column_created( $item ): string {
-		$ts = (int) get_term_meta( $item->term_id, '_cmd_created', true );
+		$ts = (int) get_term_meta( $item->term_id, '_cmdu_created', true );
 
 		if ( $ts <= 0 ) {
-			return '<span class="cmd-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
+			return '<span class="cmdu-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
 		}
 
 		return esc_html(

@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   POST /cmd/v1/menus/{id}/items/{item_id}/duplicate
  *
  * All routes require the `edit_theme_options` capability by default.
- * The permission callback is filterable via `cmd_rest_permission`.
+ * The permission callback is filterable via `cmdu_rest_permission`.
  */
 class Menu_REST_Controller {
 
@@ -227,7 +227,7 @@ class Menu_REST_Controller {
 	/**
 	 * Default permission callback: requires edit_theme_options.
 	 *
-	 * Filterable via `cmd_rest_permission` for integrations that need to
+	 * Filterable via `cmdu_rest_permission` for integrations that need to
 	 * customise access control (e.g. WPML language-specific permissions).
 	 *
 	 * @param WP_REST_Request $request Current request.

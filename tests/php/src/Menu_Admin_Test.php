@@ -41,7 +41,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 
 		$this->assertNotFalse( has_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_scripts' ) ) );
 		$this->assertNotFalse( has_action( 'admin_head', array( $this->admin, 'output_inline_styles' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmd_duplicate_menu', array( $this->admin, 'handle_ajax' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_duplicate_menu', array( $this->admin, 'handle_ajax' ) ) );
 	}
 
 	/**
@@ -53,7 +53,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 		$pagenow = 'index.php';
 		$this->admin->enqueue_scripts( 'index.php' );
 
-		$this->assertFalse( wp_script_is( 'cmd-admin', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'cmdu-admin', 'enqueued' ) );
 	}
 
 	/**
@@ -74,7 +74,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 
 		$this->admin->enqueue_scripts( 'nav-menus.php' );
 
-		$this->assertTrue( wp_script_is( 'cmd-admin', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'cmdu-admin', 'enqueued' ) );
 	}
 
 	/**
@@ -98,10 +98,10 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 		$this->admin->enqueue_scripts( 'nav-menus.php' );
 
 		global $wp_scripts;
-		$localized = $wp_scripts->get_data( 'cmd-admin', 'data' );
+		$localized = $wp_scripts->get_data( 'cmdu-admin', 'data' );
 
-		$this->assertStringContainsString( 'cmdData', $localized );
-		$this->assertStringContainsString( 'cmd_duplicate_menu', $localized );
+		$this->assertStringContainsString( 'cmduData', $localized );
+		$this->assertStringContainsString( 'cmdu_duplicate_menu', $localized );
 	}
 
 	/**
@@ -206,7 +206,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<style', $output );
-		$this->assertStringContainsString( 'cmd-inline-styles', $output );
+		$this->assertStringContainsString( 'cmdu-inline-styles', $output );
 	}
 
 	/**

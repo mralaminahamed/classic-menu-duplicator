@@ -9,23 +9,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<style id="cmd-inline-styles">
+<style id="cmdu-inline-styles">
 
 	/* ── Toolbar button spacing ─────────────────────────────────── */
-	#cmd-duplicate-menu,
-	#cmd-snapshot-toggle,
-	#cmd-export-menu {
+	#cmdu-duplicate-menu,
+	#cmdu-snapshot-toggle,
+	#cmdu-export-menu {
 		vertical-align: middle;
 		margin-left: 6px;
 	}
 
 	/* ── Toast notice ───────────────────────────────────────────── */
-	.cmd-toast {
+	.cmdu-toast {
 		margin: 8px 0 0;
 	}
 
 	/* ── Name modal overlay ─────────────────────────────────────── */
-	#cmd-modal-overlay {
+	#cmdu-modal-overlay {
 		display: none;
 		position: fixed;
 		inset: 0;
@@ -35,12 +35,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 		justify-content: center;
 	}
 
-	#cmd-modal-overlay[style*="display: block"],
-	#cmd-modal-overlay[style*="display:block"] {
+	#cmdu-modal-overlay[style*="display: block"],
+	#cmdu-modal-overlay[style*="display:block"] {
 		display: flex !important;
 	}
 
-	#cmd-modal {
+	#cmdu-modal {
 		background: #fff;
 		border-radius: 4px;
 		box-shadow: 0 4px 24px rgba(0,0,0,.25);
@@ -49,33 +49,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 		max-width: 420px;
 	}
 
-	#cmd-modal h2 {
+	#cmdu-modal h2 {
 		margin: 0 0 16px;
 		font-size: 16px;
 		font-weight: 600;
 		color: #1d2327;
 	}
 
-	#cmd-modal label {
+	#cmdu-modal label {
 		display: block;
 		margin-bottom: 6px;
 		font-weight: 500;
 		color: #1d2327;
 	}
 
-	#cmd-modal-name {
+	#cmdu-modal-name {
 		width: 100%;
 		box-sizing: border-box;
 		margin-bottom: 16px;
 	}
 
-	.cmd-modal-actions {
+	.cmdu-modal-actions {
 		display: flex;
 		gap: 8px;
 	}
 
 	/* ── Snapshot panel ─────────────────────────────────────────── */
-	#cmd-snapshot-panel {
+	#cmdu-snapshot-panel {
 		position: fixed;
 		top: 0;
 		right: -320px;
@@ -91,11 +91,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		overflow: hidden;
 	}
 
-	#cmd-snapshot-panel.is-visible {
+	#cmdu-snapshot-panel.is-visible {
 		right: 0;
 	}
 
-	#cmd-snapshot-panel-header {
+	#cmdu-snapshot-panel-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -107,7 +107,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		background: #f6f7f7;
 	}
 
-	#cmd-snapshot-close {
+	#cmdu-snapshot-close {
 		font-size: 20px;
 		line-height: 1;
 		color: #787c82;
@@ -115,20 +115,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 		cursor: pointer;
 	}
 
-	#cmd-snapshot-close:hover {
+	#cmdu-snapshot-close:hover {
 		color: #1d2327;
 	}
 
-	#cmd-snapshot-save-row {
+	#cmdu-snapshot-save-row {
 		padding: 12px 16px;
 		border-bottom: 1px solid #f0f0f1;
 	}
 
-	#cmd-save-snapshot {
+	#cmdu-save-snapshot {
 		width: 100%;
 	}
 
-	#cmd-snapshot-list {
+	#cmdu-snapshot-list {
 		flex: 1;
 		overflow-y: auto;
 		margin: 0;
@@ -136,14 +136,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 		list-style: none;
 	}
 
-	.cmd-snapshot-empty {
+	.cmdu-snapshot-empty {
 		padding: 16px;
 		color: #787c82;
 		font-size: 12px;
 		font-style: italic;
 	}
 
-	.cmd-snapshot-item {
+	.cmdu-snapshot-item {
 		display: flex;
 		flex-direction: column;
 		padding: 10px 16px;
@@ -151,11 +151,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		position: relative;
 	}
 
-	.cmd-snapshot-item:hover {
+	.cmdu-snapshot-item:hover {
 		background: #f6f7f7;
 	}
 
-	.cmd-snapshot-label {
+	.cmdu-snapshot-label {
 		font-size: 12px;
 		font-weight: 500;
 		color: #1d2327;
@@ -165,13 +165,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		text-overflow: ellipsis;
 	}
 
-	.cmd-snapshot-date {
+	.cmdu-snapshot-date {
 		font-size: 11px;
 		color: #787c82;
 		margin-top: 2px;
 	}
 
-	.cmd-snapshot-delete {
+	.cmdu-snapshot-delete {
 		position: absolute;
 		top: 10px;
 		right: 12px;
@@ -182,17 +182,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		opacity: .6;
 	}
 
-	.cmd-snapshot-delete:hover {
+	.cmdu-snapshot-delete:hover {
 		opacity: 1;
 	}
 
 	/* ── Duplicate item link ─────────────────────────────────────── */
-	.cmd-duplicate-item {
+	.cmdu-duplicate-item {
 		margin-left: 8px;
 		color: #2271b1;
 	}
 
-	.cmd-duplicate-item:hover {
+	.cmdu-duplicate-item:hover {
 		color: #135e96;
 	}
 

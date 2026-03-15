@@ -178,7 +178,7 @@ Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
 ## 9. Important Hooks
 
 - `admin_enqueue_scripts` — Enqueue admin assets
-- `wp_ajax_cmd_duplicate_menu` — Handle AJAX duplication request
+- `wp_ajax_cmdu_duplicate_menu` — Handle AJAX duplication request
 
 ---
 

@@ -32,7 +32,7 @@ parameters:
 
   ignoreErrors:
     # Plugin constants (defined at runtime)
-    - '#Constant CMD_[A-Z_]* not found#'
+    - '#Constant cmdu_[A-Z_]* not found#'
 
     # WordPress stub property access issues
     - '#Access to an undefined property WC_Meta_Data::\$.*#'
