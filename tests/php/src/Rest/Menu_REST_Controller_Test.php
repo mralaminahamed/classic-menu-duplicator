@@ -5,9 +5,11 @@
  * @package ClassicMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test;
+namespace ClassicMenuDuplicator\Test\Rest;
 
 use ClassicMenuDuplicator\Menu_REST_Controller;
+use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
+use WP_REST_Request;
 
 /**
  * Tests REST route registration, callback correctness, HTTP statuses,
@@ -91,7 +93,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( 0 );
 
 		$menu_id = $this->create_menu_with_items( 'Perm Test', 1 );
-		$request = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 
@@ -106,7 +108,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'Auth Test', 1 );
-		$request = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 
@@ -125,7 +127,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		add_filter( 'cmdu_rest_permission', '__return_false' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Deny', 1 );
-		$request  = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 403, $response->get_status() );
@@ -145,7 +147,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		add_filter( 'cmdu_rest_permission', '__return_true' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Grant', 1 );
-		$request  = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -166,7 +168,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'REST Dup', 2 );
-		$request = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -189,7 +191,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'Custom REST', 1 );
-		$request = new \WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
 		$request->set_param( 'name', 'My REST Copy' );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -207,7 +209,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$request  = new \WP_REST_Request( 'POST', '/cmd/v1/menus/99999/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/99999/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -227,7 +229,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'REST Export', 3 );
-		$request = new \WP_REST_Request( 'GET', '/cmd/v1/menus/' . $menu_id . '/export' );
+		$request = new WP_REST_Request( 'GET', '/cmd/v1/menus/' . $menu_id . '/export' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -248,7 +250,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$request  = new \WP_REST_Request( 'GET', '/cmd/v1/menus/99999/export' );
+		$request  = new WP_REST_Request( 'GET', '/cmd/v1/menus/99999/export' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -271,7 +273,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$items   = wp_get_nav_menu_items( $menu_id );
 		$item_id = $items[0]->ID;
 
-		$request = new \WP_REST_Request(
+		$request = new WP_REST_Request(
 			'POST',
 			'/cmd/v1/menus/' . $menu_id . '/items/' . $item_id . '/duplicate'
 		);
@@ -295,7 +297,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'REST 404 Item', 1 );
-		$request = new \WP_REST_Request(
+		$request = new WP_REST_Request(
 			'POST',
 			'/cmd/v1/menus/' . $menu_id . '/items/99999/duplicate'
 		);

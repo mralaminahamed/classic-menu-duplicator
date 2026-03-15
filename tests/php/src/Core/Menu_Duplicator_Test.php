@@ -5,9 +5,10 @@
  * @package ClassicMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test;
+namespace ClassicMenuDuplicator\Test\Core;
 
 use ClassicMenuDuplicator\Menu_Duplicator;
+use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
 
 /**
  * Comprehensive test suite for Menu_Duplicator class.

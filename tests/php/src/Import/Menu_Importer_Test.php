@@ -5,10 +5,11 @@
  * @package ClassicMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test;
+namespace ClassicMenuDuplicator\Test\Import;
 
 use ClassicMenuDuplicator\Menu_Duplicator;
 use ClassicMenuDuplicator\Menu_Importer;
+use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
 
 /**
  * Covers Menu_Importer::parse(), validate(), preview(), and import().

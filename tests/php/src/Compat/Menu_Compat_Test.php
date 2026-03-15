@@ -5,10 +5,11 @@
  * @package ClassicMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test;
+namespace ClassicMenuDuplicator\Test\Compat;
 
 use ClassicMenuDuplicator\Menu_Compat;
 use ClassicMenuDuplicator\Menu_Duplicator;
+use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
 
 /**
  * Tests the multilingual compatibility layer in isolation by using the
