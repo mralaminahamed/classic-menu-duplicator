@@ -26,7 +26,9 @@
 		"phpstan/phpstan": "^2.1.30",
 		"phpstan/extension-installer": "^1.4",
 		"szepeviktor/phpstan-wordpress": "^2.0",
-		"php-stubs/wordpress-stubs": "^6.0"
+		"php-stubs/wordpress-stubs": "^6.0",
+		"php-stubs/wordpress-tests-stubs": "^6.9",
+		"php-stubs/wp-cli-stubs": "^2.12"
 	},
 	"autoload": {
 		"classmap": [
