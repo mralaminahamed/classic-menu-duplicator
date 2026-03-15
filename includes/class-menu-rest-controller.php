@@ -9,6 +9,11 @@ declare( strict_types=1 );
 
 namespace ClassicMenuDuplicator;
 
+use WP_Error;
+use WP_Post;
+use WP_REST_Request;
+use WP_Term;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -139,11 +144,11 @@ class Menu_REST_Controller {
 	/**
 	 * Duplicates a menu and returns the new menu term data.
 	 *
-	 * @param \WP_REST_Request $request Full request object.
+	 * @param WP_REST_Request $request Full request object.
 	 *
-	 * @return \WP_REST_Response|\WP_Error
+	 * @return \WP_REST_Response|WP_Error
 	 */
-	public function duplicate_menu( \WP_REST_Request $request ) {
+	public function duplicate_menu( WP_REST_Request $request ) {
 		$menu_id = (int) $request->get_param( 'id' );
 		$name    = (string) $request->get_param( 'name' );
 
@@ -159,8 +164,8 @@ class Menu_REST_Controller {
 		return rest_ensure_response(
 			array(
 				'id'       => $result,
-				'name'     => $new_term instanceof \WP_Term ? $new_term->name : '',
-				'slug'     => $new_term instanceof \WP_Term ? $new_term->slug : '',
+				'name'     => $new_term instanceof WP_Term ? $new_term->name : '',
+				'slug'     => $new_term instanceof WP_Term ? $new_term->slug : '',
 				'edit_url' => admin_url( 'nav-menus.php?action=edit&menu=' . $result ),
 			)
 		);
@@ -170,11 +175,11 @@ class Menu_REST_Controller {
 	 * Exports a menu as a JSON payload (returned as a REST response body,
 	 * not as a file download — file downloads belong in the AJAX handler).
 	 *
-	 * @param \WP_REST_Request $request Full request object.
+	 * @param WP_REST_Request $request Full request object.
 	 *
-	 * @return \WP_REST_Response|\WP_Error
+	 * @return \WP_REST_Response|WP_Error
 	 */
-	public function export_menu( \WP_REST_Request $request ) {
+	public function export_menu( WP_REST_Request $request ) {
 		$menu_id    = (int) $request->get_param( 'id' );
 		$duplicator = new Menu_Duplicator();
 		$payload    = $duplicator->export( $menu_id );
@@ -189,11 +194,11 @@ class Menu_REST_Controller {
 	/**
 	 * Duplicates a single menu item (and its descendants) within a menu.
 	 *
-	 * @param \WP_REST_Request $request Full request object.
+	 * @param WP_REST_Request $request Full request object.
 	 *
-	 * @return \WP_REST_Response|\WP_Error
+	 * @return \WP_REST_Response|WP_Error
 	 */
-	public function duplicate_item( \WP_REST_Request $request ) {
+	public function duplicate_item( WP_REST_Request $request ) {
 		$menu_id = (int) $request->get_param( 'id' );
 		$item_id = (int) $request->get_param( 'item_id' );
 
@@ -209,8 +214,8 @@ class Menu_REST_Controller {
 		return rest_ensure_response(
 			array(
 				'id'         => $new_item_id,
-				'title'      => $new_item instanceof \WP_Post ? $new_item->post_title : '',
-				'menu_order' => $new_item instanceof \WP_Post ? (int) $new_item->menu_order : 0,
+				'title'      => $new_item instanceof WP_Post ? $new_item->post_title : '',
+				'menu_order' => $new_item instanceof WP_Post ? (int) $new_item->menu_order : 0,
 			)
 		);
 	}
@@ -225,11 +230,11 @@ class Menu_REST_Controller {
 	 * Filterable via `cmd_rest_permission` for integrations that need to
 	 * customise access control (e.g. WPML language-specific permissions).
 	 *
-	 * @param \WP_REST_Request $request Current request.
+	 * @param WP_REST_Request $request Current request.
 	 *
-	 * @return bool|\WP_Error True if allowed, WP_Error or false otherwise.
+	 * @return bool|WP_Error True if allowed, WP_Error or false otherwise.
 	 */
-	public function check_permission( \WP_REST_Request $request ) {
+	public function check_permission( WP_REST_Request $request ) {
 		$allowed = current_user_can( 'edit_theme_options' );
 
 		/**
@@ -238,12 +243,12 @@ class Menu_REST_Controller {
 		 * @since 1.1.0
 		 *
 		 * @param bool             $allowed  Whether the current user is permitted.
-		 * @param \WP_REST_Request $request  The incoming REST request.
+		 * @param WP_REST_Request $request  The incoming REST request.
 		 */
-		$allowed = (bool) apply_filters( 'cmd_rest_permission', $allowed, $request );
+		$allowed = (bool) apply_filters( 'classic_menu_duplicator_rest_permission', $allowed, $request );
 
 		if ( ! $allowed ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_forbidden',
 				__( 'You do not have permission to perform this action.', 'classic-menu-duplicator' ),
 				array( 'status' => rest_authorization_required_code() )
@@ -261,11 +266,11 @@ class Menu_REST_Controller {
 	 * Converts a WP_Error into a REST error response with an appropriate
 	 * HTTP status code.
 	 *
-	 * @param \WP_Error $error Source error.
+	 * @param WP_Error $error Source error.
 	 *
-	 * @return \WP_Error REST-formatted error.
+	 * @return WP_Error REST-formatted error.
 	 */
-	private function error_response( \WP_Error $error ): \WP_Error {
+	private function error_response( WP_Error $error ): WP_Error {
 		$code = $error->get_error_code();
 
 		$status_map = array(

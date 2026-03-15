@@ -9,6 +9,10 @@ declare( strict_types=1 );
 
 namespace ClassicMenuDuplicator;
 
+use WP_Error;
+use WP_Post;
+use WP_Term;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -35,13 +39,13 @@ class Menu_Duplicator {
 	 * @param string $new_name       Optional. Custom name for the new menu.
 	 *                               Falls back to "{original} (Copy)".
 	 *
-	 * @return int|\WP_Error New menu term ID on success, WP_Error on failure.
+	 * @return int|WP_Error New menu term ID on success, WP_Error on failure.
 	 */
 	public function duplicate( int $source_menu_id, string $new_name = '' ) {
 		$source_term = get_term( $source_menu_id, 'nav_menu' );
 
-		if ( is_wp_error( $source_term ) || ! $source_term instanceof \WP_Term ) {
-			return new \WP_Error(
+		if ( is_wp_error( $source_term ) || ! $source_term instanceof WP_Term ) {
+			return new WP_Error(
 				'invalid_menu',
 				__( 'Source menu not found.', 'classic-menu-duplicator' )
 			);
@@ -66,10 +70,10 @@ class Menu_Duplicator {
 		 * @since 1.1.0
 		 *
 		 * @param string   $new_name        Proposed name for the new menu.
-		 * @param \WP_Term $source_term     Source menu term object.
+		 * @param WP_Term $source_term     Source menu term object.
 		 * @param int      $source_menu_id  Source menu term ID.
 		 */
-		$new_name = (string) apply_filters( 'cmd_new_menu_name', $new_name, $source_term, $source_menu_id );
+		$new_name = (string) apply_filters( 'classic_menu_duplicator_new_menu_name', $new_name, $source_term, $source_menu_id );
 
 		// ---------------------------------------------------------------
 		// 2. Create the duplicate nav_menu term.
@@ -83,7 +87,7 @@ class Menu_Duplicator {
 		 * @param int    $source_menu_id Source menu term ID.
 		 * @param string $new_name       Name for the new menu.
 		 */
-		do_action( 'cmd_before_duplicate_menu', $source_menu_id, $new_name );
+		do_action( 'classic_menu_duplicator_before_duplicate_menu', $source_menu_id, $new_name );
 
 		$new_term = wp_create_nav_menu( $new_name );
 
@@ -102,7 +106,7 @@ class Menu_Duplicator {
 		);
 
 		if ( empty( $source_items ) || ! is_array( $source_items ) ) {
-			do_action( 'cmd_after_duplicate_menu', $source_menu_id, $new_menu_id );
+			do_action( 'classic_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id );
 			return $new_menu_id;
 		}
 
@@ -156,7 +160,7 @@ class Menu_Duplicator {
 		 * @param int              $new_menu_id    New menu term ID.
 		 * @param array<int,int>   $id_map         Map of original item IDs to new item IDs.
 		 */
-		do_action( 'cmd_after_duplicate_menu', $source_menu_id, $new_menu_id, $id_map );
+		do_action( 'classic_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id, $id_map );
 
 		return $new_menu_id;
 	}
@@ -169,17 +173,17 @@ class Menu_Duplicator {
 	 *
 	 * @param int             $item_id    Post ID of the nav_menu_item to duplicate.
 	 * @param int             $menu_id    Term ID of the menu that owns the item.
-	 * @param \WP_Post[]|null $all_items  All items belonging to the menu, used for
+	 * @param WP_Post[]|null $all_items  All items belonging to the menu, used for
 	 *                                    descendant lookup. Fetched automatically when
 	 *                                    null (useful for direct AJAX calls).
 	 *
-	 * @return int|\WP_Error New top-level item post ID, or WP_Error on failure.
+	 * @return int|WP_Error New top-level item post ID, or WP_Error on failure.
 	 */
 	public function duplicate_item( int $item_id, int $menu_id, ?array $all_items = null ) {
 		$source_item = get_post( $item_id );
 
-		if ( ! $source_item instanceof \WP_Post || 'nav_menu_item' !== $source_item->post_type ) {
-			return new \WP_Error(
+		if ( ! $source_item instanceof WP_Post || 'nav_menu_item' !== $source_item->post_type ) {
+			return new WP_Error(
 				'invalid_item',
 				__( 'Source menu item not found.', 'classic-menu-duplicator' )
 			);
@@ -193,7 +197,7 @@ class Menu_Duplicator {
 		 * @param int $item_id Post ID of the item about to be duplicated.
 		 * @param int $menu_id Term ID of the menu that owns the item.
 		 */
-		do_action( 'cmd_before_duplicate_item', $item_id, $menu_id );
+		do_action( 'classic_menu_duplicator_before_duplicate_item', $item_id, $menu_id );
 
 		if ( null === $all_items ) {
 			$all_items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
@@ -246,7 +250,7 @@ class Menu_Duplicator {
 		 * @param int            $menu_id     Term ID of the menu.
 		 * @param array<int,int> $id_map      Map of original => new item IDs.
 		 */
-		do_action( 'cmd_after_duplicate_item', $item_id, $new_item_id, $menu_id, $id_map );
+		do_action( 'classic_menu_duplicator_after_duplicate_item', $item_id, $new_item_id, $menu_id, $id_map );
 
 		return $new_item_id;
 	}
@@ -259,13 +263,13 @@ class Menu_Duplicator {
 	 *
 	 * @param int $menu_id Term ID of the menu to export.
 	 *
-	 * @return array<string,mixed>|\WP_Error Export payload array or WP_Error.
+	 * @return array<string,mixed>|WP_Error Export payload array or WP_Error.
 	 */
 	public function export( int $menu_id ) {
 		$term = get_term( $menu_id, 'nav_menu' );
 
-		if ( is_wp_error( $term ) || ! $term instanceof \WP_Term ) {
-			return new \WP_Error(
+		if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
+			return new WP_Error(
 				'invalid_menu',
 				__( 'Menu not found.', 'classic-menu-duplicator' )
 			);
@@ -307,10 +311,10 @@ class Menu_Duplicator {
 		 *
 		 * @param array<string,mixed> $payload  The export array.
 		 * @param int                 $menu_id  Source menu term ID.
-		 * @param \WP_Term            $term     Source menu term object.
+		 * @param WP_Term            $term     Source menu term object.
 		 */
-		$payload = apply_filters(
-			'cmd_export_payload',
+		return apply_filters(
+			'classic_menu_duplicator_export_payload',
 			array(
 				'version'  => CLASSIC_MENU_DUPLICATOR_VERSION,
 				'exported' => current_time( 'c' ),
@@ -325,8 +329,6 @@ class Menu_Duplicator {
 			$menu_id,
 			$term
 		);
-
-		return $payload;
 	}
 
 	// -----------------------------------------------------------------------
@@ -363,7 +365,7 @@ class Menu_Duplicator {
 			'data'    => $payload,
 		);
 
-		$limit     = (int) apply_filters( 'cmd_snapshot_limit', 10 );
+		$limit     = (int) apply_filters( 'classic_menu_duplicator_snapshot_limit', 10 );
 		$snapshots = $this->get_snapshots( $menu_id );
 
 		array_unshift( $snapshots, $snapshot );
@@ -427,13 +429,13 @@ class Menu_Duplicator {
 	/**
 	 * Duplicates a single nav_menu_item post and its postmeta.
 	 *
-	 * @param \WP_Post       $item        Original menu item post object.
+	 * @param WP_Post       $item        Original menu item post object.
 	 * @param int            $new_menu_id Term ID of the destination menu.
 	 * @param array<int,int> $id_map      Already-processed original=>new ID pairs.
 	 *
-	 * @return int|\WP_Error New post ID, or WP_Error on failure.
+	 * @return int|WP_Error New post ID, or WP_Error on failure.
 	 */
-	private function duplicate_menu_item( \WP_Post $item, int $new_menu_id, array $id_map ) {
+	private function duplicate_menu_item( WP_Post $item, int $new_menu_id, array $id_map ) {
 		$new_item_id = wp_insert_post(
 			array(
 				'post_type'    => 'nav_menu_item',
@@ -461,9 +463,9 @@ class Menu_Duplicator {
 		 *
 		 * @param int      $old_id      Original item post ID.
 		 * @param int      $new_item_id New item post ID.
-		 * @param \WP_Post $item        Original item post object.
+		 * @param WP_Post $item        Original item post object.
 		 */
-		do_action( 'cmd_after_duplicate_menu_item', $item->ID, $new_item_id, $item );
+		do_action( 'classic_menu_duplicator_after_duplicate_menu_item', $item->ID, $new_item_id, $item );
 
 		return $new_item_id;
 	}
@@ -471,14 +473,14 @@ class Menu_Duplicator {
 	/**
 	 * Recursively clones a menu item and all its descendants.
 	 *
-	 * @param \WP_Post              $item          Item to clone.
+	 * @param WP_Post              $item          Item to clone.
 	 * @param int                   $menu_id       Destination menu term ID.
-	 * @param array<int,\WP_Post[]> $children_map  parent_id => child items.
+	 * @param array<int,WP_Post[]> $children_map  parent_id => child items.
 	 * @param array<int,int>        $id_map        Accumulates old=>new IDs.
 	 *
-	 * @return int|\WP_Error New post ID of the cloned item, or WP_Error.
+	 * @return int|WP_Error New post ID of the cloned item, or WP_Error.
 	 */
-	private function clone_item_recursive( \WP_Post $item, int $menu_id, array $children_map, array &$id_map ) {
+	private function clone_item_recursive( WP_Post $item, int $menu_id, array $children_map, array &$id_map ) {
 		$new_item_id = $this->duplicate_menu_item( $item, $menu_id, $id_map );
 
 		if ( is_wp_error( $new_item_id ) ) {
@@ -499,9 +501,9 @@ class Menu_Duplicator {
 	/**
 	 * Builds a parent_id => children array from a flat list of menu items.
 	 *
-	 * @param \WP_Post[] $items Flat list of nav_menu_item post objects.
+	 * @param WP_Post[] $items Flat list of nav_menu_item post objects.
 	 *
-	 * @return array<int,\WP_Post[]> Map of parent post ID to child post objects.
+	 * @return array<int,WP_Post[]> Map of parent post ID to child post objects.
 	 */
 	private function build_children_map( array $items ): array {
 		$map = array();
@@ -555,7 +557,7 @@ class Menu_Duplicator {
 		 * @param string[] $keys Default meta keys.
 		 */
 		return (array) apply_filters(
-			'cmd_item_meta_keys',
+			'classic_menu_duplicator_item_meta_keys',
 			array(
 				'_menu_item_type',
 				'_menu_item_menu_item_parent',

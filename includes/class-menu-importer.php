@@ -168,7 +168,7 @@ class Menu_Importer {
 		 * @param string $resolved_name Proposed menu name.
 		 * @param array<string,mixed> $payload Import payload.
 		 */
-		$resolved_name = (string) apply_filters( 'cmd_import_menu_name', $resolved_name, $payload );
+		$resolved_name = (string) apply_filters( 'classic_menu_duplicator_import_menu_name', $resolved_name, $payload );
 
 		$new_term = wp_create_nav_menu( $resolved_name );
 
@@ -186,7 +186,7 @@ class Menu_Importer {
 		 * @param int $new_menu_id New menu term ID.
 		 * @param array<string,mixed> $payload Import payload.
 		 */
-		do_action( 'cmd_before_import_menu', $new_menu_id, $payload );
+		do_action( 'classic_menu_duplicator_before_import_menu', $new_menu_id, $payload );
 
 		// Maps original export item ID => new inserted post ID.
 		/** @var array<int,int> $id_map */
@@ -230,7 +230,7 @@ class Menu_Importer {
 		 * @param array<int,int> $id_map Map of original => new item IDs.
 		 * @param array $payload Full import payload.
 		 */
-		do_action( 'cmd_after_import_menu', $new_menu_id, $id_map, $payload );
+		do_action( 'classic_menu_duplicator_after_import_menu', $new_menu_id, $id_map, $payload );
 
 		return $new_menu_id;
 	}
@@ -304,7 +304,7 @@ class Menu_Importer {
 		 * @param int $new_id Inserted post ID.
 		 * @param array<string,mixed> $item Original item payload entry.
 		 */
-		do_action( 'cmd_after_import_item', $new_id, $item );
+		do_action( 'classic_menu_duplicator_after_import_item', $new_id, $item );
 
 		return $new_id;
 	}
