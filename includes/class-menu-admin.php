@@ -32,16 +32,16 @@ class Menu_Admin {
 		add_action( 'admin_head', array( $this, 'output_inline_styles' ) );
 
 		// Menu-level actions.
-		add_action( 'wp_ajax_cmd_duplicate_menu',    array( $this, 'handle_ajax_duplicate_menu' ) );
-		add_action( 'wp_ajax_cmd_export_menu',       array( $this, 'handle_ajax_export_menu' ) );
+		add_action( 'wp_ajax_cmd_duplicate_menu', array( $this, 'handle_ajax_duplicate_menu' ) );
+		add_action( 'wp_ajax_cmd_export_menu', array( $this, 'handle_ajax_export_menu' ) );
 
 		// Item-level actions.
-		add_action( 'wp_ajax_cmd_duplicate_item',    array( $this, 'handle_ajax_duplicate_item' ) );
+		add_action( 'wp_ajax_cmd_duplicate_item', array( $this, 'handle_ajax_duplicate_item' ) );
 
 		// Snapshot actions.
-		add_action( 'wp_ajax_cmd_save_snapshot',     array( $this, 'handle_ajax_save_snapshot' ) );
-		add_action( 'wp_ajax_cmd_get_snapshots',     array( $this, 'handle_ajax_get_snapshots' ) );
-		add_action( 'wp_ajax_cmd_delete_snapshot',   array( $this, 'handle_ajax_delete_snapshot' ) );
+		add_action( 'wp_ajax_cmd_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
+		add_action( 'wp_ajax_cmd_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
+		add_action( 'wp_ajax_cmd_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
 
 		// Auto-snapshot before core saves a menu so every manual save is captured.
 		add_action( 'wp_update_nav_menu', array( $this, 'auto_snapshot_on_save' ), 5 );
@@ -50,9 +50,9 @@ class Menu_Admin {
 	/**
 	 * Outputs inline CSS scoped to nav-menus.php.
 	 *
+	 * @return void
 	 * @global string $pagenow Current admin page filename.
 	 *
-	 * @return void
 	 */
 	public function output_inline_styles(): void {
 		global $pagenow;
@@ -94,7 +94,8 @@ class Menu_Admin {
 			array(
 				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
 				'nonce'                => wp_create_nonce( 'cmd_menu_actions' ),
-				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ),
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				// Menu duplication strings.
 				'buttonLabel'          => __( 'Duplicate Menu', 'classic-menu-duplicator' ),
 				'duplicatingLabel'     => __( 'Duplicating…', 'classic-menu-duplicator' ),
@@ -415,9 +416,9 @@ class Menu_Admin {
 		return array_map(
 			static function ( array $snap ): array {
 				return array(
-					'id'      => (string) $snap['id'],
-					'label'   => (string) $snap['label'],
-					'created' => (int) $snap['created'],
+					'id'            => (string) $snap['id'],
+					'label'         => (string) $snap['label'],
+					'created'       => (int) $snap['created'],
 					'created_human' => wp_date(
 						get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
 						(int) $snap['created']
