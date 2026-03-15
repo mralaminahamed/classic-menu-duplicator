@@ -33,6 +33,11 @@
 			"includes/"
 		]
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"ClassicMenuDuplicator\\Test\\" : "tests/php/src"
+		}
+	},
 	"scripts": {
 		"makepot": "wp i18n make-pot . languages/classic-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
 		"release": [
