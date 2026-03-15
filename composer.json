@@ -41,6 +41,11 @@
 		}
 	},
 	"scripts": {
+		"test": "phpunit",
+		"test-f": "phpunit --filter",
+		"lint": "vendor/bin/phpcs -p -s",
+		"lint:fix": "vendor/bin/phpcbf -p",
+		"analyze": "phpstan analyse --memory-limit=2G",
 		"makepot": "wp i18n make-pot . languages/classic-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
 		"release": [
 			"rm -rf release vendor build/*",
