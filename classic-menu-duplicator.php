@@ -7,16 +7,13 @@
  * or quickly creating variations of existing menus.
  *
  * Key Features:
- * - One-Click Duplication: Instantly clone any navigation menu
+ * - One-Click Duplication with custom name input
+ * - Duplicate individual menu items (including sub-items)
+ * - Snapshot / revision history with auto-save before each manual save
+ * - Export any menu to a portable JSON file
  * - Preserves Hierarchy: Maintains all parent-child relationships
- * - Menu Items: Duplicates all menu items including custom links, pages, posts, and categories
- * - Theme Locations: Automatically assigns duplicated menu to theme locations if the original was
- * - User-Friendly: Simple admin interface with clear feedback
+ * - Theme Locations: Not copied (prevents silently replacing live menus)
  * - Secure: Uses WordPress nonces and capability checks
- *
- * This file serves as the plugin bootstrap, loading all dependencies,
- * registering activation/deactivation hooks, and initializing the main
- * plugin functionality.
  *
  * @link              https://github.com/mralaminahamed/classic-menu-duplicator
  * @since             1.0.0
@@ -25,8 +22,8 @@
  * @wordpress-plugin
  * Plugin Name:       Classic Menu Duplicator
  * Plugin URI:        https://github.com/mralaminahamed/classic-menu-duplicator
- * Description:       A simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click.
- * Version:           1.0.0
+ * Description:       Duplicate menus and individual items, save revision snapshots, and export to JSON — all from the native WordPress menu editor.
+ * Version:           1.1.0
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
  * License:           GPL-2.0+
@@ -46,7 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLASSIC_MENU_DUPLICATOR_VERSION', '1.0.0' );
+define( 'CLASSIC_MENU_DUPLICATOR_VERSION', '1.1.0' );
 define( 'CLASSIC_MENU_DUPLICATOR_FILE', __FILE__ );
 define( 'CLASSIC_MENU_DUPLICATOR_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLASSIC_MENU_DUPLICATOR_URL', plugin_dir_url( __FILE__ ) );
