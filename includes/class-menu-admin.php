@@ -52,7 +52,6 @@ class Menu_Admin {
 	 *
 	 * @return void
 	 * @global string $pagenow Current admin page filename.
-	 *
 	 */
 	public function output_inline_styles(): void {
 		global $pagenow;

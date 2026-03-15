@@ -94,10 +94,10 @@ class Menu_Importer {
 	 * of what would be created without writing anything to the database.
 	 *
 	 * @param array<string,mixed> $payload Validated import payload.
-	 * @param string $menu_name Optional. Name for the new menu.
-	 *                                       Falls back to the payload's menu name.
-	 * @param string $find Optional. URL string to find.
-	 * @param string $replace Optional. URL string to replace with.
+	 * @param string              $menu_name Optional. Name for the new menu.
+	 *                                                    Falls back to the payload's menu name.
+	 * @param string              $find Optional. URL string to find.
+	 * @param string              $replace Optional. URL string to replace with.
 	 *
 	 * @return array<string,mixed> Preview data — menu name and item list.
 	 */
@@ -146,9 +146,9 @@ class Menu_Importer {
 	 * find-and-replace transformation to all item URLs before insertion.
 	 *
 	 * @param array<string,mixed> $payload Validated import payload.
-	 * @param string $menu_name Optional. Override name for the new menu.
-	 * @param string $find Optional. URL string to search for.
-	 * @param string $replace Optional. URL string to replace with.
+	 * @param string              $menu_name Optional. Override name for the new menu.
+	 * @param string              $find Optional. URL string to search for.
+	 * @param string              $replace Optional. URL string to replace with.
 	 *
 	 * @return int|\WP_Error New menu term ID on success, WP_Error on failure.
 	 */
@@ -243,9 +243,9 @@ class Menu_Importer {
 	 * Inserts a single nav_menu_item post from an import payload item entry.
 	 *
 	 * @param array<string,mixed> $item Single item array from the payload.
-	 * @param int $new_menu_id Destination menu term ID.
-	 * @param string $find URL find string.
-	 * @param string $replace URL replace string.
+	 * @param int                 $new_menu_id Destination menu term ID.
+	 * @param string              $find URL find string.
+	 * @param string              $replace URL replace string.
 	 *
 	 * @return int|\WP_Error New post ID or WP_Error.
 	 */

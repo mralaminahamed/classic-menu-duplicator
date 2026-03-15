@@ -262,7 +262,7 @@ class Menu_Table extends \WP_List_Table {
 	 * Renders the default column output for columns not handled explicitly.
 	 *
 	 * @param \WP_Term $item Current row term.
-	 * @param string $column_name Column identifier.
+	 * @param string   $column_name Column identifier.
 	 *
 	 * @return string
 	 */

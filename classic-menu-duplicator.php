@@ -13,7 +13,7 @@
  * @wordpress-plugin
  * Plugin Name:       Classic Menu Duplicator
  * Plugin URI:        https://github.com/mralaminahamed/classic-menu-duplicator
- * Description:       Duplicate menus and items, snapshot revisions, export/import JSON, manage all menus in bulk, copy across multisite, and automate with WP-CLI.
+ * Description:       Duplicate menus and items, snapshot revisions, export/import JSON, manage all menus in bulk, copy across multisite, automate with WP-CLI, and integrate via REST API.
  * Version:           1.1.0
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
@@ -31,6 +31,8 @@ declare( strict_types=1 );
 use ClassicMenuDuplicator\Menu_Admin;
 use ClassicMenuDuplicator\Menu_Admin_Page;
 use ClassicMenuDuplicator\Menu_CLI_Command;
+use ClassicMenuDuplicator\Menu_Compat;
+use ClassicMenuDuplicator\Menu_REST_Controller;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -58,6 +60,12 @@ function classic_menu_duplicator_bootstrap(): void {
 
 	// Tier 2: dedicated admin page (table, import, multisite copy).
 	( new Menu_Admin_Page() )->register_hooks();
+
+	// Tier 3: REST API endpoints.
+	( new Menu_REST_Controller() )->register_hooks();
+
+	// Tier 3: WPML / Polylang compatibility layer (no-ops when neither is active).
+	( new Menu_Compat() )->register_hooks();
 }
 
 add_action( 'plugins_loaded', 'classic_menu_duplicator_bootstrap' );

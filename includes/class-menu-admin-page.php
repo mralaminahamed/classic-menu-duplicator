@@ -97,7 +97,14 @@ class Menu_Admin_Page {
 		$sites_data = array();
 
 		if ( is_multisite() && current_user_can( 'manage_network' ) ) {
-			$sites = get_sites( array( 'number' => 100, 'spam' => 0, 'deleted' => 0, 'archived' => 0 ) );
+			$sites = get_sites(
+				array(
+					'number'   => 100,
+					'spam'     => 0,
+					'deleted'  => 0,
+					'archived' => 0,
+				)
+			);
 
 			foreach ( $sites as $site ) {
 				$blog_id = (int) $site->blog_id;
