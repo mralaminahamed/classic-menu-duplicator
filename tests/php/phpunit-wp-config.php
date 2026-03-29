@@ -65,4 +65,4 @@ define( 'WP_PHP_BINARY', 'php' );
 define( 'WPLANG', '' );
 
 /* Classic Menu Duplicator specific constants */
-define( 'TEST_CLASSIC_MENU_DUPLICATOR_DISPLAY_AJAX_RESPONSE', false );
+define( 'TEST_SWIFT_MENU_DUPLICATOR_DISPLAY_AJAX_RESPONSE', false );

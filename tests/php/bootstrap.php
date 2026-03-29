@@ -1,8 +1,8 @@
 <?php
 /**
- * Bootstrap file for Classic Menu Duplicator tests.
+ * Bootstrap file for Swift Menu Duplicator tests.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 // Hide PHP notices, warnings, and deprecated messages
@@ -11,10 +11,10 @@ ini_set('display_startup_errors', '0');
 ini_set('log_errors', '1');
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING & ~E_DEPRECATED & ~E_STRICT);
 
-define( 'TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_FILE', dirname( __DIR__, 2 ) . '/classic-menu-duplicator.php' );
-define( 'TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_DIR', dirname( __DIR__, 2 ) );
+define( 'TEST_SWIFT_MENU_DUPLICATOR_PLUGIN_FILE', dirname( __DIR__, 2 ) . '/swift-menu-duplicator.php' );
+define( 'TEST_SWIFT_MENU_DUPLICATOR_PLUGIN_DIR', dirname( __DIR__, 2 ) );
 
-require_once TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_DIR . '/vendor/autoload.php';
+require_once TEST_SWIFT_MENU_DUPLICATOR_PLUGIN_DIR . '/vendor/autoload.php';
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' ) ? getenv( 'WP_TESTS_DIR' ) : getenv( 'WP_PHPUNIT__DIR' );
 
@@ -53,7 +53,7 @@ function classic_menu_duplicator_truncate_tables(): void {
 require_once $_tests_dir . '/includes/functions.php';
 
 function _manually_load_plugin() {
-	require TEST_CLASSIC_MENU_DUPLICATOR_PLUGIN_FILE;
+	require TEST_SWIFT_MENU_DUPLICATOR_PLUGIN_FILE;
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

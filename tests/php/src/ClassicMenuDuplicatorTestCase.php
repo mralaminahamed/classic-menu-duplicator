@@ -2,10 +2,10 @@
 /**
  * Abstract base class for Classic Menu Duplicator test cases.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test;
+namespace SwiftMenuDuplicator\Test;
 
 use Brain\Monkey;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -18,7 +18,7 @@ use WP_UnitTestCase;
  * Brain Monkey: @see https://giuseppe-mazzapica.gitbook.io/brain-monkey
  * Mockery: @see http://docs.mockery.io/en/latest/
  */
-abstract class ClassicMenuDuplicatorTestCase extends WP_UnitTestCase {
+abstract class SwiftMenuDuplicatorTestCase extends WP_UnitTestCase {
 	use MockeryPHPUnitIntegration;
 
 	/**
