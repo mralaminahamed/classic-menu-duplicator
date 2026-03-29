@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="classic-menu-duplicator">
-    <description>Classic Menu Duplicator Coding Standards</description>
+<ruleset name="swift-menu-duplicator">
+    <description>Swift Menu Duplicator Coding Standards</description>
 
     <!-- Set the memory limit to 256M -->
     <ini name="memory_limit" value="256M"/>
@@ -11,7 +11,7 @@
 
     <!-- Paths to check -->
     <file>includes</file>
-    <file>classic-menu-duplicator.php</file>
+    <file>swift-menu-duplicator.php</file>
 
     <!-- Exclude patterns -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
@@ -67,7 +67,7 @@
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
-                <element value="classic-menu-duplicator"/>
+                <element value="swift-menu-duplicator"/>
             </property>
         </properties>
     </rule>
@@ -75,10 +75,10 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="cmdu"/> <!-- WPML integration -->
+                <element value="swmd"/> <!-- WPML integration -->
                 <element value="wpml"/> <!-- WPML integration -->
-                <element value="classic_menu_duplicator"/>
-                <element value="ClassicMenuDuplicator"/>
+                <element value="swift_menu_duplicator"/>
+                <element value="SwiftMenuDuplicator"/>
             </property>
         </properties>
     </rule>

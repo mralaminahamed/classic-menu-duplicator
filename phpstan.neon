@@ -1,10 +1,10 @@
-# PHPStan configuration for Classic Menu Duplicator
+# PHPStan configuration for Swift Menu Duplicator
 parameters:
   level: 4
   phpVersion: 70400
 
   paths:
-    - classic-menu-duplicator.php
+    - swift-menu-duplicator.php
     - includes/
 
   excludePaths:
@@ -32,16 +32,16 @@ parameters:
 
   ignoreErrors:
     # Plugin constants (defined at runtime)
-    - '#Constant cmdu_[A-Z_]* not found#'
+    - '#Constant swmd_[A-Z_]* not found#'
 
     # WordPress stub property access issues
     - '#Access to an undefined property WC_Meta_Data::\$.*#'
 
   dynamicConstantNames:
-    - CLASSIC_MENU_DUPLICATOR_VERSION
-    - CLASSIC_MENU_DUPLICATOR_FILE
-    - CLASSIC_MENU_DUPLICATOR_DIR
-    - CLASSIC_MENU_DUPLICATOR_URL
+    - SWIFT_MENU_DUPLICATOR_VERSION
+    - SWIFT_MENU_DUPLICATOR_FILE
+    - SWIFT_MENU_DUPLICATOR_DIR
+    - SWIFT_MENU_DUPLICATOR_URL
 
   universalObjectCratesClasses:
     - WP_Post
