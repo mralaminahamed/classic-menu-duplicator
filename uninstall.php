@@ -32,7 +32,7 @@ if ( ! current_user_can( 'activate_plugins' ) ) {
  * Removes all options whose names begin with the plugin prefix.
  *
  * At version 1.0.0 the plugin stores no options; this function is present
- * so future versions can register options under the `cmdu_` prefix and have
+ * so future versions can register options under the `swmd_` prefix and have
  * them cleaned up automatically without modifying the uninstall routine.
  *
  * @global \wpdb $wpdb WordPress database abstraction object.
@@ -46,7 +46,7 @@ function classic_menu_duplicator_delete_options(): void {
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( 'cmdu_' ) . '%'
+			$wpdb->esc_like( 'swmd_' ) . '%'
 		)
 	);
 }
@@ -54,9 +54,9 @@ function classic_menu_duplicator_delete_options(): void {
 /**
  * Removes all transients whose names begin with the plugin prefix.
  *
- * Covers both standard (`_transient_cmdu_*`) and timeout
- * (`_transient_timeout_cmdu_*`) rows, plus their site-wide equivalents
- * on multisite (`_site_transient_cmdu_*`).
+ * Covers both standard (`_transient_swmd_*`) and timeout
+ * (`_transient_timeout_swmd_*`) rows, plus their site-wide equivalents
+ * on multisite (`_site_transient_swmd_*`).
  *
  * @global \wpdb $wpdb WordPress database abstraction object.
  *
@@ -66,10 +66,10 @@ function classic_menu_duplicator_delete_transients(): void {
 	global $wpdb;
 
 	$patterns = array(
-		$wpdb->esc_like( '_transient_cmdu_' ) . '%',
-		$wpdb->esc_like( '_transient_timeout_cmdu_' ) . '%',
-		$wpdb->esc_like( '_site_transient_cmdu_' ) . '%',
-		$wpdb->esc_like( '_site_transient_timeout_cmdu_' ) . '%',
+		$wpdb->esc_like( '_transient_swmd_' ) . '%',
+		$wpdb->esc_like( '_transient_timeout_swmd_' ) . '%',
+		$wpdb->esc_like( '_site_transient_swmd_' ) . '%',
+		$wpdb->esc_like( '_site_transient_timeout_swmd_' ) . '%',
 	);
 
 	foreach ( $patterns as $pattern ) {
