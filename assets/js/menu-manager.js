@@ -1,4 +1,4 @@
-/* global cmduManagerData, jQuery */
+/* global swmdManagerData, jQuery */
 ( function ( $ ) {
 	'use strict';
 
@@ -15,9 +15,9 @@
 	 */
 	function ajax( action, data ) {
 		return $.ajax( {
-			url:    cmduManagerData.ajaxUrl,
+			url:    swmdManagerData.ajaxUrl,
 			method: 'POST',
-			data:   Object.assign( {}, { action, nonce: cmduManagerData.nonce }, data ),
+			data:   Object.assign( {}, { action, nonce: swmdManagerData.nonce }, data ),
 		} );
 	}
 
@@ -29,7 +29,7 @@
 	 * @return {void}
 	 */
 	function notice( message, type ) {
-		var $wrap   = $( '.cmdu-manager-wrap' );
+		var $wrap   = $( '.swmd-manager-wrap' );
 		var $notice = $( '<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>' );
 
 		$wrap.find( '.wp-header-end' ).after( $notice );
@@ -44,28 +44,28 @@
 	// Row action: Duplicate (single menu via AJAX).
 	// -----------------------------------------------------------------------
 
-	$( document ).on( 'click', '.cmdu-row-duplicate', function ( e ) {
+	$( document ).on( 'click', '.swmd-row-duplicate', function ( e ) {
 		e.preventDefault();
 
 		var $link   = $( this );
 		var menuId  = parseInt( $link.data( 'menu-id' ), 10 );
 		var $row    = $link.closest( 'tr' );
 
-		$link.text( cmduManagerData.duplicatingLabel );
+		$link.text( swmdManagerData.duplicatingLabel );
 
-		ajax( 'cmdu_bulk_duplicate', { menu_ids: [ menuId ] } )
+		ajax( 'swmd_bulk_duplicate', { menu_ids: [ menuId ] } )
 			.done( function ( response ) {
 				if ( response.success ) {
-					notice( cmduManagerData.duplicatedLabel, 'success' );
+					notice( swmdManagerData.duplicatedLabel, 'success' );
 					// Reload the table to show the new row.
 					setTimeout( function () { window.location.reload(); }, 800 );
 				} else {
-					notice( ( response.data && response.data.message ) || cmduManagerData.errorMessage, 'error' );
+					notice( ( response.data && response.data.message ) || swmdManagerData.errorMessage, 'error' );
 					$link.text( 'Duplicate' );
 				}
 			} )
 			.fail( function () {
-				notice( cmduManagerData.errorMessage, 'error' );
+				notice( swmdManagerData.errorMessage, 'error' );
 				$link.text( 'Duplicate' );
 			} );
 	} );
@@ -74,19 +74,19 @@
 	// Row action: Export JSON (single menu, hidden form download).
 	// -----------------------------------------------------------------------
 
-	$( document ).on( 'click', '.cmdu-row-export', function ( e ) {
+	$( document ).on( 'click', '.swmd-row-export', function ( e ) {
 		e.preventDefault();
 
 		var $link  = $( this );
 		var menuId = parseInt( $link.data( 'menu-id' ), 10 );
 		var nonce  = $link.data( 'nonce' );
 
-		$link.text( cmduManagerData.exportingLabel );
+		$link.text( swmdManagerData.exportingLabel );
 
-		var $form = $( '<form>', { method: 'POST', action: cmduManagerData.ajaxUrl, target: '_self' } );
+		var $form = $( '<form>', { method: 'POST', action: swmdManagerData.ajaxUrl, target: '_self' } );
 
 		[
-			{ name: 'action',   value: 'cmdu_bulk_export_zip' },
+			{ name: 'action',   value: 'swmd_bulk_export_zip' },
 			{ name: 'nonce',    value: nonce },
 			{ name: 'menu_ids[]', value: menuId },
 		].forEach( function ( f ) {
@@ -106,7 +106,7 @@
 	// Bulk action bar: Duplicate / Export selected.
 	// -----------------------------------------------------------------------
 
-	$( '#cmdu-menu-table-form' ).on( 'submit', function ( e ) {
+	$( '#swmd-menu-table-form' ).on( 'submit', function ( e ) {
 		var action = $( this ).find( 'select[name="action"], select[name="action2"]' )
 			.filter( function () { return $( this ).val() !== '-1'; } )
 			.first()
@@ -116,11 +116,11 @@
 			return; // Let normal form submit handle it (e.g. bulk delete).
 		}
 
-		if ( 'cmdu_bulk_duplicate' === action || 'cmdu_bulk_export' === action ) {
+		if ( 'swmd_bulk_duplicate' === action || 'swmd_bulk_export' === action ) {
 			e.preventDefault();
 		} else {
-			// cmdu_bulk_delete: confirm before the native form submits.
-			if ( ! window.confirm( cmduManagerData.confirmBulkDeleteText ) ) { // eslint-disable-line no-alert
+			// swmd_bulk_delete: confirm before the native form submits.
+			if ( ! window.confirm( swmdManagerData.confirmBulkDeleteText ) ) { // eslint-disable-line no-alert
 				e.preventDefault();
 			}
 			return;
@@ -134,26 +134,26 @@
 			return;
 		}
 
-		if ( 'cmdu_bulk_duplicate' === action ) {
-			ajax( 'cmdu_bulk_duplicate', { menu_ids: ids } )
+		if ( 'swmd_bulk_duplicate' === action ) {
+			ajax( 'swmd_bulk_duplicate', { menu_ids: ids } )
 				.done( function ( response ) {
 					if ( response.success ) {
-						notice( cmduManagerData.duplicatedLabel, 'success' );
+						notice( swmdManagerData.duplicatedLabel, 'success' );
 						setTimeout( function () { window.location.reload(); }, 800 );
 					} else {
-						notice( ( response.data && response.data.message ) || cmduManagerData.errorMessage, 'error' );
+						notice( ( response.data && response.data.message ) || swmdManagerData.errorMessage, 'error' );
 					}
 				} )
 				.fail( function () {
-					notice( cmduManagerData.errorMessage, 'error' );
+					notice( swmdManagerData.errorMessage, 'error' );
 				} );
 		}
 
-		if ( 'cmdu_bulk_export' === action ) {
-			var $form = $( '<form>', { method: 'POST', action: cmduManagerData.ajaxUrl, target: '_self' } );
+		if ( 'swmd_bulk_export' === action ) {
+			var $form = $( '<form>', { method: 'POST', action: swmdManagerData.ajaxUrl, target: '_self' } );
 
-			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'action' ).val( 'cmdu_bulk_export_zip' ) );
-			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'nonce' ).val( cmduManagerData.nonce ) );
+			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'action' ).val( 'swmd_bulk_export_zip' ) );
+			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'nonce' ).val( swmdManagerData.nonce ) );
 
 			ids.forEach( function ( id ) {
 				$form.append( $( '<input type="hidden" />' ).attr( 'name', 'menu_ids[]' ).val( id ) );
@@ -169,22 +169,22 @@
 	// Copy to Site (multisite tab).
 	// -----------------------------------------------------------------------
 
-	$( '#cmdu-copy-to-site-submit' ).on( 'click', function () {
+	$( '#swmd-copy-to-site-submit' ).on( 'click', function () {
 		var $btn       = $( this );
-		var menuId     = parseInt( $( '#cmdu-copy-source-menu' ).val(), 10 );
-		var targetBlog = parseInt( $( '#cmdu-copy-target-site' ).val(), 10 );
-		var menuName   = $.trim( $( '#cmdu-copy-menu-name' ).val() );
-		var $result    = $( '#cmdu-copy-result' );
+		var menuId     = parseInt( $( '#swmd-copy-source-menu' ).val(), 10 );
+		var targetBlog = parseInt( $( '#swmd-copy-target-site' ).val(), 10 );
+		var menuName   = $.trim( $( '#swmd-copy-menu-name' ).val() );
+		var $result    = $( '#swmd-copy-result' );
 
 		if ( ! menuId || ! targetBlog ) {
-			$result.html( '<p class="notice notice-warning inline">' + cmduManagerData.errorMessage + '</p>' );
+			$result.html( '<p class="notice notice-warning inline">' + swmdManagerData.errorMessage + '</p>' );
 			return;
 		}
 
-		$btn.prop( 'disabled', true ).text( cmduManagerData.copyingLabel );
+		$btn.prop( 'disabled', true ).text( swmdManagerData.copyingLabel );
 		$result.empty();
 
-		ajax( 'cmdu_copy_to_site', {
+		ajax( 'swmd_copy_to_site', {
 			menu_id:        menuId,
 			target_blog_id: targetBlog,
 			menu_name:      menuName,
@@ -195,21 +195,21 @@
 
 					$result.html(
 						'<p class="notice notice-success inline">' +
-						cmduManagerData.copiedLabel +
+						swmdManagerData.copiedLabel +
 						( editUrl
 							? ' <a href="' + $( '<span>' ).text( editUrl ).html() + '" target="_blank">Edit menu &rarr;</a>'
 							: '' ) +
 						'</p>'
 					);
 				} else {
-					var msg = ( response.data && response.data.message ) ? response.data.message : cmduManagerData.errorMessage;
+					var msg = ( response.data && response.data.message ) ? response.data.message : swmdManagerData.errorMessage;
 					$result.html( '<p class="notice notice-error inline">' + $( '<span>' ).text( msg ).html() + '</p>' );
 				}
 
 				$btn.prop( 'disabled', false ).text( 'Copy Menu' );
 			} )
 			.fail( function () {
-				$result.html( '<p class="notice notice-error inline">' + cmduManagerData.errorMessage + '</p>' );
+				$result.html( '<p class="notice notice-error inline">' + swmdManagerData.errorMessage + '</p>' );
 				$btn.prop( 'disabled', false ).text( 'Copy Menu' );
 			} );
 	} );

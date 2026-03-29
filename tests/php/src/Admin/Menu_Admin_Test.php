@@ -2,14 +2,14 @@
 /**
  * Test suite for Menu_Admin class.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test\Admin;
+namespace SwiftMenuDuplicator\Test\Admin;
 
 use Brain\Monkey\Functions;
-use ClassicMenuDuplicator\Menu_Admin;
-use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
+use SwiftMenuDuplicator\Menu_Admin;
+use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**
  * Comprehensive test suite for Menu_Admin class.
@@ -21,7 +21,7 @@ use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
  * - Nonce verification
  * - Capability checks
  */
-class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
+class Menu_Admin_Test extends SwiftMenuDuplicatorTestCase {
 
 	private Menu_Admin $admin;
 
@@ -42,12 +42,12 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 
 		$this->assertNotFalse( has_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_scripts' ) ) );
 		$this->assertNotFalse( has_action( 'admin_head', array( $this->admin, 'output_inline_styles' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_duplicate_menu', array( $this->admin, 'handle_ajax_duplicate_menu' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_export_menu', array( $this->admin, 'handle_ajax_export_menu' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_duplicate_item', array( $this->admin, 'handle_ajax_duplicate_item' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_save_snapshot', array( $this->admin, 'handle_ajax_save_snapshot' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_get_snapshots', array( $this->admin, 'handle_ajax_get_snapshots' ) ) );
-		$this->assertNotFalse( has_action( 'wp_ajax_cmdu_delete_snapshot', array( $this->admin, 'handle_ajax_delete_snapshot' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_duplicate_menu', array( $this->admin, 'handle_ajax_duplicate_menu' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_export_menu', array( $this->admin, 'handle_ajax_export_menu' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_duplicate_item', array( $this->admin, 'handle_ajax_duplicate_item' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_save_snapshot', array( $this->admin, 'handle_ajax_save_snapshot' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_get_snapshots', array( $this->admin, 'handle_ajax_get_snapshots' ) ) );
+		$this->assertNotFalse( has_action( 'wp_ajax_swmd_delete_snapshot', array( $this->admin, 'handle_ajax_delete_snapshot' ) ) );
 		$this->assertNotFalse( has_action( 'wp_update_nav_menu', array( $this->admin, 'auto_snapshot_on_save' ) ) );
 	}
 
@@ -68,7 +68,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 
 		$this->admin->enqueue_scripts( 'index.php' );
 
-		$this->assertFalse( wp_script_is( 'cmdu-admin', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'swmd-admin', 'enqueued' ) );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 
 		$this->admin->enqueue_scripts( 'nav-menus.php' );
 
-		$this->assertTrue( wp_script_is( 'cmdu-admin', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'swmd-admin', 'enqueued' ) );
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Menu_Admin_Test extends ClassicMenuDuplicatorTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<style', $output );
-		$this->assertStringContainsString( 'cmdu-inline-styles', $output );
+		$this->assertStringContainsString( 'swmd-inline-styles', $output );
 	}
 
 	/**

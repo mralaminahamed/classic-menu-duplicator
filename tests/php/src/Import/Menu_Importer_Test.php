@@ -2,19 +2,19 @@
 /**
  * Test suite for Menu_Importer class — Tier 2.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test\Import;
+namespace SwiftMenuDuplicator\Test\Import;
 
-use ClassicMenuDuplicator\Menu_Duplicator;
-use ClassicMenuDuplicator\Menu_Importer;
-use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
+use SwiftMenuDuplicator\Menu_Duplicator;
+use SwiftMenuDuplicator\Menu_Importer;
+use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**
  * Covers Menu_Importer::parse(), validate(), preview(), and import().
  */
-class Menu_Importer_Test extends ClassicMenuDuplicatorTestCase {
+class Menu_Importer_Test extends SwiftMenuDuplicatorTestCase {
 
 	private Menu_Importer  $importer;
 	private Menu_Duplicator $duplicator;
@@ -280,13 +280,13 @@ class Menu_Importer_Test extends ClassicMenuDuplicatorTestCase {
 		$payload = $this->make_export_payload( 'Action Test', 1 );
 		$fired   = false;
 
-		add_action( 'cmdu_after_import_menu', static function () use ( &$fired ) {
+		add_action( 'swmd_after_import_menu', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		$this->importer->import( $payload );
 
-		remove_all_actions( 'cmdu_after_import_menu' );
+		remove_all_actions( 'swmd_after_import_menu' );
 
 		$this->assertTrue( $fired );
 	}
@@ -294,14 +294,14 @@ class Menu_Importer_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_Importer::import
 	 */
-	public function test_cmdu_import_menu_name_filter_is_applied(): void {
+	public function test_swmd_import_menu_name_filter_is_applied(): void {
 		$payload = $this->make_export_payload( 'Filter Menu', 1 );
 
-		add_filter( 'cmdu_import_menu_name', static fn () => 'Filtered Import Name' );
+		add_filter( 'swmd_import_menu_name', static fn () => 'Filtered Import Name' );
 
 		$new_menu_id = $this->importer->import( $payload );
 
-		remove_all_filters( 'cmdu_import_menu_name' );
+		remove_all_filters( 'swmd_import_menu_name' );
 
 		$term = get_term( $new_menu_id, 'nav_menu' );
 		$this->assertEquals( 'Filtered Import Name', $term->name );

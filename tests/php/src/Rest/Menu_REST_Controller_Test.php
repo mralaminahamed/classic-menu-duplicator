@@ -2,23 +2,23 @@
 /**
  * Test suite for Menu_REST_Controller — Tier 3.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
-namespace ClassicMenuDuplicator\Test\Rest;
+namespace SwiftMenuDuplicator\Test\Rest;
 
-use ClassicMenuDuplicator\Menu_REST_Controller;
-use ClassicMenuDuplicator\Test\ClassicMenuDuplicatorTestCase;
+use SwiftMenuDuplicator\Menu_REST_Controller;
+use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 use WP_REST_Request;
 
 /**
  * Tests REST route registration, callback correctness, HTTP statuses,
- * and the cmdu_rest_permission filter.
+ * and the swmd_rest_permission filter.
  *
  * Uses WP_UnitTestCase's built-in REST server factory so actual route
  * dispatching is exercised without a real HTTP stack.
  */
-class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
+class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 
 	private Menu_REST_Controller $controller;
 
@@ -46,7 +46,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$wpdb->query( "DELETE FROM {$wpdb->terms} WHERE 1=1" );
 		$wpdb->query( "DELETE FROM {$wpdb->termmeta} WHERE 1=1" );
 
-		remove_all_filters( 'cmdu_rest_permission' );
+		remove_all_filters( 'swmd_rest_permission' );
 
 		parent::tear_down();
 	}
@@ -120,11 +120,11 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_REST_Controller::check_permission
 	 */
-	public function test_cmdu_rest_permission_filter_can_deny_access(): void {
+	public function test_swmd_rest_permission_filter_can_deny_access(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		add_filter( 'cmdu_rest_permission', '__return_false' );
+		add_filter( 'swmd_rest_permission', '__return_false' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Deny', 1 );
 		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
@@ -133,18 +133,18 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$this->assertEquals( 403, $response->get_status() );
 
 		wp_set_current_user( 0 );
-		remove_all_filters( 'cmdu_rest_permission' );
+		remove_all_filters( 'swmd_rest_permission' );
 	}
 
 	/**
 	 * @covers Menu_REST_Controller::check_permission
 	 */
-	public function test_cmdu_rest_permission_filter_can_grant_access(): void {
+	public function test_swmd_rest_permission_filter_can_grant_access(): void {
 		// Subscriber normally cannot edit_theme_options.
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $user_id );
 
-		add_filter( 'cmdu_rest_permission', '__return_true' );
+		add_filter( 'swmd_rest_permission', '__return_true' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Grant', 1 );
 		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
@@ -153,7 +153,7 @@ class Menu_REST_Controller_Test extends ClassicMenuDuplicatorTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		wp_set_current_user( 0 );
-		remove_all_filters( 'cmdu_rest_permission' );
+		remove_all_filters( 'swmd_rest_permission' );
 	}
 
 	// -----------------------------------------------------------------------

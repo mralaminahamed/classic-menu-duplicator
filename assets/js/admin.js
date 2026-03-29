@@ -1,4 +1,4 @@
-/* global cmduData, jQuery */
+/* global swmdData, jQuery */
 ( function ( $ ) {
 	'use strict';
 
@@ -24,11 +24,11 @@
 	 */
 	function ajaxRequest( action, data ) {
 		return $.ajax( {
-			url:    cmduData.ajaxUrl,
+			url:    swmdData.ajaxUrl,
 			method: 'POST',
 			data:   Object.assign( {}, {
 				action,
-				nonce:   cmduData.nonce,
+				nonce:   swmdData.nonce,
 				menu_id: getCurrentMenuId(),
 			}, data ),
 		} );
@@ -42,9 +42,9 @@
 	 * @return {void}
 	 */
 	function showToast( message, type ) {
-		var $notice = $( '<div class="cmdu-toast notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>' );
+		var $notice = $( '<div class="swmd-toast notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>' );
 
-		$( '#cmdu-toolbar' ).before( $notice );
+		$( '#swmd-toolbar' ).before( $notice );
 
 		setTimeout( function () {
 			$notice.fadeOut( 300, function () { $notice.remove(); } );
@@ -68,14 +68,14 @@
 		}
 
 		$modal = $( [
-			'<div id="cmdu-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cmdu-modal-heading">',
-			'  <div id="cmdu-modal">',
-			'    <h2 id="cmdu-modal-heading">' + cmduData.modalHeading + '</h2>',
-			'    <label for="cmdu-modal-name">' + cmduData.modalNameLabel + '</label>',
-			'    <input type="text" id="cmdu-modal-name" class="regular-text" autocomplete="off" />',
-			'    <div class="cmdu-modal-actions">',
-			'      <button type="button" id="cmdu-modal-confirm" class="button button-primary">' + cmduData.modalConfirmLabel + '</button>',
-			'      <button type="button" id="cmdu-modal-cancel"  class="button">' + cmduData.modalCancelLabel + '</button>',
+			'<div id="swmd-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="swmd-modal-heading">',
+			'  <div id="swmd-modal">',
+			'    <h2 id="swmd-modal-heading">' + swmdData.modalHeading + '</h2>',
+			'    <label for="swmd-modal-name">' + swmdData.modalNameLabel + '</label>',
+			'    <input type="text" id="swmd-modal-name" class="regular-text" autocomplete="off" />',
+			'    <div class="swmd-modal-actions">',
+			'      <button type="button" id="swmd-modal-confirm" class="button button-primary">' + swmdData.modalConfirmLabel + '</button>',
+			'      <button type="button" id="swmd-modal-cancel"  class="button">' + swmdData.modalCancelLabel + '</button>',
 			'    </div>',
 			'  </div>',
 			'</div>',
@@ -83,17 +83,17 @@
 
 		$( 'body' ).append( $modal );
 
-		$modal.find( '#cmdu-modal-cancel' ).on( 'click', closeModal );
+		$modal.find( '#swmd-modal-cancel' ).on( 'click', closeModal );
 
 		// Close on overlay click (outside the modal box).
 		$modal.on( 'click', function ( e ) {
-			if ( $( e.target ).is( '#cmdu-modal-overlay' ) ) {
+			if ( $( e.target ).is( '#swmd-modal-overlay' ) ) {
 				closeModal();
 			}
 		} );
 
 		// Close on Escape.
-		$( document ).on( 'keydown.cmdu-modal', function ( e ) {
+		$( document ).on( 'keydown.swmd-modal', function ( e ) {
 			if ( 27 === e.which && $modal.is( ':visible' ) ) {
 				closeModal();
 			}
@@ -112,13 +112,13 @@
 	function openModal( suggested, onConfirm ) {
 		var $m = getModal();
 
-		$m.find( '#cmdu-modal-name' ).val( suggested ).trigger( 'focus' ).trigger( 'select' );
+		$m.find( '#swmd-modal-name' ).val( suggested ).trigger( 'focus' ).trigger( 'select' );
 
 		// Remove any previously bound confirm handler before attaching a new one.
-		$m.find( '#cmdu-modal-confirm' ).off( 'click.cmdu-confirm' ).on( 'click.cmdu-confirm', function () {
-			var name = $.trim( $m.find( '#cmdu-modal-name' ).val() );
+		$m.find( '#swmd-modal-confirm' ).off( 'click.swmd-confirm' ).on( 'click.swmd-confirm', function () {
+			var name = $.trim( $m.find( '#swmd-modal-name' ).val() );
 			if ( '' === name ) {
-				$m.find( '#cmdu-modal-name' ).trigger( 'focus' );
+				$m.find( '#swmd-modal-name' ).trigger( 'focus' );
 				return;
 			}
 			closeModal();
@@ -126,9 +126,9 @@
 		} );
 
 		// Allow Enter key to confirm.
-		$m.find( '#cmdu-modal-name' ).off( 'keydown.cmdu-confirm' ).on( 'keydown.cmdu-confirm', function ( e ) {
+		$m.find( '#swmd-modal-name' ).off( 'keydown.swmd-confirm' ).on( 'keydown.swmd-confirm', function ( e ) {
 			if ( 13 === e.which ) {
-				$m.find( '#cmdu-modal-confirm' ).trigger( 'click' );
+				$m.find( '#swmd-modal-confirm' ).trigger( 'click' );
 			}
 		} );
 
@@ -164,10 +164,10 @@
 		}
 
 		var $duplicateBtn = $( '<input>', {
-			id:    'cmdu-duplicate-menu',
+			id:    'swmd-duplicate-menu',
 			type:  'button',
 			class: 'button button-secondary',
-			value: cmduData.buttonLabel,
+			value: swmdData.buttonLabel,
 		} );
 
 		$saveBtn.after( $duplicateBtn );
@@ -181,25 +181,25 @@
 
 			var $sourceNameEl = $( 'input#menu[name="menu"]' ).closest( 'form' ).find( '#menu-name' );
 			var sourceName    = $.trim( $sourceNameEl.val() ) || '';
-			var suggested     = sourceName ? sourceName + ' (Copy)' : cmduData.buttonLabel;
+			var suggested     = sourceName ? sourceName + ' (Copy)' : swmdData.buttonLabel;
 
 			openModal( suggested, function ( name ) {
-				$duplicateBtn.prop( 'disabled', true ).val( cmduData.duplicatingLabel );
+				$duplicateBtn.prop( 'disabled', true ).val( swmdData.duplicatingLabel );
 
-				ajaxRequest( 'cmdu_duplicate_menu', { menu_name: name } )
+				ajaxRequest( 'swmd_duplicate_menu', { menu_name: name } )
 					.done( function ( response ) {
 						if ( response.success && response.data && response.data.redirect ) {
 							window.location.href = response.data.redirect;
 							return;
 						}
 
-						var msg = ( response.data && response.data.message ) ? response.data.message : cmduData.errorMessage;
+						var msg = ( response.data && response.data.message ) ? response.data.message : swmdData.errorMessage;
 						showToast( msg, 'error' );
-						$duplicateBtn.prop( 'disabled', false ).val( cmduData.buttonLabel );
+						$duplicateBtn.prop( 'disabled', false ).val( swmdData.buttonLabel );
 					} )
 					.fail( function () {
-						showToast( cmduData.errorMessage, 'error' );
-						$duplicateBtn.prop( 'disabled', false ).val( cmduData.buttonLabel );
+						showToast( swmdData.errorMessage, 'error' );
+						$duplicateBtn.prop( 'disabled', false ).val( swmdData.buttonLabel );
 					} );
 			} );
 		} );
@@ -226,7 +226,7 @@
 		// Insert link into a single item row.
 		function addDuplicateLinkToItem( $item ) {
 			// Avoid double-injection.
-			if ( $item.find( '.cmdu-duplicate-item' ).length ) {
+			if ( $item.find( '.swmd-duplicate-item' ).length ) {
 				return;
 			}
 
@@ -238,8 +238,8 @@
 
 			var $link = $( '<a>', {
 				href:  '#',
-				class: 'cmdu-duplicate-item submitdelete',
-				text:  cmduData.duplicateItemLabel,
+				class: 'swmd-duplicate-item submitdelete',
+				text:  swmdData.duplicateItemLabel,
 			} ).css( { marginLeft: '8px' } );
 
 			$removeLink.after( $link );
@@ -257,7 +257,7 @@
 		} );
 
 		// Handle duplicate click.
-		$menuManagement.on( 'click', '.cmdu-duplicate-item', function ( e ) {
+		$menuManagement.on( 'click', '.swmd-duplicate-item', function ( e ) {
 			e.preventDefault();
 
 			var $link   = $( this );
@@ -269,9 +269,9 @@
 				return;
 			}
 
-			$link.text( cmduData.duplicatingItemLabel ).css( 'pointer-events', 'none' );
+			$link.text( swmdData.duplicatingItemLabel ).css( 'pointer-events', 'none' );
 
-			ajaxRequest( 'cmdu_duplicate_item', { item_id: itemId } )
+			ajaxRequest( 'swmd_duplicate_item', { item_id: itemId } )
 				.done( function ( response ) {
 					if ( response.success ) {
 						// Reload the page so WordPress re-renders the full item tree
@@ -280,13 +280,13 @@
 						return;
 					}
 
-					var msg = ( response.data && response.data.message ) ? response.data.message : cmduData.errorMessage;
+					var msg = ( response.data && response.data.message ) ? response.data.message : swmdData.errorMessage;
 					showToast( msg, 'error' );
-					$link.text( cmduData.duplicateItemLabel ).css( 'pointer-events', '' );
+					$link.text( swmdData.duplicateItemLabel ).css( 'pointer-events', '' );
 				} )
 				.fail( function () {
-					showToast( cmduData.errorMessage, 'error' );
-					$link.text( cmduData.duplicateItemLabel ).css( 'pointer-events', '' );
+					showToast( swmdData.errorMessage, 'error' );
+					$link.text( swmdData.duplicateItemLabel ).css( 'pointer-events', '' );
 				} );
 		} );
 	}
@@ -309,25 +309,25 @@
 		}
 
 		$snapshotPanel = $( [
-			'<div id="cmdu-snapshot-panel" aria-label="' + cmduData.snapshotLabel + '">',
-			'  <div id="cmdu-snapshot-panel-header">',
-			'    <span>' + cmduData.snapshotLabel + '</span>',
-			'    <button type="button" id="cmdu-snapshot-close" aria-label="Close" class="button-link">&times;</button>',
+			'<div id="swmd-snapshot-panel" aria-label="' + swmdData.snapshotLabel + '">',
+			'  <div id="swmd-snapshot-panel-header">',
+			'    <span>' + swmdData.snapshotLabel + '</span>',
+			'    <button type="button" id="swmd-snapshot-close" aria-label="Close" class="button-link">&times;</button>',
 			'  </div>',
-			'  <div id="cmdu-snapshot-save-row">',
-			'    <button type="button" id="cmdu-save-snapshot" class="button button-secondary button-small">',
-			'      ' + cmduData.saveSnapshotLabel,
+			'  <div id="swmd-snapshot-save-row">',
+			'    <button type="button" id="swmd-save-snapshot" class="button button-secondary button-small">',
+			'      ' + swmdData.saveSnapshotLabel,
 			'    </button>',
 			'  </div>',
-			'  <ul id="cmdu-snapshot-list"></ul>',
+			'  <ul id="swmd-snapshot-list"></ul>',
 			'</div>',
 		].join( '\n' ) );
 
 		$( 'body' ).append( $snapshotPanel );
 
-		$snapshotPanel.find( '#cmdu-snapshot-close' ).on( 'click', hideSnapshotPanel );
+		$snapshotPanel.find( '#swmd-snapshot-close' ).on( 'click', hideSnapshotPanel );
 
-		$snapshotPanel.find( '#cmdu-save-snapshot' ).on( 'click', function () {
+		$snapshotPanel.find( '#swmd-save-snapshot' ).on( 'click', function () {
 			var $btn   = $( this );
 			var menuId = getCurrentMenuId();
 
@@ -335,21 +335,21 @@
 				return;
 			}
 
-			$btn.prop( 'disabled', true ).text( cmduData.savingSnapshotLabel );
+			$btn.prop( 'disabled', true ).text( swmdData.savingSnapshotLabel );
 
-			ajaxRequest( 'cmdu_save_snapshot', { label: '' } )
+			ajaxRequest( 'swmd_save_snapshot', { label: '' } )
 				.done( function ( response ) {
 					if ( response.success ) {
 						renderSnapshotList( response.data.snapshots );
-						showToast( cmduData.snapshotSavedText, 'success' );
+						showToast( swmdData.snapshotSavedText, 'success' );
 					} else {
-						showToast( cmduData.errorMessage, 'error' );
+						showToast( swmdData.errorMessage, 'error' );
 					}
-					$btn.prop( 'disabled', false ).text( cmduData.saveSnapshotLabel );
+					$btn.prop( 'disabled', false ).text( swmdData.saveSnapshotLabel );
 				} )
 				.fail( function () {
-					showToast( cmduData.errorMessage, 'error' );
-					$btn.prop( 'disabled', false ).text( cmduData.saveSnapshotLabel );
+					showToast( swmdData.errorMessage, 'error' );
+					$btn.prop( 'disabled', false ).text( swmdData.saveSnapshotLabel );
 				} );
 		} );
 
@@ -363,31 +363,31 @@
 	 * @return {void}
 	 */
 	function renderSnapshotList( snapshots ) {
-		var $list = getSnapshotPanel().find( '#cmdu-snapshot-list' );
+		var $list = getSnapshotPanel().find( '#swmd-snapshot-list' );
 		$list.empty();
 
 		if ( ! snapshots || ! snapshots.length ) {
-			$list.append( '<li class="cmdu-snapshot-empty">' + cmduData.noSnapshotsText + '</li>' );
+			$list.append( '<li class="swmd-snapshot-empty">' + swmdData.noSnapshotsText + '</li>' );
 			return;
 		}
 
 		snapshots.forEach( function ( snap ) {
-			var $li = $( '<li class="cmdu-snapshot-item"></li>' );
+			var $li = $( '<li class="swmd-snapshot-item"></li>' );
 
 			$li.append(
-				'<span class="cmdu-snapshot-label">' + $( '<span>' ).text( snap.label ).html() + '</span>' +
-				'<span class="cmdu-snapshot-date">' + $( '<span>' ).text( snap.created_human ).html() + '</span>'
+				'<span class="swmd-snapshot-label">' + $( '<span>' ).text( snap.label ).html() + '</span>' +
+				'<span class="swmd-snapshot-date">' + $( '<span>' ).text( snap.created_human ).html() + '</span>'
 			);
 
-			var $del = $( '<button type="button" class="cmdu-snapshot-delete button-link" aria-label="Delete">&times;</button>' );
+			var $del = $( '<button type="button" class="swmd-snapshot-delete button-link" aria-label="Delete">&times;</button>' );
 
 			$del.on( 'click', function () {
 				// eslint-disable-next-line no-alert
-				if ( ! window.confirm( cmduData.confirmDeleteText ) ) {
+				if ( ! window.confirm( swmdData.confirmDeleteText ) ) {
 					return;
 				}
 
-				ajaxRequest( 'cmdu_delete_snapshot', { snapshot_id: snap.id } )
+				ajaxRequest( 'swmd_delete_snapshot', { snapshot_id: snap.id } )
 					.done( function ( response ) {
 						if ( response.success ) {
 							renderSnapshotList( response.data.snapshots );
@@ -416,7 +416,7 @@
 		snapshotPanelVisible = true;
 
 		// Load current snapshots on open.
-		ajaxRequest( 'cmdu_get_snapshots', {} )
+		ajaxRequest( 'swmd_get_snapshots', {} )
 			.done( function ( response ) {
 				if ( response.success ) {
 					renderSnapshotList( response.data.snapshots );
@@ -454,10 +454,10 @@
 		}
 
 		var $snapshotBtn = $( '<input>', {
-			id:    'cmdu-snapshot-toggle',
+			id:    'swmd-snapshot-toggle',
 			type:  'button',
 			class: 'button button-secondary',
-			value: cmduData.snapshotLabel,
+			value: swmdData.snapshotLabel,
 		} );
 
 		$saveBtn.after( $snapshotBtn );
@@ -496,10 +496,10 @@
 		}
 
 		var $exportBtn = $( '<input>', {
-			id:    'cmdu-export-menu',
+			id:    'swmd-export-menu',
 			type:  'button',
 			class: 'button button-secondary',
-			value: cmduData.exportLabel,
+			value: swmdData.exportLabel,
 		} );
 
 		$saveBtn.after( $exportBtn );
@@ -511,18 +511,18 @@
 				return;
 			}
 
-			$exportBtn.prop( 'disabled', true ).val( cmduData.exportingLabel );
+			$exportBtn.prop( 'disabled', true ).val( swmdData.exportingLabel );
 
 			// Use a hidden form to trigger a file download response.
 			var $form = $( '<form>', {
 				method: 'POST',
-				action: cmduData.ajaxUrl,
+				action: swmdData.ajaxUrl,
 				target: '_self',
 			} );
 
 			[
-				{ name: 'action',  value: 'cmdu_export_menu' },
-				{ name: 'nonce',   value: cmduData.nonce },
+				{ name: 'action',  value: 'swmd_export_menu' },
+				{ name: 'nonce',   value: swmdData.nonce },
 				{ name: 'menu_id', value: menuId },
 			].forEach( function ( field ) {
 				$form.append( $( '<input type="hidden" />' ).attr( 'name', field.name ).val( field.value ) );
@@ -534,7 +534,7 @@
 
 			// Re-enable the button after a short delay (download starts in background).
 			setTimeout( function () {
-				$exportBtn.prop( 'disabled', false ).val( cmduData.exportLabel );
+				$exportBtn.prop( 'disabled', false ).val( swmdData.exportLabel );
 			}, 2000 );
 		} );
 	}
