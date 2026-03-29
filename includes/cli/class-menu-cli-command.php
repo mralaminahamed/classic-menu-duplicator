@@ -2,15 +2,15 @@
 /**
  * WP-CLI integration for Classic Menu Duplicator.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Cli;
+namespace SwiftMenuDuplicator\Cli;
 
-use ClassicMenuDuplicator\Core\Menu_Duplicator;
-use ClassicMenuDuplicator\Import\Menu_Importer;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Import\Menu_Importer;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_Term;

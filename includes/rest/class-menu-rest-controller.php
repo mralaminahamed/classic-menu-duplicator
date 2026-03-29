@@ -2,14 +2,14 @@
 /**
  * REST API controller for Classic Menu Duplicator.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Rest;
+namespace SwiftMenuDuplicator\Rest;
 
-use ClassicMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   POST /cmd/v1/menus/{id}/items/{item_id}/duplicate
  *
  * All routes require the `edit_theme_options` capability by default.
- * The permission callback is filterable via `cmdu_rest_permission`.
+ * The permission callback is filterable via `swmd_rest_permission`.
  */
 class Menu_REST_Controller {
 
@@ -69,7 +69,7 @@ class Menu_REST_Controller {
 				'permission_callback' => array( $this, 'check_permission' ),
 				'args'                => array(
 					'id'   => array(
-						'description'       => __( 'Term ID of the menu to duplicate.', 'classic-menu-duplicator' ),
+						'description'       => __( 'Term ID of the menu to duplicate.', 'swift-menu-duplicator' ),
 						'type'              => 'integer',
 						'required'          => true,
 						'minimum'           => 1,
@@ -77,7 +77,7 @@ class Menu_REST_Controller {
 						'validate_callback' => 'rest_validate_request_arg',
 					),
 					'name' => array(
-						'description'       => __( 'Optional name for the duplicated menu. Defaults to "{original} (Copy)".', 'classic-menu-duplicator' ),
+						'description'       => __( 'Optional name for the duplicated menu. Defaults to "{original} (Copy)".', 'swift-menu-duplicator' ),
 						'type'              => 'string',
 						'required'          => false,
 						'default'           => '',
@@ -97,7 +97,7 @@ class Menu_REST_Controller {
 				'permission_callback' => array( $this, 'check_permission' ),
 				'args'                => array(
 					'id' => array(
-						'description'       => __( 'Term ID of the menu to export.', 'classic-menu-duplicator' ),
+						'description'       => __( 'Term ID of the menu to export.', 'swift-menu-duplicator' ),
 						'type'              => 'integer',
 						'required'          => true,
 						'minimum'           => 1,
@@ -118,7 +118,7 @@ class Menu_REST_Controller {
 				'permission_callback' => array( $this, 'check_permission' ),
 				'args'                => array(
 					'id'      => array(
-						'description'       => __( 'Term ID of the menu that owns the item.', 'classic-menu-duplicator' ),
+						'description'       => __( 'Term ID of the menu that owns the item.', 'swift-menu-duplicator' ),
 						'type'              => 'integer',
 						'required'          => true,
 						'minimum'           => 1,
@@ -126,7 +126,7 @@ class Menu_REST_Controller {
 						'validate_callback' => 'rest_validate_request_arg',
 					),
 					'item_id' => array(
-						'description'       => __( 'Post ID of the nav_menu_item to duplicate.', 'classic-menu-duplicator' ),
+						'description'       => __( 'Post ID of the nav_menu_item to duplicate.', 'swift-menu-duplicator' ),
 						'type'              => 'integer',
 						'required'          => true,
 						'minimum'           => 1,
@@ -228,7 +228,7 @@ class Menu_REST_Controller {
 	/**
 	 * Default permission callback: requires edit_theme_options.
 	 *
-	 * Filterable via `cmdu_rest_permission` for integrations that need to
+	 * Filterable via `swmd_rest_permission` for integrations that need to
 	 * customise access control (e.g. WPML language-specific permissions).
 	 *
 	 * @param WP_REST_Request $request Current request.
@@ -251,7 +251,7 @@ class Menu_REST_Controller {
 		if ( ! $allowed ) {
 			return new WP_Error(
 				'rest_forbidden',
-				__( 'You do not have permission to perform this action.', 'classic-menu-duplicator' ),
+				__( 'You do not have permission to perform this action.', 'swift-menu-duplicator' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}

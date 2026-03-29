@@ -2,12 +2,12 @@
 /**
  * Core menu-duplication logic.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Core;
+namespace SwiftMenuDuplicator\Core;
 
 use WP_Error;
 use WP_Post;
@@ -47,7 +47,7 @@ class Menu_Duplicator {
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof WP_Term ) {
 			return new WP_Error(
 				'invalid_menu',
-				__( 'Source menu not found.', 'classic-menu-duplicator' )
+				__( 'Source menu not found.', 'swift-menu-duplicator' )
 			);
 		}
 
@@ -59,7 +59,7 @@ class Menu_Duplicator {
 		if ( '' === $new_name ) {
 			$new_name = sprintf(
 				/* translators: %s: original menu name */
-				_x( '%s (Copy)', 'duplicated menu name suffix', 'classic-menu-duplicator' ),
+				_x( '%s (Copy)', 'duplicated menu name suffix', 'swift-menu-duplicator' ),
 				$source_term->name
 			);
 		}
@@ -185,7 +185,7 @@ class Menu_Duplicator {
 		if ( ! $source_item instanceof WP_Post || 'nav_menu_item' !== $source_item->post_type ) {
 			return new WP_Error(
 				'invalid_item',
-				__( 'Source menu item not found.', 'classic-menu-duplicator' )
+				__( 'Source menu item not found.', 'swift-menu-duplicator' )
 			);
 		}
 
@@ -271,7 +271,7 @@ class Menu_Duplicator {
 		if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
 			return new WP_Error(
 				'invalid_menu',
-				__( 'Menu not found.', 'classic-menu-duplicator' )
+				__( 'Menu not found.', 'swift-menu-duplicator' )
 			);
 		}
 
@@ -316,7 +316,7 @@ class Menu_Duplicator {
 		return apply_filters(
 			'classic_menu_duplicator_export_payload',
 			array(
-				'version'  => CLASSIC_MENU_DUPLICATOR_VERSION,
+				'version'  => SWIFT_MENU_DUPLICATOR_VERSION,
 				'exported' => current_time( 'c' ),
 				'site_url' => home_url(),
 				'menu'     => array(
@@ -339,8 +339,8 @@ class Menu_Duplicator {
 	 * Saves a snapshot of the current menu state.
 	 *
 	 * Snapshots are stored as a serialised JSON blob in the term-meta table
-	 * under the key `_cmdu_snapshots`, as a LIFO stack capped at
-	 * cmdu_SNAPSHOT_LIMIT revisions (default 10).
+	 * under the key `_swmd_snapshots`, as a LIFO stack capped at
+	 * swmd_SNAPSHOT_LIMIT revisions (default 10).
 	 *
 	 * @param int    $menu_id Term ID of the menu.
 	 * @param string $label   Optional. Human-readable label for the snapshot.
@@ -358,7 +358,7 @@ class Menu_Duplicator {
 			'id'      => wp_generate_uuid4(),
 			'label'   => '' !== $label ? $label : sprintf(
 				/* translators: %s: human-readable date/time */
-				__( 'Snapshot %s', 'classic-menu-duplicator' ),
+				__( 'Snapshot %s', 'swift-menu-duplicator' ),
 				wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) )
 			),
 			'created' => time(),
@@ -374,7 +374,7 @@ class Menu_Duplicator {
 			$snapshots = array_slice( $snapshots, 0, $limit );
 		}
 
-		return (bool) update_term_meta( $menu_id, '_cmdu_snapshots', $snapshots );
+		return (bool) update_term_meta( $menu_id, '_swmd_snapshots', $snapshots );
 	}
 
 	/**
@@ -385,7 +385,7 @@ class Menu_Duplicator {
 	 * @return array<int,array<string,mixed>> Ordered list of snapshots (newest first).
 	 */
 	public function get_snapshots( int $menu_id ): array {
-		$raw = get_term_meta( $menu_id, '_cmdu_snapshots', true );
+		$raw = get_term_meta( $menu_id, '_swmd_snapshots', true );
 
 		if ( ! is_array( $raw ) ) {
 			return array();
@@ -417,7 +417,7 @@ class Menu_Duplicator {
 			return false; // Nothing was removed.
 		}
 
-		update_term_meta( $menu_id, '_cmdu_snapshots', $filtered );
+		update_term_meta( $menu_id, '_swmd_snapshots', $filtered );
 
 		return true;
 	}

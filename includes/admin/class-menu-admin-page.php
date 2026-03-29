@@ -2,15 +2,15 @@
 /**
  * Admin page: bulk menu manager, importer, and multisite copy.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Admin;
+namespace SwiftMenuDuplicator\Admin;
 
-use ClassicMenuDuplicator\Core\Menu_Duplicator;
-use ClassicMenuDuplicator\Import\Menu_Importer;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Import\Menu_Importer;
 use WP_Term;
 use ZipArchive;
 
@@ -49,11 +49,11 @@ class Menu_Admin_Page {
 		add_action( 'admin_init', array( $this, 'handle_bulk_actions' ) );
 
 		// AJAX for bulk table row actions.
-		add_action( 'wp_ajax_cmdu_bulk_duplicate', array( $this, 'handle_ajax_bulk_duplicate' ) );
-		add_action( 'wp_ajax_cmdu_bulk_export_zip', array( $this, 'handle_ajax_bulk_export_zip' ) );
+		add_action( 'wp_ajax_swmd_bulk_duplicate', array( $this, 'handle_ajax_bulk_duplicate' ) );
+		add_action( 'wp_ajax_swmd_bulk_export_zip', array( $this, 'handle_ajax_bulk_export_zip' ) );
 
 		// AJAX for multisite copy (network-admin capable users only).
-		add_action( 'wp_ajax_cmdu_copy_to_site', array( $this, 'handle_ajax_copy_to_site' ) );
+		add_action( 'wp_ajax_swmd_copy_to_site', array( $this, 'handle_ajax_copy_to_site' ) );
 
 		// Store creation timestamp on new menus.
 		add_action( 'wp_create_nav_menu', array( $this, 'record_creation_time' ) );
@@ -67,10 +67,10 @@ class Menu_Admin_Page {
 	public function register_menu_page(): void {
 		$this->page_hook = (string) add_submenu_page(
 			'themes.php',
-			__( 'Menu Manager', 'classic-menu-duplicator' ),
-			__( 'Menu Manager', 'classic-menu-duplicator' ),
+			__( 'Menu Manager', 'swift-menu-duplicator' ),
+			__( 'Menu Manager', 'swift-menu-duplicator' ),
 			'edit_theme_options',
-			'cmdu-menu-manager',
+			'swmd-menu-manager',
 			array( $this, 'render_page' )
 		);
 	}
@@ -87,15 +87,15 @@ class Menu_Admin_Page {
 			return;
 		}
 
-		$asset_file = CLASSIC_MENU_DUPLICATOR_DIR . 'assets/js/menu-manager.js';
+		$asset_file = SWIFT_MENU_DUPLICATOR_DIR . 'assets/js/menu-manager.js';
 
 		wp_enqueue_script(
-			'cmdu-menu-manager',
-			CLASSIC_MENU_DUPLICATOR_URL . 'assets/js/menu-manager.js',
+			'swmd-menu-manager',
+			SWIFT_MENU_DUPLICATOR_URL . 'assets/js/menu-manager.js',
 			array( 'jquery' ),
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
-				: CLASSIC_MENU_DUPLICATOR_VERSION,
+				: SWIFT_MENU_DUPLICATOR_VERSION,
 			true
 		);
 
@@ -126,23 +126,23 @@ class Menu_Admin_Page {
 		}
 
 		wp_localize_script(
-			'cmdu-menu-manager',
-			'cmduManagerData',
+			'swmd-menu-manager',
+			'swmdManagerData',
 			array(
 				'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
-				'nonce'                 => wp_create_nonce( 'cmdu_menu_actions' ),
+				'nonce'                 => wp_create_nonce( 'swmd_menu_actions' ),
 				'sites'                 => $sites_data,
 				'isMultisite'           => is_multisite() && current_user_can( 'manage_network' ),
 				// Strings.
-				'copyToSiteLabel'       => __( 'Copy to site…', 'classic-menu-duplicator' ),
-				'copyingLabel'          => __( 'Copying…', 'classic-menu-duplicator' ),
-				'copiedLabel'           => __( 'Copied!', 'classic-menu-duplicator' ),
-				'selectSiteLabel'       => __( 'Select destination site', 'classic-menu-duplicator' ),
-				'exportingLabel'        => __( 'Exporting…', 'classic-menu-duplicator' ),
-				'duplicatingLabel'      => __( 'Duplicating…', 'classic-menu-duplicator' ),
-				'duplicatedLabel'       => __( 'Duplicated!', 'classic-menu-duplicator' ),
-				'errorMessage'          => __( 'Action failed. Please try again.', 'classic-menu-duplicator' ),
-				'confirmBulkDeleteText' => __( 'Delete selected menus? This cannot be undone.', 'classic-menu-duplicator' ),
+				'copyToSiteLabel'       => __( 'Copy to site…', 'swift-menu-duplicator' ),
+				'copyingLabel'          => __( 'Copying…', 'swift-menu-duplicator' ),
+				'copiedLabel'           => __( 'Copied!', 'swift-menu-duplicator' ),
+				'selectSiteLabel'       => __( 'Select destination site', 'swift-menu-duplicator' ),
+				'exportingLabel'        => __( 'Exporting…', 'swift-menu-duplicator' ),
+				'duplicatingLabel'      => __( 'Duplicating…', 'swift-menu-duplicator' ),
+				'duplicatedLabel'       => __( 'Duplicated!', 'swift-menu-duplicator' ),
+				'errorMessage'          => __( 'Action failed. Please try again.', 'swift-menu-duplicator' ),
+				'confirmBulkDeleteText' => __( 'Delete selected menus? This cannot be undone.', 'swift-menu-duplicator' ),
 			)
 		);
 	}
@@ -155,7 +155,7 @@ class Menu_Admin_Page {
 	 * @return void
 	 */
 	public function record_creation_time( int $menu_id ): void {
-		add_term_meta( $menu_id, '_cmdu_created', time(), true );
+		add_term_meta( $menu_id, '_swmd_created', time(), true );
 	}
 
 	// -----------------------------------------------------------------------
@@ -173,13 +173,13 @@ class Menu_Admin_Page {
 	 */
 	public function render_page(): void {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'classic-menu-duplicator' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'swift-menu-duplicator' ) );
 		}
 
 		$table = new Menu_Table();
 		$table->prepare_items();
 
-		include CLASSIC_MENU_DUPLICATOR_DIR . 'templates/admin/menu-manager.php';
+		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/menu-manager.php';
 	}
 
 	// -----------------------------------------------------------------------
@@ -189,51 +189,51 @@ class Menu_Admin_Page {
 	/**
 	 * Handles the JSON import form submission (both preview and live import).
 	 *
-	 * Detects whether the `_cmdu_import_action` hidden field equals 'preview'
+	 * Detects whether the `_swmd_import_action` hidden field equals 'preview'
 	 * or 'import', validates the uploaded file, and stores the result in a
 	 * transient keyed to the current user ID for the template to consume.
 	 *
 	 * @return void
 	 */
 	public function handle_import_form(): void {
-		if ( ! isset( $_POST['_cmdu_import_action'] ) ) {
+		if ( ! isset( $_POST['_swmd_import_action'] ) ) {
 			return;
 		}
 
-		$action = sanitize_key( $_POST['_cmdu_import_action'] );
+		$action = sanitize_key( $_POST['_swmd_import_action'] );
 
 		if ( ! in_array( $action, array( 'preview', 'import' ), true ) ) {
 			return;
 		}
 
-		check_admin_referer( 'cmdu_import_menu' );
+		check_admin_referer( 'swmd_import_menu' );
 
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'classic-menu-duplicator' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'swift-menu-duplicator' ) );
 		}
 
-		$find    = isset( $_POST['cmdu_find'] ) ? sanitize_text_field( wp_unslash( $_POST['cmdu_find'] ) ) : '';
-		$replace = isset( $_POST['cmdu_replace'] ) ? sanitize_text_field( wp_unslash( $_POST['cmdu_replace'] ) ) : '';
-		$name    = isset( $_POST['cmdu_menu_name'] ) ? sanitize_text_field( wp_unslash( $_POST['cmdu_menu_name'] ) ) : '';
+		$find    = isset( $_POST['swmd_find'] ) ? sanitize_text_field( wp_unslash( $_POST['swmd_find'] ) ) : '';
+		$replace = isset( $_POST['swmd_replace'] ) ? sanitize_text_field( wp_unslash( $_POST['swmd_replace'] ) ) : '';
+		$name    = isset( $_POST['swmd_menu_name'] ) ? sanitize_text_field( wp_unslash( $_POST['swmd_menu_name'] ) ) : '';
 
 		// Resolve JSON: either from a fresh upload or from a previously
 		// base64-encoded hidden field (re-submitted from the preview step).
 		$json = '';
 
-		if ( ! empty( $_FILES['cmdu_json_file']['tmp_name'] ) ) {
+		if ( ! empty( $_FILES['swmd_json_file']['tmp_name'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$json = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['cmdu_json_file']['tmp_name'] ) ) );
+			$json = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['swmd_json_file']['tmp_name'] ) ) );
 			$json = ( false === $json ) ? '' : $json;
-		} elseif ( ! empty( $_POST['cmdu_json_data'] ) ) {
+		} elseif ( ! empty( $_POST['swmd_json_data'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$json = base64_decode( sanitize_text_field( wp_unslash( $_POST['cmdu_json_data'] ) ), true );
+			$json = base64_decode( sanitize_text_field( wp_unslash( $_POST['swmd_json_data'] ) ), true );
 			$json = ( false === $json ) ? '' : $json;
 		}
 
 		$importer = new Menu_Importer();
 		$payload  = $importer->parse( $json );
 
-		$transient_key = 'cmdu_import_state_' . get_current_user_id();
+		$transient_key = 'swmd_import_state_' . get_current_user_id();
 
 		if ( is_wp_error( $payload ) ) {
 			set_transient(
@@ -241,7 +241,7 @@ class Menu_Admin_Page {
 				array( 'error' => $payload->get_error_message() ),
 				60
 			);
-			wp_safe_redirect( admin_url( 'themes.php?page=cmdu-menu-manager&tab=import' ) );
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) );
 			exit;
 		}
 
@@ -260,7 +260,7 @@ class Menu_Admin_Page {
 				),
 				300
 			);
-			wp_safe_redirect( admin_url( 'themes.php?page=cmdu-menu-manager&tab=import' ) );
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) );
 			exit;
 		}
 
@@ -285,7 +285,7 @@ class Menu_Admin_Page {
 			);
 		}
 
-		wp_safe_redirect( admin_url( 'themes.php?page=cmdu-menu-manager&tab=import' ) );
+		wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) );
 		exit;
 	}
 
@@ -298,11 +298,11 @@ class Menu_Admin_Page {
 	 * @return void
 	 */
 	public function handle_bulk_actions(): void {
-		if ( ! isset( $_POST['action'] ) || 'cmdu_bulk_delete' !== $_POST['action'] ) {
+		if ( ! isset( $_POST['action'] ) || 'swmd_bulk_delete' !== $_POST['action'] ) {
 			return;
 		}
 
-		if ( empty( $_POST['cmdu_bulk_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cmdu_bulk_nonce'] ) ), 'cmdu_bulk_delete' ) ) {
+		if ( empty( $_POST['swmd_bulk_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['swmd_bulk_nonce'] ) ), 'swmd_bulk_delete' ) ) {
 			return;
 		}
 
@@ -316,7 +316,7 @@ class Menu_Admin_Page {
 			wp_delete_nav_menu( $id );
 		}
 
-		wp_safe_redirect( admin_url( 'themes.php?page=cmdu-menu-manager&deleted=' . count( $ids ) ) );
+		wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&deleted=' . count( $ids ) ) );
 		exit;
 	}
 
@@ -335,7 +335,7 @@ class Menu_Admin_Page {
 		$ids = isset( $_POST['menu_ids'] ) ? array_map( 'absint', (array) $_POST['menu_ids'] ) : array();
 
 		if ( empty( $ids ) ) {
-			wp_send_json_error( array( 'message' => __( 'No menus selected.', 'classic-menu-duplicator' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'No menus selected.', 'swift-menu-duplicator' ) ), 400 );
 		}
 
 		$duplicator = new Menu_Duplicator();
@@ -375,7 +375,7 @@ class Menu_Admin_Page {
 		$ids = isset( $_POST['menu_ids'] ) ? array_map( 'absint', (array) $_POST['menu_ids'] ) : array();
 
 		if ( empty( $ids ) ) {
-			wp_send_json_error( array( 'message' => __( 'No menus selected.', 'classic-menu-duplicator' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'No menus selected.', 'swift-menu-duplicator' ) ), 400 );
 		}
 
 		$duplicator = new Menu_Duplicator();
@@ -403,16 +403,16 @@ class Menu_Admin_Page {
 		// Multiple menus: ZIP if ZipArchive is available.
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'ZIP export requires the PHP ZipArchive extension.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'ZIP export requires the PHP ZipArchive extension.', 'swift-menu-duplicator' ) ),
 				500
 			);
 		}
 
-		$zip_file = wp_tempnam( 'cmdu-export' );
+		$zip_file = wp_tempnam( 'swmd-export' );
 		$zip      = new ZipArchive();
 
 		if ( true !== $zip->open( $zip_file, ZipArchive::OVERWRITE ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not create ZIP archive.', 'classic-menu-duplicator' ) ), 500 );
+			wp_send_json_error( array( 'message' => __( 'Could not create ZIP archive.', 'swift-menu-duplicator' ) ), 500 );
 		}
 
 		foreach ( $ids as $id ) {
@@ -457,12 +457,12 @@ class Menu_Admin_Page {
 			? sanitize_text_field( wp_unslash( $_POST['nonce'] ) )
 			: '';
 
-		if ( ! wp_verify_nonce( $nonce, 'cmdu_menu_actions' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ), 403 );
+		if ( ! wp_verify_nonce( $nonce, 'swmd_menu_actions' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'swift-menu-duplicator' ) ), 403 );
 		}
 
 		if ( ! is_multisite() || ! current_user_can( 'manage_network' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'classic-menu-duplicator' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'swift-menu-duplicator' ) ), 403 );
 		}
 
 		$source_menu_id = isset( $_POST['menu_id'] ) ? absint( $_POST['menu_id'] ) : 0;
@@ -472,7 +472,7 @@ class Menu_Admin_Page {
 			: '';
 
 		if ( $source_menu_id <= 0 || $target_blog_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid menu or site ID.', 'classic-menu-duplicator' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Invalid menu or site ID.', 'swift-menu-duplicator' ) ), 400 );
 		}
 
 		// Export from current site.
@@ -519,12 +519,12 @@ class Menu_Admin_Page {
 			? sanitize_text_field( wp_unslash( $_POST['nonce'] ) )
 			: '';
 
-		if ( ! wp_verify_nonce( $nonce, 'cmdu_menu_actions' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ), 403 );
+		if ( ! wp_verify_nonce( $nonce, 'swmd_menu_actions' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'swift-menu-duplicator' ) ), 403 );
 		}
 
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'classic-menu-duplicator' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'swift-menu-duplicator' ) ), 403 );
 		}
 	}
 }

@@ -2,30 +2,30 @@
 /**
  * Inline styles template for nav-menus.php admin page.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<style id="cmdu-inline-styles">
+<style id="swmd-inline-styles">
 
 	/* ── Toolbar button spacing ─────────────────────────────────── */
-	#cmdu-duplicate-menu,
-	#cmdu-snapshot-toggle,
-	#cmdu-export-menu {
+	#swmd-duplicate-menu,
+	#swmd-snapshot-toggle,
+	#swmd-export-menu {
 		vertical-align: middle;
 		margin-left: 6px;
 	}
 
 	/* ── Toast notice ───────────────────────────────────────────── */
-	.cmdu-toast {
+	.swmd-toast {
 		margin: 8px 0 0;
 	}
 
 	/* ── Name modal overlay ─────────────────────────────────────── */
-	#cmdu-modal-overlay {
+	#swmd-modal-overlay {
 		display: none;
 		position: fixed;
 		inset: 0;
@@ -35,12 +35,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 		justify-content: center;
 	}
 
-	#cmdu-modal-overlay[style*="display: block"],
-	#cmdu-modal-overlay[style*="display:block"] {
+	#swmd-modal-overlay[style*="display: block"],
+	#swmd-modal-overlay[style*="display:block"] {
 		display: flex !important;
 	}
 
-	#cmdu-modal {
+	#swmd-modal {
 		background: #fff;
 		border-radius: 4px;
 		box-shadow: 0 4px 24px rgba(0,0,0,.25);
@@ -49,33 +49,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 		max-width: 420px;
 	}
 
-	#cmdu-modal h2 {
+	#swmd-modal h2 {
 		margin: 0 0 16px;
 		font-size: 16px;
 		font-weight: 600;
 		color: #1d2327;
 	}
 
-	#cmdu-modal label {
+	#swmd-modal label {
 		display: block;
 		margin-bottom: 6px;
 		font-weight: 500;
 		color: #1d2327;
 	}
 
-	#cmdu-modal-name {
+	#swmd-modal-name {
 		width: 100%;
 		box-sizing: border-box;
 		margin-bottom: 16px;
 	}
 
-	.cmdu-modal-actions {
+	.swmd-modal-actions {
 		display: flex;
 		gap: 8px;
 	}
 
 	/* ── Snapshot panel ─────────────────────────────────────────── */
-	#cmdu-snapshot-panel {
+	#swmd-snapshot-panel {
 		position: fixed;
 		top: 0;
 		right: -320px;
@@ -91,11 +91,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		overflow: hidden;
 	}
 
-	#cmdu-snapshot-panel.is-visible {
+	#swmd-snapshot-panel.is-visible {
 		right: 0;
 	}
 
-	#cmdu-snapshot-panel-header {
+	#swmd-snapshot-panel-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -107,7 +107,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		background: #f6f7f7;
 	}
 
-	#cmdu-snapshot-close {
+	#swmd-snapshot-close {
 		font-size: 20px;
 		line-height: 1;
 		color: #787c82;
@@ -115,20 +115,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 		cursor: pointer;
 	}
 
-	#cmdu-snapshot-close:hover {
+	#swmd-snapshot-close:hover {
 		color: #1d2327;
 	}
 
-	#cmdu-snapshot-save-row {
+	#swmd-snapshot-save-row {
 		padding: 12px 16px;
 		border-bottom: 1px solid #f0f0f1;
 	}
 
-	#cmdu-save-snapshot {
+	#swmd-save-snapshot {
 		width: 100%;
 	}
 
-	#cmdu-snapshot-list {
+	#swmd-snapshot-list {
 		flex: 1;
 		overflow-y: auto;
 		margin: 0;
@@ -136,14 +136,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 		list-style: none;
 	}
 
-	.cmdu-snapshot-empty {
+	.swmd-snapshot-empty {
 		padding: 16px;
 		color: #787c82;
 		font-size: 12px;
 		font-style: italic;
 	}
 
-	.cmdu-snapshot-item {
+	.swmd-snapshot-item {
 		display: flex;
 		flex-direction: column;
 		padding: 10px 16px;
@@ -151,11 +151,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		position: relative;
 	}
 
-	.cmdu-snapshot-item:hover {
+	.swmd-snapshot-item:hover {
 		background: #f6f7f7;
 	}
 
-	.cmdu-snapshot-label {
+	.swmd-snapshot-label {
 		font-size: 12px;
 		font-weight: 500;
 		color: #1d2327;
@@ -165,13 +165,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		text-overflow: ellipsis;
 	}
 
-	.cmdu-snapshot-date {
+	.swmd-snapshot-date {
 		font-size: 11px;
 		color: #787c82;
 		margin-top: 2px;
 	}
 
-	.cmdu-snapshot-delete {
+	.swmd-snapshot-delete {
 		position: absolute;
 		top: 10px;
 		right: 12px;
@@ -182,17 +182,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		opacity: .6;
 	}
 
-	.cmdu-snapshot-delete:hover {
+	.swmd-snapshot-delete:hover {
 		opacity: 1;
 	}
 
 	/* ── Duplicate item link ─────────────────────────────────────── */
-	.cmdu-duplicate-item {
+	.swmd-duplicate-item {
 		margin-left: 8px;
 		color: #2271b1;
 	}
 
-	.cmdu-duplicate-item:hover {
+	.swmd-duplicate-item:hover {
 		color: #135e96;
 	}
 

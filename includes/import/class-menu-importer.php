@@ -2,12 +2,12 @@
 /**
  * JSON menu importer.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Import;
+namespace SwiftMenuDuplicator\Import;
 
 use WP_Error;
 
@@ -34,7 +34,7 @@ class Menu_Importer {
 	 */
 	public function parse( string $json ) {
 		if ( '' === trim( $json ) ) {
-			return new WP_Error( 'empty_json', __( 'The uploaded file is empty.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'empty_json', __( 'The uploaded file is empty.', 'swift-menu-duplicator' ) );
 		}
 
 		$data = json_decode( $json, true );
@@ -44,14 +44,14 @@ class Menu_Importer {
 				'invalid_json',
 				sprintf(
 				/* translators: %s: JSON error message */
-					__( 'JSON parse error: %s', 'classic-menu-duplicator' ),
+					__( 'JSON parse error: %s', 'swift-menu-duplicator' ),
 					json_last_error_msg()
 				)
 			);
 		}
 
 		if ( ! is_array( $data ) ) {
-			return new WP_Error( 'invalid_structure', __( 'Unexpected JSON structure.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'invalid_structure', __( 'Unexpected JSON structure.', 'swift-menu-duplicator' ) );
 		}
 
 		return $this->validate( $data );
@@ -73,7 +73,7 @@ class Menu_Importer {
 					'missing_key',
 					sprintf(
 					/* translators: %s: missing key name */
-						__( 'Import file is missing required key: "%s".', 'classic-menu-duplicator' ),
+						__( 'Import file is missing required key: "%s".', 'swift-menu-duplicator' ),
 						$key
 					)
 				);
@@ -81,11 +81,11 @@ class Menu_Importer {
 		}
 
 		if ( empty( $data['menu']['name'] ) ) {
-			return new WP_Error( 'missing_menu_name', __( 'Import file does not contain a menu name.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'missing_menu_name', __( 'Import file does not contain a menu name.', 'swift-menu-duplicator' ) );
 		}
 
 		if ( ! is_array( $data['items'] ) ) {
-			return new WP_Error( 'invalid_items', __( 'Import file "items" key must be an array.', 'classic-menu-duplicator' ) );
+			return new WP_Error( 'invalid_items', __( 'Import file "items" key must be an array.', 'swift-menu-duplicator' ) );
 		}
 
 		return $data;

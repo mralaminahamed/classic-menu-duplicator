@@ -2,12 +2,12 @@
 /**
  * Admin list table for navigation menus.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Admin;
+namespace SwiftMenuDuplicator\Admin;
 
 use WP_List_Table;
 
@@ -34,8 +34,8 @@ class Menu_Table extends WP_List_Table {
 	public function __construct() {
 		parent::__construct(
 			array(
-				'singular' => __( 'menu', 'classic-menu-duplicator' ),
-				'plural'   => __( 'menus', 'classic-menu-duplicator' ),
+				'singular' => __( 'menu', 'swift-menu-duplicator' ),
+				'plural'   => __( 'menus', 'swift-menu-duplicator' ),
 				'ajax'     => false,
 			)
 		);
@@ -49,10 +49,10 @@ class Menu_Table extends WP_List_Table {
 	public function get_columns(): array {
 		return array(
 			'cb'         => '<input type="checkbox" />',
-			'name'       => __( 'Menu Name', 'classic-menu-duplicator' ),
-			'item_count' => __( 'Items', 'classic-menu-duplicator' ),
-			'locations'  => __( 'Theme Locations', 'classic-menu-duplicator' ),
-			'created'    => __( 'Created', 'classic-menu-duplicator' ),
+			'name'       => __( 'Menu Name', 'swift-menu-duplicator' ),
+			'item_count' => __( 'Items', 'swift-menu-duplicator' ),
+			'locations'  => __( 'Theme Locations', 'swift-menu-duplicator' ),
+			'created'    => __( 'Created', 'swift-menu-duplicator' ),
 		);
 	}
 
@@ -75,12 +75,12 @@ class Menu_Table extends WP_List_Table {
 	 */
 	protected function get_bulk_actions(): array {
 		$actions = array(
-			'cmdu_bulk_duplicate' => __( 'Duplicate', 'classic-menu-duplicator' ),
-			'cmdu_bulk_export'    => __( 'Export as JSON', 'classic-menu-duplicator' ),
+			'swmd_bulk_duplicate' => __( 'Duplicate', 'swift-menu-duplicator' ),
+			'swmd_bulk_export'    => __( 'Export as JSON', 'swift-menu-duplicator' ),
 		);
 
 		if ( current_user_can( 'delete_theme_options' ) ) {
-			$actions['cmdu_bulk_delete'] = __( 'Delete', 'classic-menu-duplicator' );
+			$actions['swmd_bulk_delete'] = __( 'Delete', 'swift-menu-duplicator' );
 		}
 
 		return $actions;
@@ -111,8 +111,8 @@ class Menu_Table extends WP_List_Table {
 		usort(
 			$menus,
 			static function ( \WP_Term $a, \WP_Term $b ) use ( $orderby, $order ): int {
-				$val_a = 'created' === $orderby ? (int) get_term_meta( $a->term_id, '_cmdu_created', true ) : strtolower( $a->name );
-				$val_b = 'created' === $orderby ? (int) get_term_meta( $b->term_id, '_cmdu_created', true ) : strtolower( $b->name );
+				$val_a = 'created' === $orderby ? (int) get_term_meta( $a->term_id, '_swmd_created', true ) : strtolower( $a->name );
+				$val_b = 'created' === $orderby ? (int) get_term_meta( $b->term_id, '_swmd_created', true ) : strtolower( $b->name );
 
 				$cmp = 'created' === $orderby ? ( $val_a <=> $val_b ) : strcmp( (string) $val_a, (string) $val_b );
 
@@ -121,7 +121,7 @@ class Menu_Table extends WP_List_Table {
 		);
 
 		// Pagination.
-		$per_page     = $this->get_items_per_page( 'cmdu_menus_per_page', 20 );
+		$per_page     = $this->get_items_per_page( 'swmd_menus_per_page', 20 );
 		$current_page = $this->get_pagenum();
 		$total_items  = count( $menus );
 
@@ -159,26 +159,26 @@ class Menu_Table extends WP_List_Table {
 	protected function column_name( $item ): string {
 		$edit_url = admin_url( 'nav-menus.php?action=edit&menu=' . $item->term_id );
 
-		$nonce = wp_create_nonce( 'cmdu_menu_actions' );
+		$nonce = wp_create_nonce( 'swmd_menu_actions' );
 
 		$actions = array(
 			'edit'      => sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( $edit_url ),
-				esc_html__( 'Edit', 'classic-menu-duplicator' )
+				esc_html__( 'Edit', 'swift-menu-duplicator' )
 			),
 			'duplicate' => sprintf(
-				'<a href="#" class="cmdu-row-duplicate" data-menu-id="%d" data-menu-name="%s" data-nonce="%s">%s</a>',
+				'<a href="#" class="swmd-row-duplicate" data-menu-id="%d" data-menu-name="%s" data-nonce="%s">%s</a>',
 				$item->term_id,
 				esc_attr( $item->name ),
 				esc_attr( $nonce ),
-				esc_html__( 'Duplicate', 'classic-menu-duplicator' )
+				esc_html__( 'Duplicate', 'swift-menu-duplicator' )
 			),
 			'export'    => sprintf(
-				'<a href="#" class="cmdu-row-export" data-menu-id="%d" data-nonce="%s">%s</a>',
+				'<a href="#" class="swmd-row-export" data-menu-id="%d" data-nonce="%s">%s</a>',
 				$item->term_id,
 				esc_attr( $nonce ),
-				esc_html__( 'Export JSON', 'classic-menu-duplicator' )
+				esc_html__( 'Export JSON', 'swift-menu-duplicator' )
 			),
 		);
 
@@ -190,8 +190,8 @@ class Menu_Table extends WP_List_Table {
 			$actions['delete'] = sprintf(
 				'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\')">%s</a>',
 				esc_url( $delete_url ),
-				esc_js( __( 'Delete this menu?', 'classic-menu-duplicator' ) ),
-				esc_html__( 'Delete', 'classic-menu-duplicator' )
+				esc_js( __( 'Delete this menu?', 'swift-menu-duplicator' ) ),
+				esc_html__( 'Delete', 'swift-menu-duplicator' )
 			);
 		}
 
@@ -234,7 +234,7 @@ class Menu_Table extends WP_List_Table {
 
 		return ! empty( $assigned )
 			? implode( ', ', $assigned )
-			: '<span class="cmdu-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
+			: '<span class="swmd-muted">' . esc_html__( '—', 'swift-menu-duplicator' ) . '</span>';
 	}
 
 	/**
@@ -249,10 +249,10 @@ class Menu_Table extends WP_List_Table {
 	 * @return string
 	 */
 	protected function column_created( $item ): string {
-		$ts = (int) get_term_meta( $item->term_id, '_cmdu_created', true );
+		$ts = (int) get_term_meta( $item->term_id, '_swmd_created', true );
 
 		if ( $ts <= 0 ) {
-			return '<span class="cmdu-muted">' . esc_html__( '—', 'classic-menu-duplicator' ) . '</span>';
+			return '<span class="swmd-muted">' . esc_html__( '—', 'swift-menu-duplicator' ) . '</span>';
 		}
 
 		return esc_html(
@@ -278,6 +278,6 @@ class Menu_Table extends WP_List_Table {
 	 * @return void
 	 */
 	public function no_items(): void {
-		esc_html_e( 'No menus found.', 'classic-menu-duplicator' );
+		esc_html_e( 'No menus found.', 'swift-menu-duplicator' );
 	}
 }

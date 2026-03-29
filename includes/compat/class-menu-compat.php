@@ -2,12 +2,12 @@
 /**
  * Multilingual plugin compatibility layer.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Compat;
+namespace SwiftMenuDuplicator\Compat;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -31,10 +31,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   these wholesale ties the duplicate's items to the source language object.
  *
  * Solution:
- *   This class registers itself on `cmdu_after_duplicate_menu_item` and
- *   `cmdu_after_import_item` to strip the problematic meta keys from every
+ *   This class registers itself on `swmd_after_duplicate_menu_item` and
+ *   `swmd_after_import_item` to strip the problematic meta keys from every
  *   cloned/imported item immediately after insertion. It also registers on
- *   `cmdu_item_meta_keys` to prevent those keys from being copied in the
+ *   `swmd_item_meta_keys` to prevent those keys from being copied in the
  *   first place, providing defence in depth.
  *
  *   For WPML specifically, the class additionally fires
@@ -119,7 +119,7 @@ class Menu_Compat {
 	}
 
 	// -----------------------------------------------------------------------
-	// Filter: cmdu_item_meta_keys — preventive exclusion.
+	// Filter: swmd_item_meta_keys — preventive exclusion.
 	// -----------------------------------------------------------------------
 
 	/**
@@ -143,8 +143,8 @@ class Menu_Compat {
 	/**
 	 * Deletes all multilingual meta from a newly created nav_menu_item post.
 	 *
-	 * Accepts both the two-argument form used by `cmdu_after_duplicate_menu_item`
-	 * (old_id, new_id) and the one-argument form used by `cmdu_after_import_item`
+	 * Accepts both the two-argument form used by `swmd_after_duplicate_menu_item`
+	 * (old_id, new_id) and the one-argument form used by `swmd_after_import_item`
 	 * (new_id only). The $ignored parameter absorbs the second argument when
 	 * called from the duplication hook.
 	 *

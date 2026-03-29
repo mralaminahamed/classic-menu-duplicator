@@ -2,14 +2,14 @@
 /**
  * Admin integration: script enqueuing and AJAX handlers.
  *
- * @package ClassicMenuDuplicator
+ * @package SwiftMenuDuplicator
  */
 
 declare( strict_types=1 );
 
-namespace ClassicMenuDuplicator\Admin;
+namespace SwiftMenuDuplicator\Admin;
 
-use ClassicMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -34,16 +34,16 @@ class Menu_Admin {
 		add_action( 'admin_head', array( $this, 'output_inline_styles' ) );
 
 		// Menu-level actions.
-		add_action( 'wp_ajax_cmdu_duplicate_menu', array( $this, 'handle_ajax_duplicate_menu' ) );
-		add_action( 'wp_ajax_cmdu_export_menu', array( $this, 'handle_ajax_export_menu' ) );
+		add_action( 'wp_ajax_swmd_duplicate_menu', array( $this, 'handle_ajax_duplicate_menu' ) );
+		add_action( 'wp_ajax_swmd_export_menu', array( $this, 'handle_ajax_export_menu' ) );
 
 		// Item-level actions.
-		add_action( 'wp_ajax_cmdu_duplicate_item', array( $this, 'handle_ajax_duplicate_item' ) );
+		add_action( 'wp_ajax_swmd_duplicate_item', array( $this, 'handle_ajax_duplicate_item' ) );
 
 		// Snapshot actions.
-		add_action( 'wp_ajax_cmdu_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
-		add_action( 'wp_ajax_cmdu_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
-		add_action( 'wp_ajax_cmdu_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
+		add_action( 'wp_ajax_swmd_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
+		add_action( 'wp_ajax_swmd_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
+		add_action( 'wp_ajax_swmd_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
 
 		// Auto-snapshot before core saves a menu so every manual save is captured.
 		add_action( 'wp_update_nav_menu', array( $this, 'auto_snapshot_on_save' ), 5 );
@@ -62,7 +62,7 @@ class Menu_Admin {
 			return;
 		}
 
-		include CLASSIC_MENU_DUPLICATOR_DIR . 'templates/admin/inline-styles.php';
+		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/inline-styles.php';
 	}
 
 	/**
@@ -77,49 +77,49 @@ class Menu_Admin {
 			return;
 		}
 
-		$asset_file = CLASSIC_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
+		$asset_file = SWIFT_MENU_DUPLICATOR_DIR . 'assets/js/admin.js';
 
 		wp_enqueue_script(
-			'cmdu-admin',
-			CLASSIC_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
+			'swmd-admin',
+			SWIFT_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
-				: CLASSIC_MENU_DUPLICATOR_VERSION,
+				: SWIFT_MENU_DUPLICATOR_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'cmdu-admin',
-			'cmduData',
+			'swmd-admin',
+			'swmdData',
 			array(
 				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
-				'nonce'                => wp_create_nonce( 'cmdu_menu_actions' ),
+				'nonce'                => wp_create_nonce( 'swmd_menu_actions' ),
 				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				// Menu duplication strings.
-				'buttonLabel'          => __( 'Duplicate Menu', 'classic-menu-duplicator' ),
-				'duplicatingLabel'     => __( 'Duplicating…', 'classic-menu-duplicator' ),
+				'buttonLabel'          => __( 'Duplicate Menu', 'swift-menu-duplicator' ),
+				'duplicatingLabel'     => __( 'Duplicating…', 'swift-menu-duplicator' ),
 				// Item duplication strings.
-				'duplicateItemLabel'   => __( 'Duplicate', 'classic-menu-duplicator' ),
-				'duplicatingItemLabel' => __( 'Duplicating…', 'classic-menu-duplicator' ),
+				'duplicateItemLabel'   => __( 'Duplicate', 'swift-menu-duplicator' ),
+				'duplicatingItemLabel' => __( 'Duplicating…', 'swift-menu-duplicator' ),
 				// Export strings.
-				'exportLabel'          => __( 'Export JSON', 'classic-menu-duplicator' ),
-				'exportingLabel'       => __( 'Exporting…', 'classic-menu-duplicator' ),
+				'exportLabel'          => __( 'Export JSON', 'swift-menu-duplicator' ),
+				'exportingLabel'       => __( 'Exporting…', 'swift-menu-duplicator' ),
 				// Snapshot strings.
-				'snapshotLabel'        => __( 'Snapshots', 'classic-menu-duplicator' ),
-				'saveSnapshotLabel'    => __( 'Save Snapshot', 'classic-menu-duplicator' ),
-				'savingSnapshotLabel'  => __( 'Saving…', 'classic-menu-duplicator' ),
-				'noSnapshotsText'      => __( 'No snapshots saved yet.', 'classic-menu-duplicator' ),
-				'snapshotSavedText'    => __( 'Snapshot saved.', 'classic-menu-duplicator' ),
-				'confirmDeleteText'    => __( 'Delete this snapshot?', 'classic-menu-duplicator' ),
+				'snapshotLabel'        => __( 'Snapshots', 'swift-menu-duplicator' ),
+				'saveSnapshotLabel'    => __( 'Save Snapshot', 'swift-menu-duplicator' ),
+				'savingSnapshotLabel'  => __( 'Saving…', 'swift-menu-duplicator' ),
+				'noSnapshotsText'      => __( 'No snapshots saved yet.', 'swift-menu-duplicator' ),
+				'snapshotSavedText'    => __( 'Snapshot saved.', 'swift-menu-duplicator' ),
+				'confirmDeleteText'    => __( 'Delete this snapshot?', 'swift-menu-duplicator' ),
 				// Modal strings.
-				'modalHeading'         => __( 'Duplicate Menu', 'classic-menu-duplicator' ),
-				'modalNameLabel'       => __( 'New menu name', 'classic-menu-duplicator' ),
-				'modalConfirmLabel'    => __( 'Duplicate', 'classic-menu-duplicator' ),
-				'modalCancelLabel'     => __( 'Cancel', 'classic-menu-duplicator' ),
+				'modalHeading'         => __( 'Duplicate Menu', 'swift-menu-duplicator' ),
+				'modalNameLabel'       => __( 'New menu name', 'swift-menu-duplicator' ),
+				'modalConfirmLabel'    => __( 'Duplicate', 'swift-menu-duplicator' ),
+				'modalCancelLabel'     => __( 'Cancel', 'swift-menu-duplicator' ),
 				// Generic error.
-				'errorMessage'         => __( 'Action failed. Please try again.', 'classic-menu-duplicator' ),
+				'errorMessage'         => __( 'Action failed. Please try again.', 'swift-menu-duplicator' ),
 			)
 		);
 	}
@@ -129,7 +129,7 @@ class Menu_Admin {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Handles the cmdu_duplicate_menu AJAX request.
+	 * Handles the swmd_duplicate_menu AJAX request.
 	 *
 	 * Accepts an optional `menu_name` parameter; when omitted the server
 	 * falls back to the "{original} (Copy)" convention.
@@ -143,7 +143,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid menu ID.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid menu ID.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -168,7 +168,7 @@ class Menu_Admin {
 	}
 
 	/**
-	 * Handles the cmdu_export_menu AJAX request.
+	 * Handles the swmd_export_menu AJAX request.
 	 *
 	 * Streams a JSON file download directly from the AJAX handler so the
 	 * browser triggers a Save dialog without any intermediate page.
@@ -182,7 +182,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid menu ID.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid menu ID.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -214,7 +214,7 @@ class Menu_Admin {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Handles the cmdu_duplicate_item AJAX request.
+	 * Handles the swmd_duplicate_item AJAX request.
 	 *
 	 * @return void Sends a JSON response and exits.
 	 */
@@ -226,7 +226,7 @@ class Menu_Admin {
 
 		if ( $item_id <= 0 || $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid item or menu ID.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid item or menu ID.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -258,7 +258,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid menu ID.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid menu ID.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -268,7 +268,7 @@ class Menu_Admin {
 
 		if ( ! $saved ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Could not save snapshot.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Could not save snapshot.', 'swift-menu-duplicator' ) ),
 				500
 			);
 		}
@@ -294,7 +294,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid menu ID.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid menu ID.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -324,7 +324,7 @@ class Menu_Admin {
 
 		if ( $menu_id <= 0 || '' === $snapshot_id ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Invalid parameters.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Invalid parameters.', 'swift-menu-duplicator' ) ),
 				400
 			);
 		}
@@ -334,7 +334,7 @@ class Menu_Admin {
 
 		if ( ! $deleted ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Snapshot not found.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Snapshot not found.', 'swift-menu-duplicator' ) ),
 				404
 			);
 		}
@@ -370,7 +370,7 @@ class Menu_Admin {
 		$duplicator = new Menu_Duplicator();
 		$duplicator->save_snapshot(
 			$menu_id,
-			__( 'Auto-snapshot (before save)', 'classic-menu-duplicator' )
+			__( 'Auto-snapshot (before save)', 'swift-menu-duplicator' )
 		);
 	}
 
@@ -390,16 +390,16 @@ class Menu_Admin {
 			? sanitize_text_field( wp_unslash( $_POST['nonce'] ) )
 			: '';
 
-		if ( ! wp_verify_nonce( $nonce, 'cmdu_menu_actions' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'swmd_menu_actions' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Security check failed.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Security check failed.', 'swift-menu-duplicator' ) ),
 				403
 			);
 		}
 
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Insufficient permissions.', 'classic-menu-duplicator' ) ),
+				array( 'message' => __( 'Insufficient permissions.', 'swift-menu-duplicator' ) ),
 				403
 			);
 		}
