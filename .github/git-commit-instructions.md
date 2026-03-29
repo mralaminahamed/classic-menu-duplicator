@@ -105,7 +105,7 @@ test(core): add regression test for menu duplication
 ## 9. Translation & Escaping Notes
 
 If adding user-facing strings: mention i18n + escaping (e.g., "All new strings wrapped in `__()`; output escaped with `esc_html`").
-Text domain: `classic-menu-duplicator`
+Text domain: `swift-menu-duplicator`
 
 ## 10. Tests Reference
 
@@ -116,7 +116,7 @@ When logic changes: add/adjust tests. If deferred (rare), justify in body.
 - PHPCS / linters pass.
 - No debug output (`var_dump`, `console.log`).
 - Inputs validated & output escaped.
-- i18n applied (text domain: `classic-menu-duplicator`).
+- i18n applied (text domain: `swift-menu-duplicator`).
 - No obvious performance regressions (N+1 queries, etc.).
 - Tests updated/added.
 

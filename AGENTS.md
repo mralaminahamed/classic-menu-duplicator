@@ -1,13 +1,13 @@
-# AGENTS.md - Classic Menu Duplicator
+# AGENTS.md - Swift Menu Duplicator
 
-Agent-specific documentation for the Classic Menu Duplicator WordPress plugin.
+Agent-specific documentation for the Swift Menu Duplicator WordPress plugin.
 
 ## Overview
 
 A simple WordPress plugin that allows users to duplicate navigation menus with a single click.
 
 - **PHP**: 7.4+ | **WordPress**: 6.0+ | **WooCommerce**: Not required
-- **Text Domain**: `classic-menu-duplicator`
+- **Text Domain**: `swift-menu-duplicator`
 
 ---
 
@@ -16,7 +16,7 @@ A simple WordPress plugin that allows users to duplicate navigation menus with a
 ### PHP Code Sniffer
 ```bash
 # Full plugin
-./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ classic-menu-duplicator.php
+./vendor/bin/phpcs --standard=WordPress --runtime-set testVersion 7.4- includes/ swift-menu-duplicator.php
 
 # Custom ruleset
 ./vendor/bin/phpcs --standard=phpcs.xml.dist includes/
@@ -92,7 +92,7 @@ public function duplicate_menu( int $menu_id ) {}
 
 ```php
 // Always escape
-echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'classic-menu-duplicator' ) . '</a>';
+echo '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Link', 'swift-menu-duplicator' ) . '</a>';
 
 // Always sanitize
 $menu_id = absint( $_POST['menu_id'] );
@@ -102,16 +102,16 @@ $menu_id = absint( $_POST['menu_id'] );
 
 ## 4. Internationalization (i18n)
 
-- Wrap all user-facing strings: `__( 'Text', 'classic-menu-duplicator' )`
+- Wrap all user-facing strings: `__( 'Text', 'swift-menu-duplicator' )`
 - Use escape variants: `esc_html__()`, `esc_html_e()`, `esc_attr__()`
 - Never concatenate translatable strings; use `sprintf()`:
 
 ```php
 // Bad
-$msg = __( 'Menu #' . $menu_id, 'classic-menu-duplicator' );
+$msg = __( 'Menu #' . $menu_id, 'swift-menu-duplicator' );
 
 // Good
-$msg = sprintf( __( 'Menu #%d', 'classic-menu-duplicator' ), $menu_id );
+$msg = sprintf( __( 'Menu #%d', 'swift-menu-duplicator' ), $menu_id );
 ```
 
 ---
@@ -144,7 +144,7 @@ assets/js/
 └── admin.js                   # Frontend JavaScript
 
 languages/
-└── classic-menu-duplicator.pot     # Translation template
+└── swift-menu-duplicator.pot     # Translation template
 ```
 
 ---
@@ -178,7 +178,7 @@ Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
 ## 9. Important Hooks
 
 - `admin_enqueue_scripts` — Enqueue admin assets
-- `wp_ajax_cmdu_duplicate_menu` — Handle AJAX duplication request
+- `wp_ajax_swmd_duplicate_menu` — Handle AJAX duplication request
 
 ---
 

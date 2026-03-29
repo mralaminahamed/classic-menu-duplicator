@@ -31,7 +31,7 @@ Classic Menu Duplicator is a simple yet powerful WordPress plugin that allows us
 
 == Installation ==
 
-1. Upload the `classic-menu-duplicator` directory to `/wp-content/plugins/`.
+1. Upload the `swift-menu-duplicator` directory to `/wp-content/plugins/`.
 2. Activate the plugin through **Plugins → Installed Plugins**.
 3. Navigate to **Appearance → Menus**, select a menu, and click **Duplicate Menu**.
 
