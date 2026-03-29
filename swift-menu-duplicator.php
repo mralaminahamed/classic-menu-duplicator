@@ -1,25 +1,25 @@
 <?php
 /**
- * Classic Menu Duplicator
+ * Swift Menu Duplicator
  *
  * Duplicate menus and individual items, save revision snapshots, export/import
  * JSON, manage all menus from a dedicated admin page, copy menus across
  * multisite sub-sites, and control everything from WP-CLI.
  *
- * @link              https://github.com/mralaminahamed/classic-menu-duplicator
+ * @link              https://github.com/mralaminahamed/swift-menu-duplicator
  * @since             1.0.0
- * @package           ClassicMenuDuplicator
+ * @package           SwiftMenuDuplicator
  *
  * @wordpress-plugin
- * Plugin Name:       Classic Menu Duplicator
- * Plugin URI:        https://github.com/mralaminahamed/classic-menu-duplicator
+ * Plugin Name:       Swift Menu Duplicator
+ * Plugin URI:        https://github.com/mralaminahamed/swift-menu-duplicator
  * Description:       Duplicate menus and items, snapshot revisions, export/import JSON, manage all menus in bulk, copy across multisite, automate with WP-CLI, and integrate via REST API.
  * Version:           1.1.0
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       classic-menu-duplicator
+ * Text Domain:       swift-menu-duplicator
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Tested up to:      6.9
@@ -28,22 +28,22 @@
 
 declare( strict_types=1 );
 
-use ClassicMenuDuplicator\Admin\Menu_Admin;
-use ClassicMenuDuplicator\Admin\Menu_Admin_Page;
-use ClassicMenuDuplicator\Cli\Menu_CLI_Command;
-use ClassicMenuDuplicator\Compat\Menu_Compat;
-use ClassicMenuDuplicator\Rest\Menu_REST_Controller;
+use SwiftMenuDuplicator\Admin\Menu_Admin;
+use SwiftMenuDuplicator\Admin\Menu_Admin_Page;
+use SwiftMenuDuplicator\Cli\Menu_CLI_Command;
+use SwiftMenuDuplicator\Compat\Menu_Compat;
+use SwiftMenuDuplicator\Rest\Menu_REST_Controller;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLASSIC_MENU_DUPLICATOR_VERSION', '1.1.0' );
-define( 'CLASSIC_MENU_DUPLICATOR_FILE', __FILE__ );
-define( 'CLASSIC_MENU_DUPLICATOR_DIR', plugin_dir_path( __FILE__ ) );
-define( 'CLASSIC_MENU_DUPLICATOR_URL', plugin_dir_url( __FILE__ ) );
+define( 'SWIFT_MENU_DUPLICATOR_VERSION', '1.1.0' );
+define( 'SWIFT_MENU_DUPLICATOR_FILE', __FILE__ );
+define( 'SWIFT_MENU_DUPLICATOR_DIR', plugin_dir_path( __FILE__ ) );
+define( 'SWIFT_MENU_DUPLICATOR_URL', plugin_dir_url( __FILE__ ) );
 
-require_once CLASSIC_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
+require_once SWIFT_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
 
 /**
  * Initialises the plugin on plugins_loaded.

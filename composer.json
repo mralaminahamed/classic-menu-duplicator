@@ -1,5 +1,5 @@
 {
-	"name": "mralaminahamed/classic-menu-duplicator",
+	"name": "mralaminahamed/swift-menu-duplicator",
 	"description": "A simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click.",
 	"type": "wordpress-plugin",
 	"version": "1.0.0",
@@ -38,7 +38,7 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ClassicMenuDuplicator\\Test\\" : "tests/php/src"
+			"SwiftMenuDuplicator\\Test\\" : "tests/php/src"
 		}
 	},
 	"scripts": {
@@ -47,15 +47,15 @@
 		"lint": "vendor/bin/phpcs -p -s",
 		"lint:fix": "vendor/bin/phpcbf -p",
 		"analyze": "phpstan analyse --memory-limit=2G",
-		"makepot": "wp i18n make-pot . languages/classic-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
+		"makepot": "wp i18n make-pot . languages/swift-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
 		"release": [
 			"rm -rf release vendor build/*",
 			"@makepot",
 			"mkdir -p release",
 			"composer install --no-dev --optimize-autoloader",
-			"rsync -av --exclude-from=.distignore . release/classic-menu-duplicator/",
-			"cd release && zip -r classic-menu-duplicator.zip classic-menu-duplicator/",
-			"rm -rf release/classic-menu-duplicator/",
+			"rsync -av --exclude-from=.distignore . release/swift-menu-duplicator/",
+			"cd release && zip -r swift-menu-duplicator.zip swift-menu-duplicator/",
+			"rm -rf release/swift-menu-duplicator/",
 			"composer install"
 		]
 	},
