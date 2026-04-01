@@ -1,4 +1,4 @@
-# Copilot Instructions for Classic Menu Duplicator
+# Copilot Instructions for Swift Menu Duplicator
 
 Guidance for using GitHub Copilot (or similar AI assistants) while contributing to this WordPress menu duplicator plugin.
 
@@ -129,4 +129,4 @@ public function duplicate_menu( int $menu_id ) {
 
 ---
 
-Thank you for contributing to Classic Menu Duplicator! Use Copilot responsibly — human judgment remains essential.
+Thank you for contributing to Swift Menu Duplicator! Use Copilot responsibly — human judgment remains essential.

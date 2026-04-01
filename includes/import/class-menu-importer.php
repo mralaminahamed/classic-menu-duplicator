@@ -201,7 +201,7 @@ class Menu_Importer {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log(
 					sprintf(
-						'Classic Menu Duplicator: import failed for item "%s" — %s',
+						'Swift Menu Duplicator: import failed for item "%s" — %s',
 						$item['title'] ?? '',
 						$new_id->get_error_message()
 					)

@@ -1,4 +1,4 @@
-=== Classic Menu Duplicator ===
+=== Swift Menu Duplicator ===
 Contributors:      mralaminahamed
 Tags:              menus, navigation, duplicate, copy, menu duplicator
 Requires at least: 6.0
@@ -12,7 +12,7 @@ A simple yet powerful WordPress plugin that allows users to duplicate navigation
 
 == Description ==
 
-Classic Menu Duplicator is a simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click. Perfect for creating menu backups or quickly creating variations of existing menus.
+Swift Menu Duplicator is a simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click. Perfect for creating menu backups or quickly creating variations of existing menus.
 
 **Features**
 

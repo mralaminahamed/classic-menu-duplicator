@@ -1,8 +1,8 @@
-# Classic Menu Duplicator - Admin Documentation
+# Swift Menu Duplicator - Admin Documentation
 
 ## Overview
 
-Classic Menu Duplicator is a simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click. This documentation covers the admin-facing features and usage instructions.
+Swift Menu Duplicator is a simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click. This documentation covers the admin-facing features and usage instructions.
 
 ## Features
 

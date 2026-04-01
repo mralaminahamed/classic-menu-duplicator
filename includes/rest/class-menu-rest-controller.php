@@ -1,6 +1,6 @@
 <?php
 /**
- * REST API controller for Classic Menu Duplicator.
+ * REST API controller for Swift Menu Duplicator.
  *
  * @package SwiftMenuDuplicator
  */

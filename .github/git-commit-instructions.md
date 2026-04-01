@@ -1,4 +1,4 @@
-# Git Commit Instructions for Classic Menu Duplicator
+# Git Commit Instructions for Swift Menu Duplicator
 
 Consistent commit messages improve readability, changelog generation, and release automation.
 
@@ -139,6 +139,6 @@ Default: feat (new behavior), fix (defect), refactor (internal), chore (maintena
 
 ---
 
-Following these conventions keeps Classic Menu Duplicator history clean, searchable, and automatable.
+Following these conventions keeps Swift Menu Duplicator history clean, searchable, and automatable.
 
 Thank you for contributing!

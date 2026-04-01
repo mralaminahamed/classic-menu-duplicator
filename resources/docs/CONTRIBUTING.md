@@ -1,6 +1,6 @@
-# Contributing to Classic Menu Duplicator
+# Contributing to Swift Menu Duplicator
 
-Thank you for your interest in contributing to Classic Menu Duplicator!
+Thank you for your interest in contributing to Swift Menu Duplicator!
 
 ## Ways to Contribute
 

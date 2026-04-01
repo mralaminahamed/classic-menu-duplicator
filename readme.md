@@ -1,4 +1,4 @@
-# Classic Menu Duplicator
+# Swift Menu Duplicator
 
 > **Notice:** This plugin has been submitted to WordPress.org for review and approval. Once approved and after completing the plugin review, it will be available at [wordpress.org/plugins/swift-menu-duplicator](https://wordpress.org/plugins/swift-menu-duplicator/).
 
@@ -6,7 +6,7 @@ A simple WordPress plugin that allows users to duplicate navigation menus with a
 
 ## Description
 
-Classic Menu Duplicator adds a **Duplicate Menu** button to the WordPress menu editor. With just one click, you can duplicate any navigation menu along with all its items, hierarchy, and settings.
+Swift Menu Duplicator adds a **Duplicate Menu** button to the WordPress menu editor. With just one click, you can duplicate any navigation menu along with all its items, hierarchy, and settings.
 
 ## Features
 

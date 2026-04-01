@@ -1,6 +1,6 @@
 <?php
 /**
- * Abstract base class for Classic Menu Duplicator test cases.
+ * Abstract base class for Swift Menu Duplicator test cases.
  *
  * @package SwiftMenuDuplicator
  */
@@ -12,7 +12,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use WP_UnitTestCase;
 
 /**
- * Abstract base class for Classic Menu Duplicator unit test cases.
+ * Abstract base class for Swift Menu Duplicator unit test cases.
  *
  * PHPUnit Docs: @see https://docs.phpunit.de/en/9.6/
  * Brain Monkey: @see https://giuseppe-mazzapica.gitbook.io/brain-monkey

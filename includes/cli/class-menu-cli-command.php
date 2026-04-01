@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI integration for Classic Menu Duplicator.
+ * WP-CLI integration for Swift Menu Duplicator.
  *
  * @package SwiftMenuDuplicator
  */

@@ -125,7 +125,7 @@ class Menu_Duplicator {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log(
 					sprintf(
-						'Classic Menu Duplicator: failed to clone item %d — %s',
+						'Swift Menu Duplicator: failed to clone item %d — %s',
 						$item->ID,
 						$new_item_id->get_error_message()
 					)
