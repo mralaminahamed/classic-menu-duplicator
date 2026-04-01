@@ -1,4 +1,30 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "mcp": {}
+  "mcp": {
+    "wordpress-check": {
+      "command": "node",
+      "args": ["bin/wordpress-check.js"],
+      "description": "Run WordPress Plugin Check to verify plugin passes review guidelines"
+    },
+    "phpcs": {
+      "command": "composer",
+      "args": ["run", "lint"],
+      "description": "Run PHP Code Sniffer with WordPress standards"
+    },
+    "phpstan": {
+      "command": "composer",
+      "args": ["run", "analyze"],
+      "description": "Run PHPStan static analysis"
+    },
+    "phpunit": {
+      "command": "composer",
+      "args": ["run", "test"],
+      "description": "Run PHPUnit tests"
+    },
+    "all-checks": {
+      "command": "bash",
+      "args": ["-c", "composer run lint && composer run analyze && composer run test"],
+      "description": "Run all checks: PHPCS, PHPStan, PHPUnit"
+    }
+  }
 }
