@@ -73,7 +73,7 @@ class Menu_Duplicator {
 		 * @param WP_Term $source_term     Source menu term object.
 		 * @param int      $source_menu_id  Source menu term ID.
 		 */
-		$new_name = (string) apply_filters( 'classic_menu_duplicator_new_menu_name', $new_name, $source_term, $source_menu_id );
+		$new_name = (string) apply_filters( 'swift_menu_duplicator_new_menu_name', $new_name, $source_term, $source_menu_id );
 
 		// ---------------------------------------------------------------
 		// 2. Create the duplicate nav_menu term.
@@ -87,7 +87,7 @@ class Menu_Duplicator {
 		 * @param int    $source_menu_id Source menu term ID.
 		 * @param string $new_name       Name for the new menu.
 		 */
-		do_action( 'classic_menu_duplicator_before_duplicate_menu', $source_menu_id, $new_name );
+		do_action( 'swift_menu_duplicator_before_duplicate_menu', $source_menu_id, $new_name );
 
 		$new_term = wp_create_nav_menu( $new_name );
 
@@ -106,7 +106,7 @@ class Menu_Duplicator {
 		);
 
 		if ( empty( $source_items ) || ! is_array( $source_items ) ) {
-			do_action( 'classic_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id );
+			do_action( 'swift_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id );
 			return $new_menu_id;
 		}
 
@@ -160,7 +160,7 @@ class Menu_Duplicator {
 		 * @param int              $new_menu_id    New menu term ID.
 		 * @param array<int,int>   $id_map         Map of original item IDs to new item IDs.
 		 */
-		do_action( 'classic_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id, $id_map );
+		do_action( 'swift_menu_duplicator_after_duplicate_menu', $source_menu_id, $new_menu_id, $id_map );
 
 		return $new_menu_id;
 	}
@@ -197,7 +197,7 @@ class Menu_Duplicator {
 		 * @param int $item_id Post ID of the item about to be duplicated.
 		 * @param int $menu_id Term ID of the menu that owns the item.
 		 */
-		do_action( 'classic_menu_duplicator_before_duplicate_item', $item_id, $menu_id );
+		do_action( 'swift_menu_duplicator_before_duplicate_item', $item_id, $menu_id );
 
 		if ( null === $all_items ) {
 			$all_items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
@@ -250,7 +250,7 @@ class Menu_Duplicator {
 		 * @param int            $menu_id     Term ID of the menu.
 		 * @param array<int,int> $id_map      Map of original => new item IDs.
 		 */
-		do_action( 'classic_menu_duplicator_after_duplicate_item', $item_id, $new_item_id, $menu_id, $id_map );
+		do_action( 'swift_menu_duplicator_after_duplicate_item', $item_id, $new_item_id, $menu_id, $id_map );
 
 		return $new_item_id;
 	}
@@ -314,7 +314,7 @@ class Menu_Duplicator {
 		 * @param WP_Term            $term     Source menu term object.
 		 */
 		return apply_filters(
-			'classic_menu_duplicator_export_payload',
+			'swift_menu_duplicator_export_payload',
 			array(
 				'version'  => SWIFT_MENU_DUPLICATOR_VERSION,
 				'exported' => current_time( 'c' ),
@@ -365,7 +365,7 @@ class Menu_Duplicator {
 			'data'    => $payload,
 		);
 
-		$limit     = (int) apply_filters( 'classic_menu_duplicator_snapshot_limit', 10 );
+		$limit     = (int) apply_filters( 'swift_menu_duplicator_snapshot_limit', 10 );
 		$snapshots = $this->get_snapshots( $menu_id );
 
 		array_unshift( $snapshots, $snapshot );
@@ -465,7 +465,7 @@ class Menu_Duplicator {
 		 * @param int      $new_item_id New item post ID.
 		 * @param WP_Post $item        Original item post object.
 		 */
-		do_action( 'classic_menu_duplicator_after_duplicate_menu_item', $item->ID, $new_item_id, $item );
+		do_action( 'swift_menu_duplicator_after_duplicate_menu_item', $item->ID, $new_item_id, $item );
 
 		return $new_item_id;
 	}
@@ -557,7 +557,7 @@ class Menu_Duplicator {
 		 * @param string[] $keys Default meta keys.
 		 */
 		return (array) apply_filters(
-			'classic_menu_duplicator_item_meta_keys',
+			'swift_menu_duplicator_item_meta_keys',
 			array(
 				'_menu_item_type',
 				'_menu_item_menu_item_parent',

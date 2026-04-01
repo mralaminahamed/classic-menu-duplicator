@@ -94,27 +94,27 @@ class Menu_Compat {
 		}
 
 		// Prevent incompatible meta keys from being copied during duplication.
-		add_filter( 'classic_menu_duplicator_item_meta_keys', array( $this, 'filter_item_meta_keys' ) );
+		add_filter( 'swift_menu_duplicator_item_meta_keys', array( $this, 'filter_item_meta_keys' ) );
 
 		// Strip any residual incompatible meta from a freshly duplicated item.
-		add_action( 'classic_menu_duplicator_after_duplicate_menu_item', array( $this, 'clean_item_meta' ), 10, 2 );
+		add_action( 'swift_menu_duplicator_after_duplicate_menu_item', array( $this, 'clean_item_meta' ), 10, 2 );
 
 		// Strip incompatible meta from freshly imported items.
-		add_action( 'classic_menu_duplicator_after_import_item', array( $this, 'clean_item_meta' ), 10, 1 );
+		add_action( 'swift_menu_duplicator_after_import_item', array( $this, 'clean_item_meta' ), 10, 1 );
 
 		if ( $this->wpml_active ) {
 			// Ask WPML to register each new item in the translations table.
-			add_action( 'classic_menu_duplicator_after_duplicate_menu_item', array( $this, 'wpml_register_item' ), 20, 2 );
-			add_action( 'classic_menu_duplicator_after_import_item', array( $this, 'wpml_register_item' ), 20, 1 );
+			add_action( 'swift_menu_duplicator_after_duplicate_menu_item', array( $this, 'wpml_register_item' ), 20, 2 );
+			add_action( 'swift_menu_duplicator_after_import_item', array( $this, 'wpml_register_item' ), 20, 1 );
 
 			// After a full menu is duplicated, register the new menu term itself.
-			add_action( 'classic_menu_duplicator_after_duplicate_menu', array( $this, 'wpml_register_menu' ), 10, 2 );
-			add_action( 'classic_menu_duplicator_after_import_menu', array( $this, 'wpml_register_menu' ), 10, 2 );
+			add_action( 'swift_menu_duplicator_after_duplicate_menu', array( $this, 'wpml_register_menu' ), 10, 2 );
+			add_action( 'swift_menu_duplicator_after_import_menu', array( $this, 'wpml_register_menu' ), 10, 2 );
 		}
 
 		if ( $this->polylang_active ) {
 			// Copy the language assignment of the source menu to the duplicate.
-			add_action( 'classic_menu_duplicator_after_duplicate_menu', array( $this, 'polylang_copy_menu_language' ), 10, 2 );
+			add_action( 'swift_menu_duplicator_after_duplicate_menu', array( $this, 'polylang_copy_menu_language' ), 10, 2 );
 		}
 	}
 
@@ -287,7 +287,7 @@ class Menu_Compat {
 		 * @param bool $active Whether WPML is detected as active.
 		 */
 		return (bool) apply_filters(
-			'classic_menu_duplicator_compat_wpml_active',
+			'swift_menu_duplicator_compat_wpml_active',
 			defined( 'ICL_SITEPRESS_VERSION' )
 		);
 	}
@@ -306,7 +306,7 @@ class Menu_Compat {
 		 * @param bool $active Whether Polylang is detected as active.
 		 */
 		return (bool) apply_filters(
-			'classic_menu_duplicator_compat_polylang_active',
+			'swift_menu_duplicator_compat_polylang_active',
 			defined( 'POLYLANG_VERSION' )
 		);
 	}
@@ -341,7 +341,7 @@ class Menu_Compat {
 		 * @param bool     $polylang Whether Polylang is active.
 		 */
 		return (array) apply_filters(
-			'classic_menu_duplicator_compat_excluded_meta_keys',
+			'swift_menu_duplicator_compat_excluded_meta_keys',
 			$keys,
 			$this->wpml_active,
 			$this->polylang_active

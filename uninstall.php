@@ -39,7 +39,7 @@ if ( ! current_user_can( 'activate_plugins' ) ) {
  *
  * @return void
  */
-function classic_menu_duplicator_delete_options(): void {
+function swift_menu_duplicator_delete_options(): void {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -62,7 +62,7 @@ function classic_menu_duplicator_delete_options(): void {
  *
  * @return void
  */
-function classic_menu_duplicator_delete_transients(): void {
+function swift_menu_duplicator_delete_transients(): void {
 	global $wpdb;
 
 	$patterns = array(
@@ -92,7 +92,7 @@ function classic_menu_duplicator_delete_transients(): void {
  *
  * @return void
  */
-function classic_menu_duplicator_network_uninstall(): void {
+function swift_menu_duplicator_network_uninstall(): void {
 	if ( ! is_multisite() ) {
 		return;
 	}
@@ -109,8 +109,8 @@ function classic_menu_duplicator_network_uninstall(): void {
 
 	foreach ( $blog_ids as $blog_id ) {
 		switch_to_blog( (int) $blog_id );
-		classic_menu_duplicator_delete_options();
-		classic_menu_duplicator_delete_transients();
+		swift_menu_duplicator_delete_options();
+		swift_menu_duplicator_delete_transients();
 		restore_current_blog();
 	}
 }
@@ -120,8 +120,8 @@ function classic_menu_duplicator_network_uninstall(): void {
 // -------------------------------------------------------------------------
 
 if ( is_multisite() ) {
-	classic_menu_duplicator_network_uninstall();
+	swift_menu_duplicator_network_uninstall();
 } else {
-	classic_menu_duplicator_delete_options();
-	classic_menu_duplicator_delete_transients();
+	swift_menu_duplicator_delete_options();
+	swift_menu_duplicator_delete_transients();
 }

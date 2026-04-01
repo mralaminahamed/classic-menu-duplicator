@@ -29,7 +29,7 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 	exit( 1 );
 }
 
-function classic_menu_duplicator_truncate_tables(): void {
+function swift_menu_duplicator_truncate_tables(): void {
 	global $wpdb;
 
 	$tables = array(

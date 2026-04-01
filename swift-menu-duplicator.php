@@ -54,7 +54,7 @@ require_once SWIFT_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
  *
  * @return void
  */
-function classic_menu_duplicator_bootstrap(): void {
+function swift_menu_duplicator_bootstrap(): void {
 	// Tier 1: nav-menus.php toolbar integration.
 	( new Menu_Admin() )->register_hooks();
 
@@ -68,7 +68,7 @@ function classic_menu_duplicator_bootstrap(): void {
 	( new Menu_Compat() )->register_hooks();
 }
 
-add_action( 'plugins_loaded', 'classic_menu_duplicator_bootstrap' );
+add_action( 'plugins_loaded', 'swift_menu_duplicator_bootstrap' );
 
 /**
  * Registers the WP-CLI command group after plugins are loaded.

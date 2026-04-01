@@ -246,7 +246,7 @@ class Menu_REST_Controller {
 		 * @param bool             $allowed  Whether the current user is permitted.
 		 * @param WP_REST_Request $request  The incoming REST request.
 		 */
-		$allowed = (bool) apply_filters( 'classic_menu_duplicator_rest_permission', $allowed, $request );
+		$allowed = (bool) apply_filters( 'swift_menu_duplicator_rest_permission', $allowed, $request );
 
 		if ( ! $allowed ) {
 			return new WP_Error(
