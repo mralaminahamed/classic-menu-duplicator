@@ -121,15 +121,17 @@ class Menu_Duplicator {
 			$new_item_id = $this->duplicate_menu_item( $item, $new_menu_id, $id_map );
 
 			if ( is_wp_error( $new_item_id ) ) {
-				// Non-fatal: log and continue with remaining items.
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
-					sprintf(
-						'Swift Menu Duplicator: failed to clone item %d — %s',
-						$item->ID,
-						$new_item_id->get_error_message()
-					)
-				);
+				// Non-fatal: log when WP_DEBUG_LOG is enabled and continue with remaining items.
+				if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log(
+						sprintf(
+							'Swift Menu Duplicator: failed to clone item %d — %s',
+							$item->ID,
+							$new_item_id->get_error_message()
+						)
+					);
+				}
 				continue;
 			}
 
