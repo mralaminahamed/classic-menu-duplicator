@@ -8,6 +8,7 @@ yarn.*
 *.config.js
 
 # Development tools and configuration
+/.claude
 /.yarn/
 .*.json
 .eslint*
@@ -22,10 +23,13 @@ phpcs.xml.dist
 jest.*.js
 .phpunit.result.cache
 readme.md
+patchwork.json
+opencode.json
 
 # Documentation and project files
 /docs/
 /spa/
+/bin/
 
 # Testing and CI
 tests/
@@ -61,6 +65,7 @@ tests/
 
 # Development configuration files
 AGENTS.md
+CLAUDE.md
 tsconfig.json
 tree.sh
 
@@ -76,3 +81,4 @@ tree.sh
 .nuxt/
 .vuepress/dist/
 .hugo_build.lock
+.mcp.json
