@@ -7,8 +7,8 @@
 
 namespace SwiftMenuDuplicator\Test\Compat;
 
-use SwiftMenuDuplicator\Menu_Compat;
-use SwiftMenuDuplicator\Menu_Duplicator;
+use SwiftMenuDuplicator\Compat\Menu_Compat;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
 use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**

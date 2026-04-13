@@ -8,7 +8,7 @@
 namespace SwiftMenuDuplicator\Test\Admin;
 
 use Brain\Monkey\Functions;
-use SwiftMenuDuplicator\Menu_Admin;
+use SwiftMenuDuplicator\Admin\Menu_Admin;
 use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**

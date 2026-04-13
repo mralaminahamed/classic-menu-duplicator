@@ -7,7 +7,7 @@
 
 namespace SwiftMenuDuplicator\Test\Rest;
 
-use SwiftMenuDuplicator\Menu_REST_Controller;
+use SwiftMenuDuplicator\Rest\Menu_REST_Controller;
 use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 use WP_REST_Request;
 

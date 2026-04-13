@@ -7,8 +7,8 @@
 
 namespace SwiftMenuDuplicator\Test\Import;
 
-use SwiftMenuDuplicator\Menu_Duplicator;
-use SwiftMenuDuplicator\Menu_Importer;
+use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Import\Menu_Importer;
 use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**
