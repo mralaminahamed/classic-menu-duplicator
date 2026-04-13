@@ -11,6 +11,7 @@ namespace SwiftMenuDuplicator\Cli;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
+use SwiftMenuDuplicator\Utils\Filesystem;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_Term;
@@ -178,8 +179,7 @@ class Menu_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( 'Failed to encode export payload to JSON.' );
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		if ( false === file_put_contents( $output_file, $json ) ) {
+		if ( ! Filesystem::write( $output_file, $json ) ) {
 			WP_CLI::error( sprintf( 'Could not write to file: %s', $output_file ) );
 		}
 
@@ -239,8 +239,7 @@ class Menu_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( sprintf( 'File not found: %s', $file ) );
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$json = file_get_contents( $file );
+		$json = Filesystem::read( $file );
 
 		if ( false === $json ) {
 			WP_CLI::error( sprintf( 'Could not read file: %s', $file ) );

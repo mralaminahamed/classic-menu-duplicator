@@ -11,6 +11,7 @@ namespace SwiftMenuDuplicator\Admin;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
+use SwiftMenuDuplicator\Utils\Filesystem;
 use WP_Term;
 use ZipArchive;
 
@@ -120,7 +121,7 @@ class Menu_Admin_Page {
 
 				$sites_data[] = array(
 					'id'   => $blog_id,
-					'name' => get_blog_details( $blog_id )->blogname ?? "Site {$blog_id}",
+					'name' => get_blog_details( $blog_id )->blogname ?? ( 'Site ' . absint( $blog_id ) ),
 				);
 			}
 		}
@@ -221,8 +222,8 @@ class Menu_Admin_Page {
 		$json = '';
 
 		if ( ! empty( $_FILES['swmd_json_file']['tmp_name'] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$json = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['swmd_json_file']['tmp_name'] ) ) );
+			$tmp  = sanitize_text_field( wp_unslash( $_FILES['swmd_json_file']['tmp_name'] ) );
+			$json = Filesystem::read( $tmp );
 			$json = ( false === $json ) ? '' : $json;
 		} elseif ( ! empty( $_POST['swmd_json_data'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -441,7 +442,7 @@ class Menu_Admin_Page {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		readfile( $zip_file );
-		unlink( $zip_file );
+		Filesystem::delete( $zip_file );
 		exit;
 	}
 
