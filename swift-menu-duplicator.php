@@ -17,8 +17,8 @@
  * Version:           1.0.0
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       swift-menu-duplicator
  * Domain Path:       /languages
  * Requires at least: 6.0
