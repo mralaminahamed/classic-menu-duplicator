@@ -44,16 +44,16 @@ if ( $import_state ) {
 	<!-- ── Tab navigation ──────────────────────────────────── -->
 	<nav class="nav-tab-wrapper swmd-tab-nav">
 		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=menus' ) ); ?>"
-			class="nav-tab <?php echo 'menus' === $active_tab ? 'nav-tab-active' : ''; ?>">
+			class="nav-tab <?php echo esc_attr( 'menus' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'All Menus', 'swift-menu-duplicator' ); ?>
 		</a>
 		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) ); ?>"
-			class="nav-tab <?php echo 'import' === $active_tab ? 'nav-tab-active' : ''; ?>">
+			class="nav-tab <?php echo esc_attr( 'import' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'Import JSON', 'swift-menu-duplicator' ); ?>
 		</a>
 		<?php if ( is_multisite() && current_user_can( 'manage_network' ) ) : ?>
 		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=multisite' ) ); ?>"
-			class="nav-tab <?php echo 'multisite' === $active_tab ? 'nav-tab-active' : ''; ?>">
+			class="nav-tab <?php echo esc_attr( 'multisite' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'Copy to Site', 'swift-menu-duplicator' ); ?>
 		</a>
 		<?php endif; ?>
@@ -85,14 +85,16 @@ if ( $import_state ) {
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<?php
-					printf(
-						/* translators: 1: menu name, 2: edit link */
-						esc_html__( 'Imported "%1$s" successfully. %2$s', 'swift-menu-duplicator' ),
-						esc_html( $import_state['menu_name'] ?? '' ),
+					echo wp_kses_post(
 						sprintf(
-							'<a href="%s">%s</a>',
-							esc_url( admin_url( 'nav-menus.php?action=edit&menu=' . absint( $import_state['new_menu_id'] ?? 0 ) ) ),
-							esc_html__( 'Edit menu →', 'swift-menu-duplicator' )
+							/* translators: 1: menu name, 2: edit link */
+							__( 'Imported "%1$s" successfully. %2$s', 'swift-menu-duplicator' ),
+							esc_html( $import_state['menu_name'] ?? '' ),
+							sprintf(
+								'<a href="%s">%s</a>',
+								esc_url( admin_url( 'nav-menus.php?action=edit&menu=' . absint( $import_state['new_menu_id'] ?? 0 ) ) ),
+								esc_html__( 'Edit menu →', 'swift-menu-duplicator' )
+							)
 						)
 					);
 					?>
@@ -263,11 +265,7 @@ if ( $import_state ) {
 								}
 
 								$details = get_blog_details( $blog_id );
-								printf(
-									'<option value="%d">%s</option>',
-									$blog_id,
-									esc_html( $details->blogname ?? "Site {$blog_id}" )
-								);
+								echo '<option value="' . absint( $blog_id ) . '">' . esc_html( $details->blogname ?? ( 'Site ' . absint( $blog_id ) ) ) . '</option>';
 							}
 							?>
 						</select>
