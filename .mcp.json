@@ -1,10 +1,9 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
+  "mcpServers": {
     "mysql": {
-      "type": "local",
-      "command": ["npx", "-y", "@benborla29/mcp-server-mysql"],
-      "environment": {
+      "command": "npx",
+      "args": ["-y", "@benborla29/mcp-server-mysql"],
+      "env": {
         "MYSQL_HOST": "${MYSQL_HOST}",
         "MYSQL_PORT": "${MYSQL_PORT}",
         "MYSQL_USER": "${MYSQL_USER}",
@@ -13,35 +12,32 @@
         "ALLOW_INSERT_OPERATION": "false",
         "ALLOW_UPDATE_OPERATION": "false",
         "ALLOW_DELETE_OPERATION": "false"
-      },
-      "enabled": true
+      }
     },
     "rest-api": {
-      "type": "local",
-      "command": ["npx", "-y", "dkmaker-mcp-rest-api"],
-      "environment": {
+      "command": "npx",
+      "args": ["-y", "dkmaker-mcp-rest-api"],
+      "env": {
         "REST_BASE_URL": "${REST_BASE_URL}",
         "AUTH_BASIC_USERNAME": "${REST_USERNAME}",
         "AUTH_BASIC_PASSWORD": "${REST_PASSWORD}",
         "REST_ENABLE_SSL_VERIFY": "false",
         "HEADER_X-WP-Nonce": "${WP_NONCE}"
-      },
-      "enabled": true
+      }
     },
     "playwright": {
-      "type": "local",
-      "command": ["npx", "-y", "@playwright/mcp"],
-      "environment": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {
         "PLAYWRIGHT_BROWSERS_PATH": "0",
         "WP_URL": "${WP_URL}",
         "WP_USERNAME": "${WP_USERNAME}",
         "WP_PASSWORD": "${WP_PASSWORD}"
-      },
-      "enabled": true
+      }
     },
     "wporg-mcp-server": {
-      "type": "local",
-      "command": ["npx", "-y", "@automattic/mcp-wordpress-remote@^0.2"],
+      "command": "npx",
+      "args": ["-y", "@automattic/mcp-wordpress-remote@^0.2"],
       "env": {
         "WP_API_URL": "https://wordpress.org/wp-json/mcp/wporg",
         "WP_API_USERNAME": "${WPORG_USERNAME}",
