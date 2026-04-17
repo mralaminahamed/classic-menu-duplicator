@@ -9,190 +9,195 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-13T03:19:20+00:00\n"
+"POT-Creation-Date: 2026-04-17T08:45:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: swift-menu-duplicator\n"
 
 #. Plugin Name of the plugin
-#: swift-menu-duplicator.php:14
+#: swift-menu-duplicator.php
 msgid "Swift Menu Duplicator"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: swift-menu-duplicator.php:15
+#: swift-menu-duplicator.php
 msgid "https://github.com/mralaminahamed/swift-menu-duplicator"
 msgstr ""
 
 #. Description of the plugin
-#: swift-menu-duplicator.php:16
+#: swift-menu-duplicator.php
 msgid "Duplicate menus and items, snapshot revisions, export/import JSON, manage all menus in bulk, copy across multisite, automate with WP-CLI, and integrate via REST API."
 msgstr ""
 
 #. Author of the plugin
-#: swift-menu-duplicator.php:18
+#: swift-menu-duplicator.php
 msgid "Al Amin Ahamed"
 msgstr ""
 
 #. Author URI of the plugin
-#: swift-menu-duplicator.php:19
+#: swift-menu-duplicator.php
 msgid "https://github.com/mralaminahamed"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:71
-#: includes/admin/class-menu-admin-page.php:72
+#: includes/admin/class-menu-admin-page.php:77
+#: includes/admin/class-menu-admin-page.php:78
+#: includes/admin/class-menu-admin-page.php:184
 #: templates/admin/menu-manager.php:24
 msgid "Menu Manager"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:138
+#: includes/admin/class-menu-admin-page.php:144
 msgid "Copy to site…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:139
+#: includes/admin/class-menu-admin-page.php:145
 msgid "Copying…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:140
+#: includes/admin/class-menu-admin-page.php:146
 msgid "Copied!"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:141
+#: includes/admin/class-menu-admin-page.php:147
 msgid "Select destination site"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:142
-#: includes/admin/class-menu-admin.php:303
+#: includes/admin/class-menu-admin-page.php:148
+#: includes/admin/class-menu-admin.php:104
 msgid "Exporting…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:143
-#: includes/admin/class-menu-admin.php:297
-#: includes/admin/class-menu-admin.php:300
+#: includes/admin/class-menu-admin-page.php:149
+#: includes/admin/class-menu-admin.php:98
+#: includes/admin/class-menu-admin.php:101
 msgid "Duplicating…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:144
+#: includes/admin/class-menu-admin-page.php:150
 msgid "Duplicated!"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:145
-#: includes/admin/class-menu-admin.php:317
+#: includes/admin/class-menu-admin-page.php:151
+#: includes/admin/class-menu-admin.php:118
 msgid "Action failed. Please try again."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:146
+#: includes/admin/class-menu-admin-page.php:152
 msgid "Delete selected menus? This cannot be undone."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:177
+#: includes/admin/class-menu-admin-page.php:189
+msgid "Nav Menus"
+msgstr ""
+
+#: includes/admin/class-menu-admin-page.php:211
 msgid "You do not have sufficient permissions to access this page."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:213
-#: includes/admin/class-menu-admin-page.php:466
-#: includes/admin/class-menu-admin-page.php:528
-#: includes/admin/class-menu-admin.php:597
+#: includes/admin/class-menu-admin-page.php:247
+#: includes/admin/class-menu-admin-page.php:500
+#: includes/admin/class-menu-admin-page.php:562
+#: includes/admin/class-menu-admin.php:398
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:339
-#: includes/admin/class-menu-admin-page.php:379
+#: includes/admin/class-menu-admin-page.php:373
+#: includes/admin/class-menu-admin-page.php:413
 msgid "No menus selected."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:407
+#: includes/admin/class-menu-admin-page.php:441
 msgid "ZIP export requires the PHP ZipArchive extension."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:416
+#: includes/admin/class-menu-admin-page.php:450
 msgid "Could not create ZIP archive."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:462
-#: includes/admin/class-menu-admin-page.php:524
-#: includes/admin/class-menu-admin.php:590
+#: includes/admin/class-menu-admin-page.php:496
+#: includes/admin/class-menu-admin-page.php:558
+#: includes/admin/class-menu-admin.php:391
 msgid "Security check failed."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:476
+#: includes/admin/class-menu-admin-page.php:510
 msgid "Invalid menu or site ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:296
-#: includes/admin/class-menu-admin.php:312
+#: includes/admin/class-menu-admin.php:97
+#: includes/admin/class-menu-admin.php:113
 msgid "Duplicate Menu"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:299
-#: includes/admin/class-menu-admin.php:314
+#: includes/admin/class-menu-admin.php:100
+#: includes/admin/class-menu-admin.php:115
 #: includes/admin/class-menu-table.php:78
 #: includes/admin/class-menu-table.php:175
 msgid "Duplicate"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:302
+#: includes/admin/class-menu-admin.php:103
 #: includes/admin/class-menu-table.php:181
 msgid "Export JSON"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:305
+#: includes/admin/class-menu-admin.php:106
 msgid "Snapshots"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:306
+#: includes/admin/class-menu-admin.php:107
 msgid "Save Snapshot"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:307
+#: includes/admin/class-menu-admin.php:108
 msgid "Saving…"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:308
+#: includes/admin/class-menu-admin.php:109
 msgid "No snapshots saved yet."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:309
+#: includes/admin/class-menu-admin.php:110
 msgid "Snapshot saved."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:310
+#: includes/admin/class-menu-admin.php:111
 msgid "Delete this snapshot?"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:313
+#: includes/admin/class-menu-admin.php:114
 msgid "New menu name"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:315
+#: includes/admin/class-menu-admin.php:116
 #: templates/admin/menu-manager.php:153
 msgid "Cancel"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:341
-#: includes/admin/class-menu-admin.php:380
-#: includes/admin/class-menu-admin.php:456
-#: includes/admin/class-menu-admin.php:492
+#: includes/admin/class-menu-admin.php:142
+#: includes/admin/class-menu-admin.php:181
+#: includes/admin/class-menu-admin.php:257
+#: includes/admin/class-menu-admin.php:293
 msgid "Invalid menu ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:424
+#: includes/admin/class-menu-admin.php:225
 msgid "Invalid item or menu ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:466
+#: includes/admin/class-menu-admin.php:267
 msgid "Could not save snapshot."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:522
+#: includes/admin/class-menu-admin.php:323
 msgid "Invalid parameters."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:532
+#: includes/admin/class-menu-admin.php:333
 msgid "Snapshot not found."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:568
+#: includes/admin/class-menu-admin.php:369
 msgid "Auto-snapshot (before save)"
 msgstr ""
 
