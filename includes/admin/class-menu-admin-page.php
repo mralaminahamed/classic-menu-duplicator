@@ -58,6 +58,12 @@ class Menu_Admin_Page {
 
 		// Store creation timestamp on new menus.
 		add_action( 'wp_create_nav_menu', array( $this, 'record_creation_time' ) );
+
+		// Plugin action links on the Plugins list page.
+		add_filter(
+			'plugin_action_links_' . plugin_basename( SWIFT_MENU_DUPLICATOR_FILE ),
+			array( $this, 'add_action_links' )
+		);
 	}
 
 	/**
@@ -157,6 +163,34 @@ class Menu_Admin_Page {
 	 */
 	public function record_creation_time( int $menu_id ): void {
 		add_term_meta( $menu_id, '_swmd_created', time(), true );
+	}
+
+	/**
+	 * Adds Menu Manager and Nav Menus links to the plugin row on the Plugins page.
+	 *
+	 * @param array<int,string> $links Existing action links.
+	 *
+	 * @return array<int,string>
+	 */
+	public function add_action_links( array $links ): array {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return $links;
+		}
+
+		$plugin_links = array(
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'themes.php?page=swmd-menu-manager' ) ),
+				esc_html__( 'Menu Manager', 'swift-menu-duplicator' )
+			),
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'nav-menus.php' ) ),
+				esc_html__( 'Nav Menus', 'swift-menu-duplicator' )
+			),
+		);
+
+		return array_merge( $plugin_links, $links );
 	}
 
 	// -----------------------------------------------------------------------
