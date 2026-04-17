@@ -240,7 +240,7 @@
 				href:  '#',
 				class: 'swmd-duplicate-item submitdelete',
 				text:  swmdData.duplicateItemLabel,
-			} ).css( { marginLeft: '8px' } );
+			} );
 
 			$removeLink.after( $link );
 		}
