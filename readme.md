@@ -2,7 +2,7 @@
 
 > Duplicate WordPress navigation menus in one click. Snapshot revisions, export/import JSON, bulk-manage all menus, copy across Multisite, and automate with WP-CLI or REST API.
 
-[![WordPress Plugin Version](https://img.shields.io/badge/version-1.0.0-blue)](https://wordpress.org/plugins/swift-menu-duplicator/)
+[![WordPress Plugin Version](https://img.shields.io/badge/version-1.0.1-blue)](https://wordpress.org/plugins/swift-menu-duplicator/)
 [![WordPress Tested Up To](https://img.shields.io/badge/WordPress-7.0-green)](https://wordpress.org/)
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-red)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -111,6 +111,12 @@ yarn lint                # ESLint + Stylelint
 **Release** is handled automatically by pushing a git tag — the [GitHub Actions workflow](.github/workflows/svn-deploy.yml) validates the tag, builds the production artifact, deploys to the WordPress.org SVN repository, and attaches a ZIP to the GitHub release.
 
 ## Changelog
+
+### 1.0.1
+- Fix: WP-CLI command renamed to `wp swift-menu-duplicator` (was `wp menu-duplicator`)
+- Fix: `composer.lock` excluded by `.gitignore` — SVN deploy workflow now works correctly
+- Fix: Short description trimmed to meet WordPress.org 150-character limit
+- Tested up to WordPress 7.0
 
 ### 1.0.0
 - Initial release

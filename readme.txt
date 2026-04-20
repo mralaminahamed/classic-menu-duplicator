@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.0
+Stable tag:        1.0.1
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -157,6 +157,12 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Changelog ==
 
+= 1.0.1 =
+* Fix: WP-CLI command renamed from `wp menu-duplicator` to `wp swift-menu-duplicator` for consistency with the plugin slug.
+* Fix: `composer.lock` was excluded by `.gitignore` glob pattern causing the SVN deploy workflow to fail.
+* Fix: Short description trimmed to satisfy the WordPress.org 150-character limit.
+* Tested up to WordPress 7.0.
+
 = 1.0.0 =
 * Initial release.
 * One-click menu duplication from the WordPress menu editor with hierarchy preserved.
@@ -171,6 +177,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+WP-CLI users: the command has been renamed from `wp menu-duplicator` to `wp swift-menu-duplicator`. Update any scripts or aliases accordingly.
 
 = 1.0.0 =
 Initial release — no upgrade steps required.
