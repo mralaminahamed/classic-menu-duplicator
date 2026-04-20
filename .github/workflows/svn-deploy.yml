@@ -91,7 +91,7 @@ jobs:
       - name: Install SVN (Subversion)
         run: |
           sudo apt-get update -y
-           sudo apt-get install -y subversion
+          sudo apt-get install -y subversion
 
       - name: WordPress Plugin Deploy
         id: deploy
@@ -104,7 +104,7 @@ jobs:
           SLUG: ${{ steps.plugin_name.outputs.plugin_slug }}
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ steps.version_check.outputs.version }}
