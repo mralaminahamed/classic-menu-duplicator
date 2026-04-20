@@ -61,12 +61,12 @@ Permission is controlled by the `swmd_rest_permission` filter (defaults to `edit
 
 === WP-CLI ===
 
-Full command-line support under the `wp menu-duplicator` command group:
+Full command-line support under the `wp swift-menu-duplicator` command group:
 
-* `wp menu-duplicator duplicate <menu-id> [--name=<name>]` — duplicate a menu
-* `wp menu-duplicator export <menu-id> [--output=<file>]` — export to JSON
-* `wp menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]` — import from JSON
-* `wp menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]` — copy to a sub-site
+* `wp swift-menu-duplicator duplicate <menu-id> [--name=<name>]` — duplicate a menu
+* `wp swift-menu-duplicator export <menu-id> [--output=<file>]` — export to JSON
+* `wp swift-menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]` — import from JSON
+* `wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]` — copy to a sub-site
 
 === Multilingual Compatibility ===
 
@@ -141,7 +141,7 @@ The response includes the new menu's `id`, `name`, and `edit_url`.
 
 = How do I migrate menus between environments? =
 
-Export the source menu to JSON (admin UI or `wp menu-duplicator export`), transfer the file, then import it on the target site. Use the find/replace fields to rewrite domain-specific URLs during import.
+Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), transfer the file, then import it on the target site. Use the find/replace fields to rewrite domain-specific URLs during import.
 
 = What capability is required? =
 
@@ -166,7 +166,7 @@ Export the source menu to JSON (admin UI or `wp menu-duplicator export`), transf
 * JSON export and import with URL find & replace and dry-run preview.
 * Multisite support: copy menus to any sub-site with optional URL rewriting.
 * REST API at `/wp-json/cmd/v1/` — duplicate menu, export menu, duplicate item.
-* WP-CLI command group `wp menu-duplicator` — duplicate, export, import, copy-to-site.
+* WP-CLI command group `wp swift-menu-duplicator` — duplicate, export, import, copy-to-site.
 * WPML and Polylang compatibility — translation and language meta stripped from duplicates.
 * Developer hooks and filters throughout for extensibility.
 

@@ -50,10 +50,10 @@ Permission defaults to `edit_theme_options` and is filterable via `swmd_rest_per
 
 ### WP-CLI
 ```bash
-wp menu-duplicator duplicate <menu-id> [--name=<name>]
-wp menu-duplicator export <menu-id> [--output=<file>]
-wp menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]
-wp menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]
+wp swift-menu-duplicator duplicate <menu-id> [--name=<name>]
+wp swift-menu-duplicator export <menu-id> [--output=<file>]
+wp swift-menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]
+wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]
 ```
 
 ### Multilingual Compatibility
@@ -120,7 +120,7 @@ yarn lint                # ESLint + Stylelint
 - JSON export and import with URL find & replace and dry-run preview
 - Multisite support — copy menus to any sub-site
 - REST API at `/wp-json/cmd/v1/`
-- WP-CLI command group `wp menu-duplicator`
+- WP-CLI command group `wp swift-menu-duplicator`
 - WPML and Polylang compatibility
 
 ## License

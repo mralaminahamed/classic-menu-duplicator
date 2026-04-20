@@ -28,25 +28,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * ## EXAMPLES
  *
  *     # Duplicate a menu by its term ID
- *     $ wp menu-duplicator duplicate 42
+ *     $ wp swift-menu-duplicator duplicate 42
  *
  *     # Duplicate with a custom name
- *     $ wp menu-duplicator duplicate 42 --name="Holiday Menu"
+ *     $ wp swift-menu-duplicator duplicate 42 --name="Holiday Menu"
  *
  *     # Export a menu to a JSON file
- *     $ wp menu-duplicator export 42 --output=./my-menu.json
+ *     $ wp swift-menu-duplicator export 42 --output=./my-menu.json
  *
  *     # Import a menu from a JSON file
- *     $ wp menu-duplicator import ./my-menu.json
+ *     $ wp swift-menu-duplicator import ./my-menu.json
  *
  *     # Import with URL replacement
- *     $ wp menu-duplicator import ./my-menu.json --find=https://staging.example.com --replace=https://example.com
+ *     $ wp swift-menu-duplicator import ./my-menu.json --find=https://staging.example.com --replace=https://example.com
  *
  *     # Preview an import without writing to the database
- *     $ wp menu-duplicator import ./my-menu.json --dry-run
+ *     $ wp swift-menu-duplicator import ./my-menu.json --dry-run
  *
  *     # Copy a menu to another site on a multisite network
- *     $ wp menu-duplicator copy-to-site 42 --target-blog=3
+ *     $ wp swift-menu-duplicator copy-to-site 42 --target-blog=3
  *
  * @when after_wp_load
  */
@@ -69,10 +69,10 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     $ wp menu-duplicator duplicate 42
+	 *     $ wp swift-menu-duplicator duplicate 42
 	 *     Success: Duplicated "Main Menu" → "Main Menu (Copy)" (ID: 43)
 	 *
-	 *     $ wp menu-duplicator duplicate 42 --name="Holiday Menu" --porcelain
+	 *     $ wp swift-menu-duplicator duplicate 42 --name="Holiday Menu" --porcelain
 	 *     43
 	 *
 	 * @subcommand duplicate
@@ -137,10 +137,10 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     $ wp menu-duplicator export 42
+	 *     $ wp swift-menu-duplicator export 42
 	 *     Success: Exported "Main Menu" to ./main-menu-menu-export.json
 	 *
-	 *     $ wp menu-duplicator export 42 --output=/tmp/backup.json
+	 *     $ wp swift-menu-duplicator export 42 --output=/tmp/backup.json
 	 *     Success: Exported "Main Menu" to /tmp/backup.json
 	 *
 	 * @subcommand export
@@ -213,13 +213,13 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     $ wp menu-duplicator import ./my-menu.json
+	 *     $ wp swift-menu-duplicator import ./my-menu.json
 	 *     Success: Imported "Main Menu" (ID: 45, 12 items)
 	 *
-	 *     $ wp menu-duplicator import ./staging-menu.json --find=https://staging.example.com --replace=https://example.com
+	 *     $ wp swift-menu-duplicator import ./staging-menu.json --find=https://staging.example.com --replace=https://example.com
 	 *     Success: Imported "Main Menu" (ID: 46, 12 items)
 	 *
-	 *     $ wp menu-duplicator import ./my-menu.json --dry-run
+	 *     $ wp swift-menu-duplicator import ./my-menu.json --dry-run
 	 *     (Dry run — no changes were made)
 	 *     Menu name   : Main Menu
 	 *     Items       : 12
@@ -344,7 +344,7 @@ class Menu_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     $ wp menu-duplicator copy-to-site 42 --target-blog=3
+	 *     $ wp swift-menu-duplicator copy-to-site 42 --target-blog=3
 	 *     Success: Copied "Main Menu" to site 3 (new ID: 7)
 	 *
 	 * @subcommand copy-to-site

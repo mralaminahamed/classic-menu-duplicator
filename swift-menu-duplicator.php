@@ -50,7 +50,7 @@ require_once SWIFT_MENU_DUPLICATOR_DIR . 'vendor/autoload.php';
  *
  * Boots the nav-menus.php toolbar integration (Tier 1), the dedicated
  * Menu Manager admin page (Tier 2), and — when WP-CLI is running —
- * registers the `menu-duplicator` command group.
+ * registers the `swift-menu-duplicator` command group.
  *
  * @return void
  */
@@ -78,5 +78,5 @@ add_action( 'plugins_loaded', 'swift_menu_duplicator_bootstrap' );
  * at load time.
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	WP_CLI::add_command( 'menu-duplicator', Menu_CLI_Command::class );
+	WP_CLI::add_command( 'swift-menu-duplicator', Menu_CLI_Command::class );
 }
