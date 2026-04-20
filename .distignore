@@ -29,7 +29,6 @@ opencode.json
 # Documentation and project files
 /docs/
 /spa/
-/bin/
 
 # Testing and CI
 tests/
@@ -60,8 +59,8 @@ tests/
 # Archives (development)
 *.{zip,tar.gz,tar,rar}
 
-# WordPress specific files
-/svn-assets/
+# WordPress.org plugin assets (banners, icons, screenshots — uploaded via svn-readme-assets-update workflow)
+/.wordpress-org/
 
 # Development configuration files
 AGENTS.md
