@@ -49,6 +49,7 @@
 		"lint:review": "phpcs ./includes --standard=phpcs.plugin-review.xml",
 		"lint:fix:review": "phpcbf ./includes --standard=phpcs.plugin-review.xml",
 		"analyze": "phpstan analyse --memory-limit=2G",
+		"gen-assets": "php resources/banners-icons/generate.php",
 		"makepot": "wp i18n make-pot . languages/swift-menu-duplicator.pot --exclude=node_modules,vendor,docs,release,tests",
 		"release": [
 			"rm -rf release vendor build/*",
