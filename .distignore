@@ -29,6 +29,7 @@ opencode.json
 # Documentation and project files
 /docs/
 /spa/
+/resources/
 
 # Testing and CI
 tests/
