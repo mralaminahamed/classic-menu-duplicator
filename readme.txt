@@ -1,27 +1,96 @@
 === Swift Menu Duplicator ===
 Contributors:      mralaminahamed
-Tags:              menus, navigation, duplicate, copy, menu duplicator
+Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
-Tested up to:      6.9
+Tested up to:      7.0
 Requires PHP:      7.4
 Stable tag:        1.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-A simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click.
+Duplicate WordPress navigation menus in one click. Snapshot revisions, export/import JSON, bulk-manage all menus, copy across Multisite, and automate with WP-CLI.
 
 == Description ==
 
-Swift Menu Duplicator is a simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click. Perfect for creating menu backups or quickly creating variations of existing menus.
+**Swift Menu Duplicator** gives you full control over your WordPress navigation menus. Clone any menu in one click, manage all menus from a dedicated admin page, version them with snapshots, move them across Multisite sub-sites, and automate everything from the command line or REST API.
 
-**Features**
+=== One-Click Duplication ===
 
-* One-Click Duplication: Instantly clone any navigation menu
-* Preserves Hierarchy: Maintains all parent-child relationships
-* Menu Items: Duplicates all menu items including custom links, pages, posts, and categories
-* User-Friendly: Simple admin interface with clear feedback
-* Secure: Uses WordPress nonces and capability checks
-* Internationalized: Ready for translation with included `.pot` file
+* Duplicate button right in the menu editor footer — no page reload required
+* Full hierarchy preserved via a two-pass clone that remaps all parent-child item IDs
+* All item metadata copied — type, object, URL, target, CSS classes, XFN, description
+* Duplicate individual menu items directly from the menu editor
+* Custom name support — filter `swift_menu_duplicator_new_menu_name` to override the default "(Copy)" suffix
+
+=== Snapshot Revisions ===
+
+* **Auto-snapshot** — a snapshot is saved automatically before every menu save
+* **Manual snapshots** — save named snapshots from the menu editor at any time
+* **Browse & restore** — view all snapshots in an expandable panel and restore with one click
+* **Housekeeping** — delete individual snapshots you no longer need
+
+=== Menu Manager (Appearance → Menu Manager) ===
+
+* Dedicated page listing every menu on the site in a sortable WP_List_Table
+* **Bulk duplicate** — clone multiple menus at once
+* **Bulk export** — download selected menus as a single ZIP archive
+* **Bulk delete** — remove multiple menus in one action
+* Row actions — duplicate or export individual menus directly from the list
+
+=== JSON Export / Import ===
+
+* Export any menu to a portable JSON file (via admin or REST API)
+* Import from a JSON file upload or paste JSON directly into the text area
+* **URL find & replace** — swap domain names during import for staging → production migrations
+* **Dry-run preview** — review what will be imported before making any changes to the database
+
+=== Multisite Support ===
+
+* Copy any menu to another site in your WordPress Multisite network
+* Automatic URL rewriting in item URLs when copying across sub-sites
+
+=== REST API ===
+
+Full REST API at `/wp-json/cmd/v1/` for headless and block-editor integrations:
+
+* `POST /menus/{id}/duplicate` — duplicate a menu (optional `name` parameter)
+* `GET  /menus/{id}/export` — export a menu as a JSON payload
+* `POST /menus/{id}/items/{item_id}/duplicate` — duplicate a single menu item
+
+Permission is controlled by the `swmd_rest_permission` filter (defaults to `edit_theme_options`).
+
+=== WP-CLI ===
+
+Full command-line support under the `wp menu-duplicator` command group:
+
+* `wp menu-duplicator duplicate <menu-id> [--name=<name>]` — duplicate a menu
+* `wp menu-duplicator export <menu-id> [--output=<file>]` — export to JSON
+* `wp menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]` — import from JSON
+* `wp menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]` — copy to a sub-site
+
+=== Multilingual Compatibility ===
+
+* **WPML** — translation meta keys (`_icl_lang_duplicate_of`, `wpml_language`, etc.) are stripped from duplicated items automatically
+* **Polylang** — language meta keys (`_pll_synced_taxonomies`, `_pll_menu_language`, etc.) are stripped from duplicated items automatically
+* Additional keys can be excluded via the `swmd_compat_excluded_meta_keys` filter
+
+=== Developer Hooks ===
+
+* `swift_menu_duplicator_new_menu_name` — customise the default duplicate name
+* `swmd_rest_permission` — control REST API access
+* `swmd_before_duplicate_item` / `swmd_after_duplicate_menu_item` — fired around item duplication
+* `swmd_after_import_menu` — fired after a successful import
+* `swmd_item_meta_keys` — control which meta keys are copied
+* `swmd_compat_excluded_meta_keys` — extend the multilingual meta exclusion list
+* `wp_update_nav_menu` — triggers auto-snapshot before every menu save
+
+=== Security ===
+
+* All AJAX actions verified with nonces and `edit_theme_options` capability checks
+* All output escaped; all input sanitized
+* Database queries use `$wpdb->prepare()` — no string concatenation
+* REST API permission is filterable but defaults to `edit_theme_options`
+* WordPress Filesystem API used for all file read/write/delete operations
 
 **Requirements**
 
@@ -33,37 +102,75 @@ Swift Menu Duplicator is a simple yet powerful WordPress plugin that allows user
 
 1. Upload the `swift-menu-duplicator` directory to `/wp-content/plugins/`.
 2. Activate the plugin through **Plugins → Installed Plugins**.
-3. Navigate to **Appearance → Menus**, select a menu, and click **Duplicate Menu**.
+3. Go to **Appearance → Menus**, select a menu, and click **Duplicate Menu** in the footer.
+4. For bulk management, snapshots, and import, visit **Appearance → Menu Manager**.
 
 == Frequently Asked Questions ==
 
 = Does it copy theme location assignments? =
 
-No. Theme location assignments are site-specific and are intentionally not copied, so the duplicate does not silently replace an active menu in any location.
+No. Theme location assignments are site-specific and intentionally not copied, so the duplicate does not silently replace an active menu in any location.
 
 = What happens to sub-menu items? =
 
-All parent-child relationships are preserved exactly. The duplication uses a two-pass approach: items are cloned first, then parent references are re-mapped to the new item IDs.
+All parent-child relationships are preserved exactly. The plugin uses a two-pass approach: items are cloned first, then parent ID references are re-mapped to the newly created item IDs.
 
-= Is it compatible with HPOS / WooCommerce? =
+= Can I rename the duplicate before it is created? =
 
-Yes. The plugin only interacts with `nav_menu_item` posts and `nav_menu` taxonomy terms; it has no dependency on WooCommerce order storage.
+Yes. A name field is shown in the duplicate modal. You can also change the default suffix globally by filtering `swift_menu_duplicator_new_menu_name`.
 
-= Can I duplicate a menu with draft items? =
+= Is it compatible with WPML or Polylang? =
 
-Yes, the plugin duplicates all menu items regardless of their status.
+Yes. Translation and language meta keys are automatically stripped from duplicated items so the copy starts as a clean, language-neutral menu.
+
+= Is it compatible with WooCommerce / HPOS? =
+
+Yes. The plugin only interacts with `nav_menu_item` posts and the `nav_menu` taxonomy. It has no dependency on WooCommerce or its High-Performance Order Storage.
+
+= Can I duplicate a menu that contains draft items? =
+
+Yes. All items are duplicated regardless of their post status.
+
+= How do I use the REST API? =
+
+Authenticate with a cookie session or an Application Password, then send:
+
+`POST /wp-json/cmd/v1/menus/{menu_id}/duplicate`
+
+The response includes the new menu's `id`, `name`, and `edit_url`.
+
+= How do I migrate menus between environments? =
+
+Export the source menu to JSON (admin UI or `wp menu-duplicator export`), transfer the file, then import it on the target site. Use the find/replace fields to rewrite domain-specific URLs during import.
+
+= What capability is required? =
+
+`edit_theme_options` for all duplication, snapshot, export, and import actions. Multisite copy-to-site additionally requires `manage_options` on the target sub-site.
 
 == Screenshots ==
 
-1. The Duplicate Menu button in the menu editor footer.
-2. Duplicated menu with "(Copy)" suffix in the menu list.
+1. Duplicate Menu button in the menu editor footer.
+2. Menu Manager page — sortable list of all menus with bulk actions.
+3. Snapshot panel in the menu editor — browse, restore, and delete revisions.
+4. JSON import form with URL find & replace and dry-run preview.
+5. WP-CLI `duplicate` and `export` commands in a terminal.
 
 == Changelog ==
 
 = 1.0.0 =
 * Initial release.
+* One-click menu duplication from the WordPress menu editor with hierarchy preserved.
+* Duplicate individual menu items from the editor.
+* Snapshot system: auto-snapshot before every save, manual snapshots, restore and delete.
+* Appearance → Menu Manager page with sortable table, bulk duplicate, bulk export (ZIP), and bulk delete.
+* JSON export and import with URL find & replace and dry-run preview.
+* Multisite support: copy menus to any sub-site with optional URL rewriting.
+* REST API at `/wp-json/cmd/v1/` — duplicate menu, export menu, duplicate item.
+* WP-CLI command group `wp menu-duplicator` — duplicate, export, import, copy-to-site.
+* WPML and Polylang compatibility — translation and language meta stripped from duplicates.
+* Developer hooks and filters throughout for extensibility.
 
-== Upgrade Notice =
+== Upgrade Notice ==
 
 = 1.0.0 =
-Initial release.
+Initial release — no upgrade steps required.
