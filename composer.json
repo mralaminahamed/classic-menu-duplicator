@@ -3,7 +3,7 @@
 	"description": "A simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click.",
 	"type": "wordpress-plugin",
 	"version": "1.0.0",
-	"license": "GPL-2.0+",
+	"license": "GPL-2.0-or-later",
 	"authors": [
 		{
 			"name": "Al Amin Ahamed",
