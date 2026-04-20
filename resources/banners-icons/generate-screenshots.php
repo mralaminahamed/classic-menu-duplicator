@@ -661,12 +661,8 @@ function screenshot_5(string $out, string $fontBold, string $fontRegular, string
 }
 
 // ---------------------------------------------------------------------------
-// Run
+// Run — screenshots 1-4 are real browser captures; only 5 is generated here
 // ---------------------------------------------------------------------------
 echo "Generating screenshots...\n";
-screenshot_1("{$OUT_DIR}/screenshot-1.png", $FONT_BOLD, $FONT_REGULAR);
-screenshot_2("{$OUT_DIR}/screenshot-2.png", $FONT_BOLD, $FONT_REGULAR);
-screenshot_3("{$OUT_DIR}/screenshot-3.png", $FONT_BOLD, $FONT_REGULAR);
-screenshot_4("{$OUT_DIR}/screenshot-4.png", $FONT_BOLD, $FONT_REGULAR);
 screenshot_5("{$OUT_DIR}/screenshot-5.png", $FONT_BOLD, $FONT_REGULAR, $FONT_MONO);
 echo "Done. Output → {$OUT_DIR}/\n";
