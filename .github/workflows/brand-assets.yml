@@ -1,0 +1,66 @@
+# Build the WordPress.org brand assets (icons + banners) from the SVG masters
+# in .wordpress-org/ and surface the resulting PNGs as a workflow artifact.
+#
+# Trigger:
+#   - on push to main when any SVG master or the build script changes
+#   - manually via workflow_dispatch
+#   - as a reusable workflow (workflow_call) so the release pipeline can chain
+#     this job in front of the SVN deploy step
+#
+# Author: Al Amin Ahamed <mrabir.ahamed@gmail.com>
+
+name: Build brand assets
+
+on:
+  push:
+    branches: [ trunk ]
+    paths:
+      - '.wordpress-org/*.draft.svg'
+      - 'bin/build-brand-assets.sh'
+      - '.github/workflows/brand-assets.yml'
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      artifact-name:
+        description: 'Name of the uploaded brand-assets artifact'
+        value: ${{ jobs.build.outputs.artifact-name }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Rasterise SVG masters to PNG
+    runs-on: ubuntu-latest
+
+    outputs:
+      artifact-name: brand-assets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # `act`-compatible guard: skip apt-get when running locally with act,
+      # which boots a slim image and may already carry the tooling.
+      - name: Install rasterisation tooling
+        if: ${{ !env.ACT }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            librsvg2-bin \
+            oxipng \
+            imagemagick
+
+      - name: Validate SVG inputs
+        run: bash bin/build-brand-assets.sh --check
+
+      - name: Build PNG assets
+        run: bash bin/build-brand-assets.sh
+
+      - name: Upload brand-assets artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: brand-assets
+          path: .wordpress-org/*.png
+          if-no-files-found: error
+          retention-days: 30

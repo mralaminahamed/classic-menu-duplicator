@@ -93,6 +93,14 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y subversion
 
+      # Stage a curated .wordpress-org/ payload that excludes design drafts
+      # (*.draft.svg) and internal docs (BRAND.md), then point the 10up
+      # deploy action at the staged directory via the ASSETS_DIR env var.
+      # The plugin ZIP itself is unaffected — .distignore already excludes
+      # the entire /.wordpress-org/ folder from the code payload.
+      - name: Stage WordPress.org assets
+        run: bash bin/stage-wp-org-assets.sh
+
       - name: WordPress Plugin Deploy
         id: deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
@@ -102,6 +110,7 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: ${{ steps.plugin_name.outputs.plugin_slug }}
+          ASSETS_DIR: .wp-org-staged
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3

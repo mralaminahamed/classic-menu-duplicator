@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Swift Menu Duplicator — Desktop Banner (1544×500)
+  Direction: Brand Monogram (Twin Chevron).
+
+  Composition (unified with mobile banner — see BRAND.md §4):
+    - Oversized Twin Chevron mark on the left, bleeding slightly above/below
+    - Atmospheric glow centred on the mark
+    - Two-line wordmark "Swift Menu" / "Duplicator" + cyan accent rule under
+      the wordmark + single tagline on the right
+    - Credibility strip along the bottom edge
+
+  Designed by Al Amin Ahamed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1544 500" width="1544" height="500" role="img" aria-label="Swift Menu Duplicator banner">
+	<defs>
+		<linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#1E1B4B"/>
+			<stop offset="55%" stop-color="#0F172A"/>
+			<stop offset="100%" stop-color="#0B1220"/>
+		</linearGradient>
+		<linearGradient id="chevFront" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#22D3EE"/>
+			<stop offset="100%" stop-color="#0EA5E9"/>
+		</linearGradient>
+		<linearGradient id="chevBack" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#3B82F6"/>
+			<stop offset="100%" stop-color="#1E40AF"/>
+		</linearGradient>
+		<linearGradient id="cyanGrad" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#22D3EE"/>
+			<stop offset="100%" stop-color="#0EA5E9"/>
+		</linearGradient>
+		<filter id="markShadow" x="-10%" y="-10%" width="120%" height="120%">
+			<feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+			<feOffset dx="0" dy="12" result="off"/>
+			<feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+			<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+		</filter>
+		<pattern id="dots" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse">
+			<circle cx="1.5" cy="1.5" r="1.2" fill="#FFFFFF" opacity="0.05"/>
+		</pattern>
+	</defs>
+
+	<!-- Background -->
+	<rect width="1544" height="500" fill="url(#bgGradient)"/>
+	<rect width="1544" height="500" fill="url(#dots)"/>
+
+	<!-- Atmospheric glow centred on the brand mark's visual centre -->
+	<circle cx="380" cy="250" r="380" fill="#22D3EE" opacity="0.08"/>
+	<circle cx="380" cy="250" r="220" fill="#3B82F6" opacity="0.10"/>
+
+	<!-- ─────────── LEFT BLOCK: TWIN CHEVRON MARK ─────────── -->
+	<!--
+		Source icon coordinates × 2. Mark visual height ~328px (~66% of canvas
+		height), matches the mobile mark's canvas-height ratio.
+	-->
+	<g transform="translate(120 -10)" filter="url(#markShadow)">
+		<!-- Back chevron (dimmed, offset up-left) -->
+		<g opacity="0.55">
+			<path
+				d="M 144 168 L 264 256 L 144 344"
+				fill="none"
+				stroke="url(#chevBack)"
+				stroke-width="64"
+				stroke-linecap="round"
+				stroke-linejoin="round"/>
+		</g>
+		<!-- Front chevron (primary mark) -->
+		<path
+			d="M 208 128 L 368 256 L 208 384"
+			fill="none"
+			stroke="url(#chevFront)"
+			stroke-width="72"
+			stroke-linecap="round"
+			stroke-linejoin="round"/>
+	</g>
+
+	<!-- ─────────── RIGHT BLOCK: WORDMARK + TAGLINE ─────────── -->
+	<!--
+		Two-line wordmark mirrors mobile composition.
+		Font: Inter ExtraBold 86px, line-height 95px, tracking -2.4.
+		Width of "Swift Menu" ~510px, "Duplicator" ~500px — fits comfortably
+		within the right column (x=720 → 1480, 760px available).
+	-->
+	<g transform="translate(720 178)">
+		<text x="0" y="0" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="86" letter-spacing="-2.4" fill="#FFFFFF">Swift Menu</text>
+		<text x="0" y="95" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="86" letter-spacing="-2.4" fill="#FFFFFF">Duplicator</text>
+
+		<!-- Cyan accent rule beneath the wordmark -->
+		<rect x="0" y="120" width="160" height="5" rx="2.5" fill="url(#cyanGrad)"/>
+
+		<!-- Tagline (single line, fits comfortably at this scale) -->
+		<text x="0" y="170" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="28" fill="#FFFFFF" opacity="0.75">Duplicate, snapshot, and migrate WordPress menus.</text>
+	</g>
+
+	<!-- ─────────── BOTTOM CREDIBILITY STRIP ─────────── -->
+	<text x="720" y="452" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="500" font-size="14" letter-spacing="1.4" fill="#FFFFFF" opacity="0.45">
+		PHP 7.4+   ·   WORDPRESS 6.0+   ·   HPOS-SAFE   ·   WPML &amp; POLYLANG   ·   WP-CLI   ·   REST API   ·   MULTISITE
+	</text>
+
+	<!-- Author signature -->
+	<text x="1472" y="468" text-anchor="end" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="13" fill="#FFFFFF" opacity="0.30">by Al Amin Ahamed</text>
+</svg>

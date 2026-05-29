@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Swift Menu Duplicator — Icon Concept 1: Hierarchy Clone (RECOMMENDED)
+  256×256 master. Designed by Al Amin Ahamed.
+  Construction grid: 22% corner radius (squircle), 12% safe-area inset.
+  Tokens: primary gradient #1E40AF→#3B82F6, surface #0B1220, accent #22D3EE.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Swift Menu Duplicator">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0%" stop-color="#0F172A"/>
+			<stop offset="100%" stop-color="#0B1220"/>
+		</linearGradient>
+		<linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="#3B82F6"/>
+			<stop offset="100%" stop-color="#1E40AF"/>
+		</linearGradient>
+		<linearGradient id="cardBack" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="#1E3A8A" stop-opacity="0.85"/>
+			<stop offset="100%" stop-color="#172554" stop-opacity="0.85"/>
+		</linearGradient>
+		<filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+			<feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+			<feOffset dx="0" dy="3" result="off"/>
+			<feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+			<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+		</filter>
+	</defs>
+
+	<!-- Squircle background -->
+	<rect x="0" y="0" width="256" height="256" rx="56" ry="56" fill="url(#bg)"/>
+
+	<!-- Back card (the duplicate target — offset down-right) -->
+	<g transform="translate(54 56)" opacity="0.95">
+		<rect width="156" height="156" rx="22" ry="22" fill="url(#cardBack)"/>
+		<!-- Menu items on back card, dimmed -->
+		<rect x="22" y="32" width="92" height="10" rx="5" fill="#FFFFFF" opacity="0.18"/>
+		<rect x="22" y="58" width="112" height="10" rx="5" fill="#FFFFFF" opacity="0.18"/>
+		<rect x="46" y="84" width="78"  height="10" rx="5" fill="#FFFFFF" opacity="0.18"/>
+		<rect x="22" y="110" width="98" height="10" rx="5" fill="#FFFFFF" opacity="0.18"/>
+	</g>
+
+	<!-- Front card (the source menu) -->
+	<g transform="translate(34 36)" filter="url(#softShadow)">
+		<rect width="156" height="156" rx="22" ry="22" fill="url(#card)"/>
+		<!-- Card top highlight -->
+		<path d="M22 0 H134 A22 22 0 0 1 156 22 V44 H0 V22 A22 22 0 0 1 22 0 Z" fill="#FFFFFF" opacity="0.10"/>
+
+		<!-- Menu item 1 (parent) -->
+		<rect x="22" y="32" width="98" height="12" rx="6" fill="#FFFFFF"/>
+		<!-- Menu item 2 (parent) -->
+		<rect x="22" y="58" width="112" height="12" rx="6" fill="#FFFFFF"/>
+		<!-- Hierarchy connector + child item (this is the signature semantic detail) -->
+		<path d="M28 70 V90 H44" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+		<rect x="46" y="84" width="82" height="12" rx="6" fill="#FFFFFF" opacity="0.92"/>
+		<!-- Menu item 3 (parent) -->
+		<rect x="22" y="110" width="92" height="12" rx="6" fill="#FFFFFF"/>
+	</g>
+
+	<!-- Duplicate badge: two offset rectangles (Finder/Figma duplicate idiom) -->
+	<g transform="translate(178 178)" filter="url(#softShadow)">
+		<circle cx="22" cy="22" r="26" fill="#0B1220"/>
+		<circle cx="22" cy="22" r="22" fill="#22D3EE"/>
+		<!-- Two offset cards: back -->
+		<rect x="14" y="10" width="18" height="22" rx="3" fill="none" stroke="#0B1220" stroke-width="2.5"/>
+		<!-- Two offset cards: front (slightly lower-right) -->
+		<rect x="18" y="14" width="18" height="22" rx="3" fill="#22D3EE" stroke="#0B1220" stroke-width="2.5"/>
+	</g>
+</svg>

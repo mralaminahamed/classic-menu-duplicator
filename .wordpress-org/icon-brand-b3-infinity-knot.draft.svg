@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Swift Menu Duplicator — Brand Monogram Variant B3: Asymmetric Infinity Knot
+
+  Concept: A figure-eight / infinity-like mark where the two loops differ
+  slightly in size, suggesting "original → copy". The continuous looping
+  form evokes cyclical / repeating action without referencing menus
+  literally. Reads as a brand symbol, not a UI illustration.
+
+  This is the most abstract of the three variants — least obvious about
+  what the plugin does, strongest as a long-lived brand identity.
+
+  Designed by Al Amin Ahamed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Swift Menu Duplicator">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#1E1B4B"/>
+			<stop offset="100%" stop-color="#0B1220"/>
+		</linearGradient>
+		<linearGradient id="knot" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%"  stop-color="#22D3EE"/>
+			<stop offset="50%" stop-color="#0EA5E9"/>
+			<stop offset="100%" stop-color="#3B82F6"/>
+		</linearGradient>
+		<filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+			<feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+			<feOffset dx="0" dy="4" result="off"/>
+			<feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+			<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+		</filter>
+	</defs>
+
+	<!-- Squircle background -->
+	<rect width="256" height="256" rx="56" ry="56" fill="url(#bg)"/>
+
+	<!--
+		Asymmetric infinity. Two loops crossing at canvas centre (128,128).
+		Left loop:  radius ~44 (smaller — the "original")
+		Right loop: radius ~52 (larger — the "copy")
+		Drawn as a single continuous cubic-bezier path so the gradient flows
+		around the entire form without seams.
+	-->
+	<g filter="url(#softShadow)">
+		<path
+			d="M 84 128
+			   C 84 84,  40 84,  40 128
+			   C 40 172, 84 172, 128 128
+			   C 172 84, 220 84, 220 128
+			   C 220 172, 172 172, 128 128
+			   C 84 84,  84 84,  84 128
+			   Z"
+			fill="none"
+			stroke="url(#knot)"
+			stroke-width="22"
+			stroke-linecap="round"
+			stroke-linejoin="round"/>
+	</g>
+
+	<!--
+		Single small cyan dot at the crossing point — adds a "moment of
+		duplication" focal accent and keeps the silhouette legible at
+		thumbnail sizes where the crossing might otherwise blur.
+	-->
+	<circle cx="128" cy="128" r="8" fill="#22D3EE"/>
+</svg>
