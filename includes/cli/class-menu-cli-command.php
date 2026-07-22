@@ -370,6 +370,10 @@ class Menu_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( 'Please provide a --target-blog=<id> value.' );
 		}
 
+		if ( null === get_site( $target_blog_id ) ) {
+			WP_CLI::error( sprintf( 'Destination site %d not found on this network.', $target_blog_id ) );
+		}
+
 		$source_term = get_term( $source_id, 'nav_menu' );
 
 		if ( is_wp_error( $source_term ) || ! $source_term instanceof WP_Term ) {

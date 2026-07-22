@@ -14,11 +14,14 @@ parameters:
 
   bootstrapFiles:
     - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
-    - vendor/php-stubs/wordpress-tests-stubs/wordpress-tests-stubs.php
+
+  # WP-CLI symbols come from the single self-contained aggregate stub, scanned
+  # (parsed for symbols) rather than executed via bootstrapFiles — the stubs
+  # reference bundled Composer classes that are not autoloaded here, which
+  # crashes PHPStan on require. Scanning only the aggregate avoids the duplicate
+  # declarations that the sibling *-stubs.php files would introduce.
+  scanFiles:
     - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
-    - vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
-    - vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
-    - vendor/php-stubs/wp-cli-stubs/wp-cli-tools-stubs.php
 
 
   # WordPress-specific configuration
@@ -30,18 +33,17 @@ parameters:
   checkUninitializedProperties: false
   treatPhpDocTypesAsCertain: false
 
-  ignoreErrors:
-    # Plugin constants (defined at runtime)
-    - '#Constant swmd_[A-Z_]* not found#'
-
-    # WordPress stub property access issues
-    - '#Access to an undefined property WC_Meta_Data::\$.*#'
-
   dynamicConstantNames:
     - SWIFT_MENU_DUPLICATOR_VERSION
     - SWIFT_MENU_DUPLICATOR_FILE
     - SWIFT_MENU_DUPLICATOR_DIR
     - SWIFT_MENU_DUPLICATOR_URL
+
+  ignoreErrors:
+    # Plugin constants are define()'d at runtime in the main file, behind the
+    # ABSPATH guard, so PHPStan cannot see them from the included classes.
+    - identifier: constant.notFound
+      message: '#Constant SWIFT_MENU_DUPLICATOR_[A-Z_]+ not found\.#'
 
   universalObjectCratesClasses:
     - WP_Post

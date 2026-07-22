@@ -4,7 +4,7 @@
  *
  * @package SwiftMenuDuplicator
  *
- * @var \SwiftMenuDuplicator\Menu_Table $table   Prepared list table instance.
+ * @var \SwiftMenuDuplicator\Admin\Menu_Table $table   Prepared list table instance.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.1
+Stable tag:        1.0.2
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,13 +51,13 @@ Duplicate WordPress menus in one click. Snapshot revisions, export/import JSON, 
 
 === REST API ===
 
-Full REST API at `/wp-json/cmd/v1/` for headless and block-editor integrations:
+Full REST API at `/wp-json/swift-menu-duplicator/v1/` for headless and block-editor integrations:
 
 * `POST /menus/{id}/duplicate` — duplicate a menu (optional `name` parameter)
 * `GET  /menus/{id}/export` — export a menu as a JSON payload
 * `POST /menus/{id}/items/{item_id}/duplicate` — duplicate a single menu item
 
-Permission is controlled by the `swmd_rest_permission` filter (defaults to `edit_theme_options`).
+Permission is controlled by the `swift_menu_duplicator_rest_permission` filter (defaults to `edit_theme_options`).
 
 === WP-CLI ===
 
@@ -72,16 +72,16 @@ Full command-line support under the `wp swift-menu-duplicator` command group:
 
 * **WPML** — translation meta keys (`_icl_lang_duplicate_of`, `wpml_language`, etc.) are stripped from duplicated items automatically
 * **Polylang** — language meta keys (`_pll_synced_taxonomies`, `_pll_menu_language`, etc.) are stripped from duplicated items automatically
-* Additional keys can be excluded via the `swmd_compat_excluded_meta_keys` filter
+* Additional keys can be excluded via the `swift_menu_duplicator_compat_excluded_meta_keys` filter
 
 === Developer Hooks ===
 
 * `swift_menu_duplicator_new_menu_name` — customise the default duplicate name
-* `swmd_rest_permission` — control REST API access
-* `swmd_before_duplicate_item` / `swmd_after_duplicate_menu_item` — fired around item duplication
-* `swmd_after_import_menu` — fired after a successful import
-* `swmd_item_meta_keys` — control which meta keys are copied
-* `swmd_compat_excluded_meta_keys` — extend the multilingual meta exclusion list
+* `swift_menu_duplicator_rest_permission` — control REST API access
+* `swift_menu_duplicator_before_duplicate_item` / `swift_menu_duplicator_after_duplicate_menu_item` — fired around item duplication
+* `swift_menu_duplicator_after_import_menu` — fired after a successful import
+* `swift_menu_duplicator_item_meta_keys` — control which meta keys are copied
+* `swift_menu_duplicator_compat_excluded_meta_keys` — extend the multilingual meta exclusion list
 * `wp_update_nav_menu` — triggers auto-snapshot before every menu save
 
 === Security ===
@@ -135,7 +135,7 @@ Yes. All items are duplicated regardless of their post status.
 
 Authenticate with a cookie session or an Application Password, then send:
 
-`POST /wp-json/cmd/v1/menus/{menu_id}/duplicate`
+`POST /wp-json/swift-menu-duplicator/v1/menus/{menu_id}/duplicate`
 
 The response includes the new menu's `id`, `name`, and `edit_url`.
 
@@ -145,7 +145,7 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 = What capability is required? =
 
-`edit_theme_options` for all duplication, snapshot, export, and import actions. Multisite copy-to-site additionally requires `manage_options` on the target sub-site.
+`edit_theme_options` for all duplication, snapshot, export, and import actions. Multisite copy-to-site additionally requires the network `manage_network` capability.
 
 == Screenshots ==
 
@@ -156,6 +156,15 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 5. WP-CLI `duplicate` and `export` commands in a terminal.
 
 == Changelog ==
+
+= 1.0.2 =
+* Security: Import now sanitizes every menu-item field (URLs, CSS classes, types, targets) instead of trusting the JSON file, preventing stored cross-site scripting from a malicious import.
+* Security: JSON uploads are validated as genuine uploads and capped in size and item count before they are processed.
+* Fix: The Delete action (row and bulk) relied on a capability that does not exist and never worked; it now uses `edit_theme_options` like every other action.
+* Fix: Multisite copy now confirms the destination site exists before switching to it (admin UI and WP-CLI).
+* Changed: **Breaking:** the REST API namespace moved from the generic `cmd/v1` to `swift-menu-duplicator/v1`. Update any REST clients to `/wp-json/swift-menu-duplicator/v1/`.
+* Fix: Corrected developer-hook names throughout the documentation (they use the `swift_menu_duplicator_` prefix).
+* Fix: Repaired the release workflow (correct plugin slug and asset-staging path) and the static-analysis configuration.
 
 = 1.0.1 =
 * Fix: WP-CLI command renamed from `wp menu-duplicator` to `wp swift-menu-duplicator` for consistency with the plugin slug.
@@ -177,6 +186,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+Security and reliability fixes: imported menu fields are now sanitized, uploads are validated, and the Delete action works. Breaking: the REST namespace changed from `cmd/v1` to `swift-menu-duplicator/v1` — update any REST API clients.
 
 = 1.0.1 =
 WP-CLI users: the command has been renamed from `wp menu-duplicator` to `wp swift-menu-duplicator`. Update any scripts or aliases accordingly.

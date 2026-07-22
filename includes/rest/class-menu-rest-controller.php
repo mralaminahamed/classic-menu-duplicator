@@ -22,18 +22,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class Menu_REST_Controller
  *
- * Registers a versioned REST namespace `/cmd/v1` and exposes three
+ * Registers a versioned REST namespace `/swift-menu-duplicator/v1` and exposes three
  * endpoints that mirror the existing AJAX surface, making the plugin's
  * core operations consumable by headless frontends, block-editor
  * extensions, and external automation pipelines.
  *
  * Routes:
- *   POST /cmd/v1/menus/{id}/duplicate
- *   GET  /cmd/v1/menus/{id}/export
- *   POST /cmd/v1/menus/{id}/items/{item_id}/duplicate
+ *   POST /swift-menu-duplicator/v1/menus/{id}/duplicate
+ *   GET  /swift-menu-duplicator/v1/menus/{id}/export
+ *   POST /swift-menu-duplicator/v1/menus/{id}/items/{item_id}/duplicate
  *
  * All routes require the `edit_theme_options` capability by default.
- * The permission callback is filterable via `swmd_rest_permission`.
+ * The permission callback is filterable via `swift_menu_duplicator_rest_permission`.
  */
 class Menu_REST_Controller {
 
@@ -42,7 +42,7 @@ class Menu_REST_Controller {
 	 *
 	 * @var string
 	 */
-	private const NAMESPACE = 'cmd/v1';
+	private const NAMESPACE = 'swift-menu-duplicator/v1';
 
 	/**
 	 * Registers REST routes on the rest_api_init hook.
@@ -54,12 +54,12 @@ class Menu_REST_Controller {
 	}
 
 	/**
-	 * Registers all /cmd/v1/ routes.
+	 * Registers all /swift-menu-duplicator/v1/ routes.
 	 *
 	 * @return void
 	 */
 	public function register_routes(): void {
-		// POST /cmd/v1/menus/{id}/duplicate
+		// POST /swift-menu-duplicator/v1/menus/{id}/duplicate
 		register_rest_route(
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/duplicate',
@@ -87,7 +87,7 @@ class Menu_REST_Controller {
 			)
 		);
 
-		// GET /cmd/v1/menus/{id}/export
+		// GET /swift-menu-duplicator/v1/menus/{id}/export
 		register_rest_route(
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/export',
@@ -108,7 +108,7 @@ class Menu_REST_Controller {
 			)
 		);
 
-		// POST /cmd/v1/menus/{id}/items/{item_id}/duplicate
+		// POST /swift-menu-duplicator/v1/menus/{id}/items/{item_id}/duplicate
 		register_rest_route(
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/items/(?P<item_id>[\d]+)/duplicate',
@@ -228,7 +228,7 @@ class Menu_REST_Controller {
 	/**
 	 * Default permission callback: requires edit_theme_options.
 	 *
-	 * Filterable via `swmd_rest_permission` for integrations that need to
+	 * Filterable via `swift_menu_duplicator_rest_permission` for integrations that need to
 	 * customise access control (e.g. WPML language-specific permissions).
 	 *
 	 * @param WP_REST_Request $request Current request.
@@ -239,9 +239,9 @@ class Menu_REST_Controller {
 		$allowed = current_user_can( 'edit_theme_options' );
 
 		/**
-		 * Filters the REST API permission check for all cmd/v1 routes.
+		 * Filters the REST API permission check for all swift-menu-duplicator/v1 routes.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param bool             $allowed  Whether the current user is permitted.
 		 * @param WP_REST_Request $request  The incoming REST request.

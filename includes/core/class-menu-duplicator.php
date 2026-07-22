@@ -67,7 +67,7 @@ class Menu_Duplicator {
 		/**
 		 * Filters the name given to a duplicated menu.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param string   $new_name        Proposed name for the new menu.
 		 * @param WP_Term $source_term     Source menu term object.
@@ -82,7 +82,7 @@ class Menu_Duplicator {
 		/**
 		 * Fires immediately before a menu duplication begins.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param int    $source_menu_id Source menu term ID.
 		 * @param string $new_name       Name for the new menu.
@@ -95,7 +95,8 @@ class Menu_Duplicator {
 			return $new_term;
 		}
 
-		$new_menu_id = (int) $new_term['term_id'];
+		// wp_create_nav_menu() returns the new term ID (int) or a WP_Error.
+		$new_menu_id = (int) $new_term;
 
 		// ---------------------------------------------------------------
 		// 3. Collect all menu items from the source menu.
@@ -114,7 +115,11 @@ class Menu_Duplicator {
 		// 4. Clone each menu item; build an ID re-map for parent refs.
 		// ---------------------------------------------------------------
 
-		/** @var array<int,int> $id_map Maps original item ID => new item ID. */
+		/**
+		 * Maps each original item ID to its newly created item ID.
+		 *
+		 * @var array<int,int> $id_map
+		 */
 		$id_map = array();
 
 		foreach ( $source_items as $item ) {
@@ -156,7 +161,7 @@ class Menu_Duplicator {
 		/**
 		 * Fires immediately after a menu has been duplicated.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param int              $source_menu_id Source menu term ID.
 		 * @param int              $new_menu_id    New menu term ID.
@@ -194,7 +199,7 @@ class Menu_Duplicator {
 		/**
 		 * Fires before a single menu item (and its descendants) is duplicated.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param int $item_id Post ID of the item about to be duplicated.
 		 * @param int $menu_id Term ID of the menu that owns the item.
@@ -213,7 +218,11 @@ class Menu_Duplicator {
 
 		// Clone the requested item and all its descendants, reusing the
 		// same id_map pattern as the full menu duplicate.
-		/** @var array<int,int> $id_map */
+		/**
+		 * Maps each original item ID to its newly created item ID.
+		 *
+		 * @var array<int,int> $id_map
+		 */
 		$id_map      = array();
 		$new_item_id = $this->clone_item_recursive( $source_item, $menu_id, $children_map, $id_map );
 
@@ -245,7 +254,7 @@ class Menu_Duplicator {
 		/**
 		 * Fires after a single menu item (and its descendants) has been duplicated.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param int            $item_id     Original menu item post ID.
 		 * @param int            $new_item_id New menu item post ID.
@@ -309,7 +318,7 @@ class Menu_Duplicator {
 		/**
 		 * Filters the export payload before it is returned.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param array<string,mixed> $payload  The export array.
 		 * @param int                 $menu_id  Source menu term ID.
@@ -341,8 +350,8 @@ class Menu_Duplicator {
 	 * Saves a snapshot of the current menu state.
 	 *
 	 * Snapshots are stored as a serialised JSON blob in the term-meta table
-	 * under the key `_swmd_snapshots`, as a LIFO stack capped at
-	 * swmd_SNAPSHOT_LIMIT revisions (default 10).
+	 * under the key `_swmd_snapshots`, as a LIFO stack capped at the
+	 * `swift_menu_duplicator_snapshot_limit` filter value (default 10).
 	 *
 	 * @param int    $menu_id Term ID of the menu.
 	 * @param string $label   Optional. Human-readable label for the snapshot.
@@ -461,7 +470,7 @@ class Menu_Duplicator {
 		/**
 		 * Fires after a single nav_menu_item has been duplicated.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param int      $old_id      Original item post ID.
 		 * @param int      $new_item_id New item post ID.
@@ -554,7 +563,7 @@ class Menu_Duplicator {
 		/**
 		 * Filters the postmeta keys copied when duplicating a menu item.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param string[] $keys Default meta keys.
 		 */

@@ -79,7 +79,7 @@ class Menu_Table extends WP_List_Table {
 			'swmd_bulk_export'    => __( 'Export as JSON', 'swift-menu-duplicator' ),
 		);
 
-		if ( current_user_can( 'delete_theme_options' ) ) {
+		if ( current_user_can( 'edit_theme_options' ) ) {
 			$actions['swmd_bulk_delete'] = __( 'Delete', 'swift-menu-duplicator' );
 		}
 
@@ -182,7 +182,7 @@ class Menu_Table extends WP_List_Table {
 			),
 		);
 
-		if ( current_user_can( 'delete_theme_options' ) ) {
+		if ( current_user_can( 'edit_theme_options' ) ) {
 			$delete_url        = wp_nonce_url(
 				admin_url( 'nav-menus.php?action=delete-menu&menu=' . $item->term_id ),
 				'delete-nav_menu-' . $item->term_id
