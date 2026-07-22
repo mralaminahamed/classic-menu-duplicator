@@ -20,6 +20,7 @@ yarn.*
 phpstan.neon
 phpunit.xml
 phpcs.xml.dist
+phpcs.plugin-review.xml
 jest.*.js
 .phpunit.result.cache
 readme.md

@@ -91,8 +91,7 @@ class Menu_Admin {
 			array(
 				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
 				'nonce'                => wp_create_nonce( 'swmd_menu_actions' ),
-				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ),
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'currentMenuId'        => absint( $_GET['menu'] ?? 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				// Menu duplication strings.
 				'buttonLabel'          => __( 'Duplicate Menu', 'swift-menu-duplicator' ),
 				'duplicatingLabel'     => __( 'Duplicating…', 'swift-menu-duplicator' ),

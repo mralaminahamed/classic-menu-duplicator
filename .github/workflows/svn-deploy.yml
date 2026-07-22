@@ -25,7 +25,9 @@ jobs:
       - name: Set plugin name
         id: plugin_name
         run: |
-          PLUGIN_SLUG="${{ github.event.repository.name }}"
+          # Pinned to the published WordPress.org slug so the deploy targets the
+          # correct SVN repo and main plugin file regardless of the GitHub repo name.
+          PLUGIN_SLUG="swift-menu-duplicator"
           PLUGIN_FILE="${PLUGIN_SLUG}.php"
           # Convert kebab-case to Title Case for display
           PLUGIN_NAME=$(echo "$PLUGIN_SLUG" | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
@@ -99,7 +101,7 @@ jobs:
       # The plugin ZIP itself is unaffected — .distignore already excludes
       # the entire /.wordpress-org/ folder from the code payload.
       - name: Stage WordPress.org assets
-        run: bash bin/stage-wp-org-assets.sh
+        run: bash resources/scripts/stage-wp-org-assets.sh
 
       - name: WordPress Plugin Deploy
         id: deploy

@@ -251,12 +251,30 @@ class Menu_Admin_Page {
 		$replace = isset( $_POST['swmd_replace'] ) ? sanitize_text_field( wp_unslash( $_POST['swmd_replace'] ) ) : '';
 		$name    = isset( $_POST['swmd_menu_name'] ) ? sanitize_text_field( wp_unslash( $_POST['swmd_menu_name'] ) ) : '';
 
+		$transient_key = 'swmd_import_state_' . get_current_user_id();
+
 		// Resolve JSON: either from a fresh upload or from a previously
 		// base64-encoded hidden field (re-submitted from the preview step).
 		$json = '';
 
 		if ( ! empty( $_FILES['swmd_json_file']['tmp_name'] ) ) {
 			$tmp  = sanitize_text_field( wp_unslash( $_FILES['swmd_json_file']['tmp_name'] ) );
+			$size = isset( $_FILES['swmd_json_file']['size'] ) ? (int) $_FILES['swmd_json_file']['size'] : 0;
+
+			// Accept only a genuine PHP upload within a sane size ceiling (2 MB
+			// by default) — the client-side `accept=".json"` is not enforceable.
+			$max_bytes = (int) apply_filters( 'swift_menu_duplicator_max_import_bytes', 2 * MB_IN_BYTES );
+
+			if ( ! is_uploaded_file( $tmp ) || $size <= 0 || $size > $max_bytes ) {
+				set_transient(
+					$transient_key,
+					array( 'error' => __( 'The uploaded file is invalid or exceeds the size limit.', 'swift-menu-duplicator' ) ),
+					60
+				);
+				wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) );
+				exit;
+			}
+
 			$json = Filesystem::read( $tmp );
 			$json = ( false === $json ) ? '' : $json;
 		} elseif ( ! empty( $_POST['swmd_json_data'] ) ) {
@@ -267,8 +285,6 @@ class Menu_Admin_Page {
 
 		$importer = new Menu_Importer();
 		$payload  = $importer->parse( $json );
-
-		$transient_key = 'swmd_import_state_' . get_current_user_id();
 
 		if ( is_wp_error( $payload ) ) {
 			set_transient(
@@ -287,8 +303,9 @@ class Menu_Admin_Page {
 				$transient_key,
 				array(
 					'preview'   => $preview,
-					'json_data' => base64_encode( $json ),
-					// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					// Round-trips the raw JSON through a hidden field between the
+					// preview and import steps; not used for obfuscation.
+					'json_data' => base64_encode( $json ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 					'find'      => $find,
 					'replace'   => $replace,
 					'name'      => $name,
@@ -341,7 +358,7 @@ class Menu_Admin_Page {
 			return;
 		}
 
-		if ( ! current_user_can( 'delete_theme_options' ) ) {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return;
 		}
 
@@ -508,6 +525,11 @@ class Menu_Admin_Page {
 
 		if ( $source_menu_id <= 0 || $target_blog_id <= 0 ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid menu or site ID.', 'swift-menu-duplicator' ) ), 400 );
+		}
+
+		// Confirm the destination is a real site before switching into it.
+		if ( null === get_site( $target_blog_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Destination site not found.', 'swift-menu-duplicator' ) ), 404 );
 		}
 
 		// Export from current site.

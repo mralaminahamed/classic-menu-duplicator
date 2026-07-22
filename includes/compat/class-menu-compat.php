@@ -31,11 +31,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   these wholesale ties the duplicate's items to the source language object.
  *
  * Solution:
- *   This class registers itself on `swmd_after_duplicate_menu_item` and
- *   `swmd_after_import_item` to strip the problematic meta keys from every
- *   cloned/imported item immediately after insertion. It also registers on
- *   `swmd_item_meta_keys` to prevent those keys from being copied in the
- *   first place, providing defence in depth.
+ *   This class registers itself on `swift_menu_duplicator_after_duplicate_menu_item`
+ *   and `swift_menu_duplicator_after_import_item` to strip the problematic meta
+ *   keys from every cloned/imported item immediately after insertion. It also
+ *   registers on `swift_menu_duplicator_item_meta_keys` to prevent those keys
+ *   from being copied in the first place, providing defence in depth.
  *
  *   For WPML specifically, the class additionally fires
  *   `do_action('wpml_register_single_element', …)` so that WPML can assign
@@ -119,7 +119,7 @@ class Menu_Compat {
 	}
 
 	// -----------------------------------------------------------------------
-	// Filter: swmd_item_meta_keys — preventive exclusion.
+	// Filter: swift_menu_duplicator_item_meta_keys — preventive exclusion.
 	// -----------------------------------------------------------------------
 
 	/**
@@ -143,8 +143,8 @@ class Menu_Compat {
 	/**
 	 * Deletes all multilingual meta from a newly created nav_menu_item post.
 	 *
-	 * Accepts both the two-argument form used by `swmd_after_duplicate_menu_item`
-	 * (old_id, new_id) and the one-argument form used by `swmd_after_import_item`
+	 * Accepts both the two-argument form used by `swift_menu_duplicator_after_duplicate_menu_item`
+	 * (old_id, new_id) and the one-argument form used by `swift_menu_duplicator_after_import_item`
 	 * (new_id only). The $ignored parameter absorbs the second argument when
 	 * called from the duplication hook.
 	 *
@@ -182,6 +182,8 @@ class Menu_Compat {
 		}
 
 		/**
+		 * Register the new nav_menu_item with WPML's translations table.
+		 *
 		 * @see https://wpml.org/wpml-hook/wpml_register_single_element/
 		 */
 		do_action(
@@ -226,6 +228,8 @@ class Menu_Compat {
 		}
 
 		/**
+		 * Assign the duplicated menu to the source menu's language in WPML.
+		 *
 		 * @see https://wpml.org/wpml-hook/wpml_set_element_language_details/
 		 */
 		do_action(
@@ -282,7 +286,7 @@ class Menu_Compat {
 		 * Useful for unit testing or when running a WPML-compatible plugin
 		 * that does not define ICL_SITEPRESS_VERSION.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param bool $active Whether WPML is detected as active.
 		 */
@@ -301,7 +305,7 @@ class Menu_Compat {
 		/**
 		 * Filters whether Polylang compatibility is considered active.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param bool $active Whether Polylang is detected as active.
 		 */
@@ -334,7 +338,7 @@ class Menu_Compat {
 		 *
 		 * Third-party integrations can append their own keys here.
 		 *
-		 * @since 1.1.0
+		 * @since 1.0.0
 		 *
 		 * @param string[] $keys    Combined exclusion list.
 		 * @param bool     $wpml    Whether WPML is active.

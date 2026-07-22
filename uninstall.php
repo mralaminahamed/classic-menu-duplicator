@@ -1,13 +1,13 @@
 <?php
 /**
- * Uninstall routine for WP Menu Duplicator.
+ * Uninstall routine for Swift Menu Duplicator.
  *
  * Fired automatically by WordPress when the user clicks "Delete" on the
  * Plugins screen. Removes all data written by the plugin to the database:
  * any options stored under the plugin's prefix. No nav_menu terms or
  * nav_menu_item posts are removed — those belong to the site owner.
  *
- * @package WPMenuDuplicator
+ * @package SwiftMenuDuplicator
  * @link    https://developer.wordpress.org/plugins/plugin-basics/uninstall-methods/
  */
 

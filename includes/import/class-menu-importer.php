@@ -88,6 +88,19 @@ class Menu_Importer {
 			return new WP_Error( 'invalid_items', __( 'Import file "items" key must be an array.', 'swift-menu-duplicator' ) );
 		}
 
+		$max_items = (int) apply_filters( 'swift_menu_duplicator_max_import_items', 5000 );
+
+		if ( count( $data['items'] ) > $max_items ) {
+			return new WP_Error(
+				'too_many_items',
+				sprintf(
+					/* translators: %d: maximum number of menu items allowed in an import */
+					__( 'Import file exceeds the maximum of %d menu items.', 'swift-menu-duplicator' ),
+					$max_items
+				)
+			);
+		}
+
 		return $data;
 	}
 
@@ -165,7 +178,7 @@ class Menu_Importer {
 		/**
 		 * Filters the name assigned to an imported menu.
 		 *
-		 * @since 1.2.0
+		 * @since 1.0.0
 		 *
 		 * @param string $resolved_name Proposed menu name.
 		 * @param array<string,mixed> $payload Import payload.
@@ -178,20 +191,24 @@ class Menu_Importer {
 			return $new_term;
 		}
 
-		$new_menu_id = (int) $new_term['term_id'];
+		// wp_create_nav_menu() returns the new term ID (int) or a WP_Error.
+		$new_menu_id = (int) $new_term;
 
 		/**
 		 * Fires immediately before items are inserted during an import.
 		 *
-		 * @since 1.2.0
+		 * @since 1.0.0
 		 *
 		 * @param int $new_menu_id New menu term ID.
 		 * @param array<string,mixed> $payload Import payload.
 		 */
 		do_action( 'swift_menu_duplicator_before_import_menu', $new_menu_id, $payload );
 
-		// Maps original export item ID => new inserted post ID.
-		/** @var array<int,int> $id_map */
+		/**
+		 * Maps each original export item ID to its newly inserted post ID.
+		 *
+		 * @var array<int,int> $id_map
+		 */
 		$id_map = array();
 
 		foreach ( $payload['items'] as $item ) {
@@ -229,7 +246,7 @@ class Menu_Importer {
 		/**
 		 * Fires after all items have been imported.
 		 *
-		 * @since 1.2.0
+		 * @since 1.0.0
 		 *
 		 * @param int $new_menu_id New menu term ID.
 		 * @param array<int,int> $id_map Map of original => new item IDs.
@@ -292,19 +309,19 @@ class Menu_Importer {
 
 				$value = $item['meta'][ $key ];
 
-				// Apply URL replacement to the custom link href.
+				// Apply URL replacement to the custom link href before sanitizing.
 				if ( '_menu_item_url' === $key && '' !== $find ) {
 					$value = str_replace( $find, $replace, (string) $value );
 				}
 
-				update_post_meta( $new_id, $key, $value );
+				update_post_meta( $new_id, $key, $this->sanitize_meta_value( $key, $value ) );
 			}
 		}
 
 		/**
 		 * Fires after a single item has been inserted during import.
 		 *
-		 * @since 1.2.0
+		 * @since 1.0.0
 		 *
 		 * @param int $new_id Inserted post ID.
 		 * @param array<string,mixed> $item Original item payload entry.
@@ -327,5 +344,46 @@ class Menu_Importer {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Sanitizes a single nav_menu_item meta value according to its key.
+	 *
+	 * Import payloads originate from user-supplied JSON files, so every field
+	 * is treated as untrusted and normalised the same way WordPress core does
+	 * when saving a menu item — rather than being written to postmeta verbatim.
+	 * This prevents a crafted file from persisting, for example, a
+	 * `javascript:` URL or unescaped CSS classes.
+	 *
+	 * @param string $key   Meta key being written.
+	 * @param mixed  $value Raw value from the import payload.
+	 *
+	 * @return mixed Sanitized value ready for update_post_meta().
+	 */
+	private function sanitize_meta_value( string $key, $value ) {
+		switch ( $key ) {
+			case '_menu_item_url':
+				return esc_url_raw( (string) $value );
+
+			case '_menu_item_type':
+			case '_menu_item_object':
+				return sanitize_key( (string) $value );
+
+			case '_menu_item_target':
+				// Core stores either '' or '_blank'.
+				return '_blank' === $value ? '_blank' : '';
+
+			case '_menu_item_object_id':
+			case '_menu_item_menu_item_parent':
+				return (string) absint( $value );
+
+			case '_menu_item_classes':
+				$classes = is_array( $value ) ? $value : explode( ' ', (string) $value );
+				return array_values( array_filter( array_map( 'sanitize_html_class', $classes ) ) );
+
+			case '_menu_item_xfn':
+			default:
+				return sanitize_text_field( (string) $value );
+		}
 	}
 }
