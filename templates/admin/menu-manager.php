@@ -23,7 +23,8 @@ if ( $import_state ) {
 ?>
 <div class="wrap swmd-manager-wrap">
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Menu Manager', 'swift-menu-duplicator' ); ?></h1>
-	<a href="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>" class="page-title-action">
+	<?php // action=edit&menu=0 is core's "create a new menu" screen; plain nav-menus.php just opens the last edited menu. ?>
+	<a href="<?php echo esc_url( admin_url( 'nav-menus.php?action=edit&menu=0' ) ); ?>" class="page-title-action">
 		<?php esc_html_e( '+ New Menu', 'swift-menu-duplicator' ); ?>
 	</a>
 	<hr class="wp-header-end">
