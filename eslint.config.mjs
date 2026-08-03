@@ -38,6 +38,7 @@ export default [
 				document: 'readonly',
 				window: 'readonly',
 				setTimeout: 'readonly',
+				HTMLElement: 'readonly',
 				jQuery: 'readonly',
 				// Localised by wp_localize_script().
 				swmdData: 'readonly',

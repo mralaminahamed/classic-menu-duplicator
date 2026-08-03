@@ -169,7 +169,7 @@ class Menu_Admin_Page {
 		wp_enqueue_script(
 			'swmd-menu-manager',
 			SWIFT_MENU_DUPLICATOR_URL . 'assets/js/menu-manager.js',
-			array( 'jquery' ),
+			array( 'jquery', 'wp-a11y' ),
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
 				: SWIFT_MENU_DUPLICATOR_VERSION,

@@ -41,9 +41,19 @@
 	 * @return {void}
 	 */
 	function showToast( message, type ) {
-		const $notice = $( '<div class="swmd-toast notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>' );
+		const $notice = $( '<div class="swmd-toast notice is-dismissible"></div>' )
+			.addClass( 'notice-' + type )
+			// Errors interrupt; successes wait for a pause in speech.
+			.attr( 'role', 'error' === type ? 'alert' : 'status' )
+			.append( $( '<p></p>' ).text( message ) );
 
 		$( '#swmd-toolbar' ).before( $notice );
+
+		// Also route through wp.a11y so screen readers announce it even when the
+		// notice is inserted outside the user's reading position.
+		if ( window.wp && window.wp.a11y && window.wp.a11y.speak ) {
+			window.wp.a11y.speak( message, 'error' === type ? 'assertive' : 'polite' );
+		}
 
 		setTimeout( function() {
 			$notice.fadeOut( 300, function() {
@@ -52,11 +62,59 @@
 		}, 4000 );
 	}
 
+	/**
+	 * Returns the tabbable elements inside a container, in DOM order.
+	 *
+	 * @param {jQuery} $container Element to search.
+	 * @return {jQuery} Tabbable descendants.
+	 */
+	function tabbable( $container ) {
+		return $container
+			.find( 'a[href], button, input, select, textarea, [tabindex]' )
+			.filter( function() {
+				return ! this.disabled &&
+					'-1' !== String( $( this ).attr( 'tabindex' ) ) &&
+					$( this ).is( ':visible' );
+			} );
+	}
+
+	/**
+	 * Keeps Tab focus inside a container while it is open.
+	 *
+	 * @param {jQuery} $container Element to trap focus within.
+	 * @param {Event}  e          Keydown event.
+	 * @return {void}
+	 */
+	function trapTab( $container, e ) {
+		if ( 9 !== e.which ) {
+			return;
+		}
+
+		const $items = tabbable( $container );
+
+		if ( ! $items.length ) {
+			return;
+		}
+
+		const first = $items.get( 0 );
+		const last = $items.get( $items.length - 1 );
+		const active = first.ownerDocument.activeElement;
+
+		if ( e.shiftKey && active === first ) {
+			e.preventDefault();
+			last.focus();
+		} else if ( ! e.shiftKey && active === last ) {
+			e.preventDefault();
+			first.focus();
+		}
+	}
+
 	// -----------------------------------------------------------------------
 	// Modal — custom name for menu duplication
 	// -----------------------------------------------------------------------
 
 	let $modal = null;
+	let lastFocusedBeforeModal = null;
 
 	/**
 	 * Builds and caches the name-input modal DOM (created once, reused).
@@ -93,11 +151,18 @@
 			}
 		} );
 
-		// Close on Escape.
+		// Escape closes; Tab stays inside the dialog while it is open.
 		$( document ).on( 'keydown.swmd-modal', function( e ) {
-			if ( 27 === e.which && $modal.is( ':visible' ) ) {
-				closeModal();
+			if ( ! $modal.is( ':visible' ) ) {
+				return;
 			}
+
+			if ( 27 === e.which ) {
+				closeModal();
+				return;
+			}
+
+			trapTab( $modal, e );
 		} );
 
 		return $modal;
@@ -113,7 +178,10 @@
 	function openModal( suggested, onConfirm ) {
 		const $m = getModal();
 
-		$m.find( '#swmd-modal-name' ).val( suggested ).trigger( 'focus' ).trigger( 'select' );
+		// Remember where focus came from so it can be handed back on close.
+		lastFocusedBeforeModal = $m.get( 0 ).ownerDocument.activeElement;
+
+		$m.find( '#swmd-modal-name' ).val( suggested );
 
 		// Remove any previously bound confirm handler before attaching a new one.
 		$m.find( '#swmd-modal-confirm' ).off( 'click.swmd-confirm' ).on( 'click.swmd-confirm', function() {
@@ -133,7 +201,12 @@
 			}
 		} );
 
-		$m.fadeIn( 150 );
+		$m.fadeIn( 150, function() {
+			$m.find( '#swmd-modal-name' ).trigger( 'focus' ).trigger( 'select' );
+		} );
+
+		// Keep assistive tech out of the page behind the dialog where supported.
+		setBackgroundInert( true );
 	}
 
 	/**
@@ -142,9 +215,33 @@
 	 * @return {void}
 	 */
 	function closeModal() {
-		if ( $modal ) {
-			$modal.fadeOut( 150 );
+		if ( ! $modal ) {
+			return;
 		}
+
+		$modal.fadeOut( 150 );
+		setBackgroundInert( false );
+
+		if ( lastFocusedBeforeModal && lastFocusedBeforeModal.focus ) {
+			lastFocusedBeforeModal.focus();
+			lastFocusedBeforeModal = null;
+		}
+	}
+
+	/**
+	 * Marks the admin page behind an open dialog as inert, where supported.
+	 *
+	 * @param {boolean} inert Whether the background should be inert.
+	 * @return {void}
+	 */
+	function setBackgroundInert( inert ) {
+		const wrap = document.getElementById( 'wpwrap' );
+
+		if ( ! wrap || ! ( 'inert' in HTMLElement.prototype ) ) {
+			return;
+		}
+
+		wrap.inert = inert;
 	}
 
 	// -----------------------------------------------------------------------
@@ -298,6 +395,7 @@
 
 	let $snapshotPanel = null;
 	let snapshotPanelVisible = false;
+	let lastFocusedBeforePanel = null;
 
 	/**
 	 * Builds the snapshot panel sidebar DOM.
@@ -310,10 +408,12 @@
 		}
 
 		$snapshotPanel = $( [
-			'<div id="swmd-snapshot-panel" aria-label="' + swmdData.snapshotLabel + '">',
+			'<div id="swmd-snapshot-panel" role="region" tabindex="-1" aria-label="' + swmdData.snapshotLabel + '">',
 			'  <div id="swmd-snapshot-panel-header">',
 			'    <span>' + swmdData.snapshotLabel + '</span>',
-			'    <button type="button" id="swmd-snapshot-close" aria-label="Close" class="button-link">&times;</button>',
+			'    <button type="button" id="swmd-snapshot-close" class="button-link">',
+			'      <span class="screen-reader-text"></span><span aria-hidden="true">&times;</span>',
+			'    </button>',
 			'  </div>',
 			'  <div id="swmd-snapshot-save-row">',
 			'    <button type="button" id="swmd-save-snapshot" class="button button-secondary button-small">',
@@ -326,7 +426,19 @@
 
 		$( 'body' ).append( $snapshotPanel );
 
+		$snapshotPanel.find( '#swmd-snapshot-close .screen-reader-text' ).text( swmdData.closeLabel );
+
 		$snapshotPanel.find( '#swmd-snapshot-close' ).on( 'click', hideSnapshotPanel );
+
+		// Escape closes the panel; Tab stays inside it while it is open.
+		$snapshotPanel.on( 'keydown', function( e ) {
+			if ( 27 === e.which ) {
+				hideSnapshotPanel();
+				return;
+			}
+
+			trapTab( $snapshotPanel, e );
+		} );
 
 		$snapshotPanel.find( '#swmd-save-snapshot' ).on( 'click', function() {
 			const menuId = getCurrentMenuId();
@@ -414,7 +526,9 @@
 
 			$li.append( $restore );
 
-			const $del = $( '<button type="button" class="swmd-snapshot-delete button-link" aria-label="Delete">&times;</button>' );
+			const $del = $( '<button type="button" class="swmd-snapshot-delete button-link"></button>' )
+				.attr( 'aria-label', swmdData.deleteSnapshotLabel )
+				.append( $( '<span aria-hidden="true">&times;</span>' ) );
 
 			$del.on( 'click', function() {
 				// eslint-disable-next-line no-alert
@@ -447,8 +561,13 @@
 			return;
 		}
 
-		getSnapshotPanel().addClass( 'is-visible' );
+		const $panel = getSnapshotPanel();
+
+		lastFocusedBeforePanel = $panel.get( 0 ).ownerDocument.activeElement;
+
+		$panel.addClass( 'is-visible' ).trigger( 'focus' );
 		snapshotPanelVisible = true;
+		$( '#swmd-snapshot-toggle' ).attr( 'aria-expanded', 'true' );
 
 		// Load current snapshots on open.
 		ajaxRequest( 'swmd_get_snapshots', {} )
@@ -468,7 +587,14 @@
 		if ( $snapshotPanel ) {
 			$snapshotPanel.removeClass( 'is-visible' );
 		}
+
 		snapshotPanelVisible = false;
+		$( '#swmd-snapshot-toggle' ).attr( 'aria-expanded', 'false' );
+
+		if ( lastFocusedBeforePanel && lastFocusedBeforePanel.focus ) {
+			lastFocusedBeforePanel.focus();
+			lastFocusedBeforePanel = null;
+		}
 	}
 
 	/**
@@ -493,6 +619,9 @@
 			type: 'button',
 			class: 'button button-secondary',
 			value: swmdData.snapshotLabel,
+		} ).attr( {
+			'aria-expanded': 'false',
+			'aria-controls': 'swmd-snapshot-panel',
 		} );
 
 		$saveBtn.after( $snapshotBtn );

@@ -29,7 +29,14 @@
 	 */
 	function notice( message, type ) {
 		const $wrap = $( '.swmd-manager-wrap' );
-		const $notice = $( '<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>' );
+		const $notice = $( '<div class="notice is-dismissible"></div>' )
+			.addClass( 'notice-' + type )
+			.attr( 'role', 'error' === type ? 'alert' : 'status' )
+			.append( $( '<p></p>' ).text( message ) );
+
+		if ( window.wp && window.wp.a11y && window.wp.a11y.speak ) {
+			window.wp.a11y.speak( message, 'error' === type ? 'assertive' : 'polite' );
+		}
 
 		$wrap.find( '.wp-header-end' ).after( $notice );
 		$( document ).trigger( 'wp-updates-notice-added' );
