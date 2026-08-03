@@ -121,7 +121,9 @@ jobs:
           name: Release ${{ steps.version_check.outputs.version }}
           body: |
             Release ${{ steps.version_check.outputs.version }} of ${{ steps.plugin_name.outputs.plugin_name }}.
-            Refer to CHANGELOG.md for full details.
+
+            Full changelog: https://wordpress.org/plugins/swift-menu-duplicator/#developers
+            (mirrored in readme.txt).
           files: ${{ steps.deploy.outputs.zip-path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

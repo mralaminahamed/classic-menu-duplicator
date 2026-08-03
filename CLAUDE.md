@@ -91,15 +91,20 @@ WordPress install five directories up, i.e. the site this plugin lives in.
 
 ## Releasing
 
-A version bump must land in all five places or the WP.org deploy workflow
+A version bump must land in all six places or the WP.org deploy workflow
 rejects the tag:
 
 1. `swift-menu-duplicator.php` — `Version:` header
 2. `swift-menu-duplicator.php` — `SWIFT_MENU_DUPLICATOR_VERSION`
 3. `composer.json` — `version`
-4. `readme.txt` — `Stable tag`, plus `== Changelog ==` and
+4. `package.json` — `version`
+5. `readme.txt` — `Stable tag`, plus `== Changelog ==` and
    `== Upgrade Notice ==` entries
-5. `languages/swift-menu-duplicator.pot` — regenerate with `composer makepot`
+6. `languages/swift-menu-duplicator.pot` — regenerate with `composer makepot`
+   (it derives the version from the plugin header, so bump that first)
+
+There is no `CHANGELOG.md`: `readme.txt` is the single changelog. Do not add a
+second one — two changelogs drift.
 
 Do **not** bump historical changelog entries. Release ZIP contents are governed
 by `.distignore`; add new dev-only files there.
