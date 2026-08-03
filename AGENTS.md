@@ -41,9 +41,16 @@ A simple WordPress plugin that allows users to duplicate navigation menus with a
 
 ### Other
 ```bash
-npm run lint          # JS linting
+yarn install         # Install JS lint tooling
+yarn lint            # ESLint + Stylelint
+yarn lint:js         # ESLint only (assets/js)
+yarn lint:js:fix     # ESLint with --fix
+yarn lint:css        # Stylelint only (assets/css)
 composer makepot     # Generate .pot file
 ```
+
+ESLint uses flat config (`eslint.config.mjs`) — ESLint 10 does not read
+`.eslintrc.*` at all. Stylelint config lives in `stylelint.config.mjs`.
 
 ---
 
@@ -133,13 +140,13 @@ $msg = sprintf( __( 'Menu #%d', 'swift-menu-duplicator' ), $menu_id );
 - Use IIFE pattern with jQuery:
 
 ```javascript
-( function ( $ ) {
+( function( $ ) {
     'use strict';
-    $( document ).ready( function () {} );
+    $( document ).ready( function() {} );
 }( jQuery ) );
 ```
 
-- Declare globals in `.eslintrc.js`
+- Declare globals in `eslint.config.mjs` (`languageOptions.globals`)
 - Prefer `const` over `let`, avoid `var`
 
 ---
@@ -167,15 +174,20 @@ languages/
 ## 7. Testing
 
 - Tests in `tests/php/src/` mirroring class path
-- Use PHPUnit with Brain Monkey for WP mocking
-- Test naming: `ClassNameTest.php`
+- Test naming: `Class_Name_Test.php`
+- Run against the real WordPress test environment (`WP_UnitTestCase`); do not
+  stub core functions with Brain Monkey — Patchwork cannot redefine functions
+  WordPress has already loaded
+- AJAX handlers extend `WP_Ajax_UnitTestCase` so `wp_send_json_*()` dies through
+  the AJAX handler instead of killing the run
+- Shared menu fixtures live in the `MenuFactory` trait
 
 ```php
-class Menu_Duplicator_Test extends \PHPUnit\Framework\TestCase {
-    public function test_duplicate_menu_returns_new_id() {
-        $duplicator = new Menu_Duplicator();
-        $result = $duplicator->duplicate_menu( 1 );
-        $this->assertIsInt( $result );
+class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
+    public function test_duplicate_returns_new_menu_id(): void {
+        $menu_id = $this->create_menu_with_items( 'Source', 2 );
+
+        $this->assertIsInt( ( new Menu_Duplicator() )->duplicate( $menu_id ) );
     }
 }
 ```
