@@ -60,20 +60,9 @@
 		height: 250px;
 	}
 
-	/* A hairline of brand cyan along the top edge. */
-	.banner::before {
-		content: '';
-		position: absolute;
-		inset: 0 0 auto 0;
-		height: 4px;
-		background: linear-gradient(90deg, #22D3EE 0%, #3B82F6 45%, transparent 100%);
-	}
-
 	.copy {
 		position: relative;
 		z-index: 1;
-		/* Optical, not mathematical: the cyan top rule pulls the eye upward. */
-		padding-top: calc(var(--gap) * .5);
 		max-width: 66%;
 	}
 
