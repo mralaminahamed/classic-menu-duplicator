@@ -83,7 +83,10 @@ class Menu_Admin {
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
 				: SWIFT_MENU_DUPLICATOR_VERSION,
-			true
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
 		);
 
 		wp_localize_script(
@@ -198,10 +201,10 @@ class Menu_Admin {
 		$slug = ( $term instanceof \WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu';
 
 		// Output as a file download.
+		nocache_headers();
 		header( 'Content-Type: application/json; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . $slug . '-menu-export.json"' );
-		header( 'Pragma: no-cache' );
-		header( 'Expires: 0' );
+		header( 'X-Content-Type-Options: nosniff' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		echo wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );

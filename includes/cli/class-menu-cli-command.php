@@ -48,6 +48,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     # Copy a menu to another site on a multisite network
  *     $ wp swift-menu-duplicator copy-to-site 42 --target-blog=3
  *
+ *     # Work with snapshots
+ *     $ wp swift-menu-duplicator snapshot list 42
+ *     $ wp swift-menu-duplicator snapshot save 42 --label="Before redesign"
+ *
  * @when after_wp_load
  */
 class Menu_CLI_Command extends WP_CLI_Command {
@@ -317,6 +321,131 @@ class Menu_CLI_Command extends WP_CLI_Command {
 				count( $payload['items'] )
 			)
 		);
+	}
+
+	/**
+	 * Lists, saves, restores, or deletes menu snapshots.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <operation>
+	 * : One of list, save, restore, or delete.
+	 *
+	 * <menu-id>
+	 * : The term ID of the menu.
+	 *
+	 * [--label=<label>]
+	 * : Label for a new snapshot (save only).
+	 *
+	 * [--id=<uuid>]
+	 * : Snapshot UUID (restore and delete only).
+	 *
+	 * [--format=<format>]
+	 * : Output format for list.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - yaml
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp swift-menu-duplicator snapshot list 42
+	 *     $ wp swift-menu-duplicator snapshot save 42 --label="Before redesign"
+	 *     $ wp swift-menu-duplicator snapshot restore 42 --id=8f14e45f-...
+	 *     $ wp swift-menu-duplicator snapshot delete 42 --id=8f14e45f-...
+	 *
+	 * @subcommand snapshot
+	 *
+	 * @param string[] $args       Positional arguments (operation, menu-id).
+	 * @param string[] $assoc_args Named arguments (--label, --id, --format).
+	 *
+	 * @return void
+	 */
+	public function snapshot( array $args, array $assoc_args ): void {
+		$operation = (string) ( $args[0] ?? '' );
+		$menu_id   = (int) ( $args[1] ?? 0 );
+
+		if ( ! in_array( $operation, array( 'list', 'save', 'restore', 'delete' ), true ) ) {
+			WP_CLI::error( 'Operation must be one of: list, save, restore, delete.' );
+		}
+
+		$term = get_term( $menu_id, 'nav_menu' );
+
+		if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
+			WP_CLI::error( sprintf( 'Menu with ID %d not found.', $menu_id ) );
+		}
+
+		$duplicator = new Menu_Duplicator();
+
+		if ( 'list' === $operation ) {
+			$rows = array_map(
+				static function ( array $snapshot ): array {
+					return array(
+						'id'      => $snapshot['id'],
+						'label'   => $snapshot['label'],
+						'created' => gmdate( 'Y-m-d H:i:s', (int) $snapshot['created'] ),
+						'items'   => isset( $snapshot['data']['items'] ) ? count( $snapshot['data']['items'] ) : 0,
+					);
+				},
+				$duplicator->get_snapshots( $menu_id )
+			);
+
+			if ( empty( $rows ) ) {
+				WP_CLI::log( sprintf( 'No snapshots stored for "%s".', $term->name ) );
+
+				return;
+			}
+
+			format_items(
+				(string) get_flag_value( $assoc_args, 'format', 'table' ),
+				$rows,
+				array( 'id', 'label', 'created', 'items' )
+			);
+
+			return;
+		}
+
+		if ( 'save' === $operation ) {
+			$label = (string) get_flag_value( $assoc_args, 'label', '' );
+
+			if ( ! $duplicator->save_snapshot( $menu_id, $label ) ) {
+				WP_CLI::error( 'Could not save snapshot.' );
+			}
+
+			WP_CLI::success( sprintf( 'Snapshot saved for "%s".', $term->name ) );
+
+			return;
+		}
+
+		$snapshot_id = (string) get_flag_value( $assoc_args, 'id', '' );
+
+		if ( '' === $snapshot_id ) {
+			WP_CLI::error( 'Please provide --id=<uuid>. Run "snapshot list" to see the available UUIDs.' );
+		}
+
+		if ( 'restore' === $operation ) {
+			$restored = $duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+			if ( is_wp_error( $restored ) ) {
+				WP_CLI::error( $restored->get_error_message() );
+			}
+
+			WP_CLI::success(
+				sprintf( 'Restored %d item(s) into "%s".', $restored, $term->name )
+			);
+
+			return;
+		}
+
+		if ( ! $duplicator->delete_snapshot( $menu_id, $snapshot_id ) ) {
+			WP_CLI::error( 'Snapshot not found.' );
+		}
+
+		WP_CLI::success( 'Snapshot deleted.' );
 	}
 
 	/**

@@ -73,6 +73,17 @@
 	} );
 
 	// -----------------------------------------------------------------------
+	// Row action: Delete (confirm before following the core delete URL).
+	// -----------------------------------------------------------------------
+
+	$( document ).on( 'click', '.swmd-row-delete', function( e ) {
+		// eslint-disable-next-line no-alert
+		if ( ! window.confirm( $( this ).data( 'confirm' ) ) ) {
+			e.preventDefault();
+		}
+	} );
+
+	// -----------------------------------------------------------------------
 	// Row action: Export JSON (single menu, hidden form download).
 	// -----------------------------------------------------------------------
 

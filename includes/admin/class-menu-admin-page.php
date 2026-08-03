@@ -56,8 +56,14 @@ class Menu_Admin_Page {
 		// AJAX for multisite copy (network-admin capable users only).
 		add_action( 'wp_ajax_swmd_copy_to_site', array( $this, 'handle_ajax_copy_to_site' ) );
 
+		// Persist the Screen Options "Menus per page" value.
+		add_filter( 'set_screen_option_swmd_menus_per_page', array( $this, 'save_screen_option' ), 10, 3 );
+
 		// Store creation timestamp on new menus.
 		add_action( 'wp_create_nav_menu', array( $this, 'record_creation_time' ) );
+
+		// Explain the classic-menu scope on block themes.
+		add_action( 'admin_notices', array( $this, 'maybe_render_block_theme_notice' ) );
 
 		// Plugin action links on the Plugins list page.
 		add_filter(
@@ -80,6 +86,54 @@ class Menu_Admin_Page {
 			'swmd-menu-manager',
 			array( $this, 'render_page' )
 		);
+
+		if ( '' !== $this->page_hook ) {
+			add_action( 'load-' . $this->page_hook, array( $this, 'add_screen_options' ) );
+		}
+	}
+
+	/**
+	 * Registers the Screen Options control for the menus table.
+	 *
+	 * Menu_Table reads `swmd_menus_per_page` through get_items_per_page(); with
+	 * no add_screen_option() call there was no way for a user to set it, so the
+	 * default was the only value it ever had.
+	 *
+	 * @return void
+	 */
+	public function add_screen_options(): void {
+		add_screen_option(
+			'per_page',
+			array(
+				'label'   => __( 'Menus per page', 'swift-menu-duplicator' ),
+				'default' => 20,
+				'option'  => 'swmd_menus_per_page',
+			)
+		);
+
+		// Registering the columns on the screen is what makes the Screen Options
+		// "Columns" checkboxes appear, so Slug and Description can stay hidden
+		// until someone wants them.
+		add_filter(
+			'manage_' . $this->page_hook . '_columns',
+			static function (): array {
+				return ( new Menu_Table() )->get_columns();
+			}
+		);
+
+		add_filter(
+			'default_hidden_columns',
+			static function ( array $hidden, \WP_Screen $screen ): array {
+				// strpos(), not str_contains(): the plugin supports PHP 7.4.
+				if ( false === strpos( $screen->id, 'swmd-menu-manager' ) ) {
+					return $hidden;
+				}
+
+				return array_merge( $hidden, Menu_Table::default_hidden_columns() );
+			},
+			10,
+			2
+		);
 	}
 
 	/**
@@ -94,6 +148,17 @@ class Menu_Admin_Page {
 			return;
 		}
 
+		$style_file = SWIFT_MENU_DUPLICATOR_DIR . 'assets/css/menu-manager.css';
+
+		wp_enqueue_style(
+			'swmd-menu-manager',
+			SWIFT_MENU_DUPLICATOR_URL . 'assets/css/menu-manager.css',
+			array(),
+			file_exists( $style_file )
+				? (string) filemtime( $style_file )
+				: SWIFT_MENU_DUPLICATOR_VERSION
+		);
+
 		$asset_file = SWIFT_MENU_DUPLICATOR_DIR . 'assets/js/menu-manager.js';
 
 		wp_enqueue_script(
@@ -103,7 +168,10 @@ class Menu_Admin_Page {
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
 				: SWIFT_MENU_DUPLICATOR_VERSION,
-			true
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
 		);
 
 		$sites_data = array();
@@ -127,7 +195,11 @@ class Menu_Admin_Page {
 
 				$sites_data[] = array(
 					'id'   => $blog_id,
-					'name' => get_blog_details( $blog_id )->blogname ?? ( 'Site ' . absint( $blog_id ) ),
+					'name' => '' !== $site->blogname ? $site->blogname : sprintf(
+						/* translators: %d: numeric site ID on a multisite network */
+						__( 'Site %d', 'swift-menu-duplicator' ),
+						$blog_id
+					),
 				);
 			}
 		}
@@ -155,6 +227,25 @@ class Menu_Admin_Page {
 	}
 
 	/**
+	 * Saves the "Menus per page" screen option.
+	 *
+	 * @param mixed  $status Value to save, or false to keep the default.
+	 * @param string $option Option name.
+	 * @param mixed  $value  Submitted value.
+	 *
+	 * @return int|false Sanitised per-page value, or false to skip saving.
+	 */
+	public function save_screen_option( $status, string $option, $value ) {
+		if ( 'swmd_menus_per_page' !== $option ) {
+			return $status;
+		}
+
+		$value = absint( $value );
+
+		return ( $value > 0 && $value <= 999 ) ? $value : false;
+	}
+
+	/**
 	 * Records the current timestamp as term-meta when a new menu is created.
 	 *
 	 * @param int $menu_id New menu term ID.
@@ -163,6 +254,43 @@ class Menu_Admin_Page {
 	 */
 	public function record_creation_time( int $menu_id ): void {
 		add_term_meta( $menu_id, '_swmd_created', time(), true );
+	}
+
+	/**
+	 * Warns, on the Menu Manager screen only, that block themes do not render
+	 * classic menus.
+	 *
+	 * Core hides Appearance → Menus entirely unless the theme supports `menus`
+	 * or `widgets`, and a block theme renders Navigation blocks instead of
+	 * nav_menu terms. Saying so is more useful than letting someone duplicate a
+	 * menu their front end will never display.
+	 *
+	 * @return void
+	 */
+	public function maybe_render_block_theme_notice(): void {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen instanceof \WP_Screen || $screen->id !== $this->page_hook ) {
+			return;
+		}
+
+		if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+			return;
+		}
+
+		if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-info"><p>%s %s</p></div>',
+			esc_html__( 'This theme is a block theme: its navigation lives in Navigation blocks, not in the classic menus listed here.', 'swift-menu-duplicator' ),
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'site-editor.php' ) ),
+				esc_html__( 'Edit navigation in the Site Editor', 'swift-menu-duplicator' )
+			)
+		);
 	}
 
 	/**
@@ -359,15 +487,19 @@ class Menu_Admin_Page {
 	}
 
 	/**
-	 * Handles bulk delete form submissions from the Menu_Table.
+	 * Handles bulk action form submissions from the Menu_Table.
 	 *
-	 * Duplicate and export bulk actions are handled client-side via AJAX.
-	 * Only delete requires a form POST for safety (irreversible operation).
+	 * The Menu Manager's JavaScript intercepts duplicate and export and runs
+	 * them over AJAX, but the bulk-action <select> offers them regardless of
+	 * whether that script loaded. Every action therefore has a server-side
+	 * path, so a scripting failure degrades instead of silently doing nothing.
 	 *
 	 * @return void
 	 */
 	public function handle_bulk_actions(): void {
-		if ( ! isset( $_POST['action'] ) || 'swmd_bulk_delete' !== $_POST['action'] ) {
+		$action = $this->current_bulk_action();
+
+		if ( '' === $action ) {
 			return;
 		}
 
@@ -380,13 +512,63 @@ class Menu_Admin_Page {
 		}
 
 		$ids = isset( $_POST['menu_ids'] ) ? array_map( 'absint', (array) $_POST['menu_ids'] ) : array();
+		$ids = array_values( array_filter( $ids ) );
 
-		foreach ( $ids as $id ) {
-			wp_delete_nav_menu( $id );
+		if ( empty( $ids ) ) {
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager' ) );
+			exit;
 		}
 
-		wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&deleted=' . count( $ids ) ) );
-		exit;
+		if ( 'swmd_bulk_delete' === $action ) {
+			foreach ( $ids as $id ) {
+				wp_delete_nav_menu( $id );
+			}
+
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&deleted=' . count( $ids ) ) );
+			exit;
+		}
+
+		if ( 'swmd_bulk_duplicate' === $action ) {
+			$duplicator = new Menu_Duplicator();
+			$created    = 0;
+
+			foreach ( $ids as $id ) {
+				if ( ! is_wp_error( $duplicator->duplicate( $id ) ) ) {
+					++$created;
+				}
+			}
+
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&duplicated=' . $created ) );
+			exit;
+		}
+
+		if ( 'swmd_bulk_export' === $action ) {
+			$this->stream_export( $ids );
+		}
+	}
+
+	/**
+	 * Returns the bulk action chosen in either tablenav selector.
+	 *
+	 * WP_List_Table names the bottom selector `action2`; core's own
+	 * current_action() reads only `action` because admin JS mirrors the two.
+	 * Reading both keeps the bottom bar working without JavaScript.
+	 *
+	 * @return string Action name, or an empty string when none was chosen.
+	 */
+	private function current_bulk_action(): string {
+		$allowed = array( 'swmd_bulk_delete', 'swmd_bulk_duplicate', 'swmd_bulk_export' );
+
+		foreach ( array( 'action', 'action2' ) as $field ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The caller verifies the nonce before acting on this value.
+			$value = isset( $_POST[ $field ] ) ? sanitize_key( wp_unslash( $_POST[ $field ] ) ) : '';
+
+			if ( in_array( $value, $allowed, true ) ) {
+				return $value;
+			}
+		}
+
+		return '';
 	}
 
 	// -----------------------------------------------------------------------
@@ -433,56 +615,73 @@ class Menu_Admin_Page {
 	/**
 	 * Exports one or more menus as a ZIP archive of JSON files.
 	 *
-	 * Falls back to a single JSON file download when only one menu is
-	 * selected (avoids requiring ZipArchive on the server).
-	 *
 	 * @return void
 	 */
 	public function handle_ajax_bulk_export_zip(): void {
 		$this->verify_nonce_and_capability();
 
 		$ids = isset( $_POST['menu_ids'] ) ? array_map( 'absint', (array) $_POST['menu_ids'] ) : array();
+		$ids = array_values( array_filter( $ids ) );
 
 		if ( empty( $ids ) ) {
 			wp_send_json_error( array( 'message' => __( 'No menus selected.', 'swift-menu-duplicator' ) ), 400 );
 		}
 
+		$error = $this->stream_export( $ids );
+
+		// stream_export() exits on success; only failures return.
+		wp_send_json_error( array( 'message' => $error ), 500 );
+	}
+
+	/**
+	 * Streams the given menus to the browser as a file download.
+	 *
+	 * A single menu is sent as plain JSON — matching the menu editor's export
+	 * and avoiding a hard dependency on ZipArchive. Several menus are bundled
+	 * into a ZIP.
+	 *
+	 * Exits on success. Shared by the AJAX handler and the no-JavaScript bulk
+	 * form path.
+	 *
+	 * @param int[] $ids Menu term IDs to export.
+	 *
+	 * @return string Error message when nothing could be streamed.
+	 */
+	private function stream_export( array $ids ): string {
 		$duplicator = new Menu_Duplicator();
 
-		// Single menu: stream JSON directly (matches nav-menus.php export).
 		if ( 1 === count( $ids ) ) {
 			$payload = $duplicator->export( $ids[0] );
 
 			if ( is_wp_error( $payload ) ) {
-				wp_send_json_error( array( 'message' => $payload->get_error_message() ), 500 );
+				return $payload->get_error_message();
 			}
 
 			$term = get_term( $ids[0], 'nav_menu' );
 			$slug = ( $term instanceof WP_Term ) ? sanitize_file_name( $term->slug ) : 'menu';
 
+			nocache_headers();
 			header( 'Content-Type: application/json; charset=utf-8' );
 			header( 'Content-Disposition: attachment; filename="' . $slug . '-menu-export.json"' );
-			header( 'Pragma: no-cache' );
+			header( 'X-Content-Type-Options: nosniff' );
 
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			echo wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 			exit;
 		}
 
-		// Multiple menus: ZIP if ZipArchive is available.
 		if ( ! class_exists( 'ZipArchive' ) ) {
-			wp_send_json_error(
-				array( 'message' => __( 'ZIP export requires the PHP ZipArchive extension.', 'swift-menu-duplicator' ) ),
-				500
-			);
+			return __( 'ZIP export requires the PHP ZipArchive extension.', 'swift-menu-duplicator' );
 		}
 
 		$zip_file = wp_tempnam( 'swmd-export' );
 		$zip      = new ZipArchive();
 
 		if ( true !== $zip->open( $zip_file, ZipArchive::OVERWRITE ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not create ZIP archive.', 'swift-menu-duplicator' ) ), 500 );
+			return __( 'Could not create ZIP archive.', 'swift-menu-duplicator' );
 		}
+
+		$added = 0;
 
 		foreach ( $ids as $id ) {
 			$payload = $duplicator->export( $id );
@@ -499,14 +698,23 @@ class Menu_Admin_Page {
 				$slug . '-menu-export.json',
 				(string) wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES )
 			);
+
+			++$added;
 		}
 
 		$zip->close();
 
+		if ( 0 === $added ) {
+			Filesystem::delete( $zip_file );
+
+			return __( 'None of the selected menus could be exported.', 'swift-menu-duplicator' );
+		}
+
+		nocache_headers();
 		header( 'Content-Type: application/zip' );
 		header( 'Content-Disposition: attachment; filename="menus-export.zip"' );
 		header( 'Content-Length: ' . filesize( $zip_file ) );
-		header( 'Pragma: no-cache' );
+		header( 'X-Content-Type-Options: nosniff' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		readfile( $zip_file );

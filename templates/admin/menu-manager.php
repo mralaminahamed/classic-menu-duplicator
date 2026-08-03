@@ -15,6 +15,7 @@ $active_tab    = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'menus';
 $transient_key = 'swmd_import_state_' . get_current_user_id();
 $import_state  = get_transient( $transient_key );
 $deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$duplicated    = isset( $_GET['duplicated'] ) ? absint( $_GET['duplicated'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 if ( $import_state ) {
 	delete_transient( $transient_key );
@@ -35,6 +36,20 @@ if ( $import_state ) {
 					/* translators: %d: number of deleted menus */
 					esc_html( _n( '%d menu deleted.', '%d menus deleted.', $deleted_count, 'swift-menu-duplicator' ) ),
 					(int) $deleted_count
+				);
+				?>
+			</p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $duplicated > 0 ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %d: number of duplicated menus */
+					esc_html( _n( '%d menu duplicated.', '%d menus duplicated.', $duplicated, 'swift-menu-duplicator' ) ),
+					(int) $duplicated
 				);
 				?>
 			</p>
@@ -64,7 +79,6 @@ if ( $import_state ) {
 	<div class="swmd-tab-panel">
 		<form id="swmd-menu-table-form" method="post">
 			<?php wp_nonce_field( 'swmd_bulk_delete', 'swmd_bulk_nonce' ); ?>
-			<input type="hidden" name="action" value="swmd_bulk_delete" />
 			<?php
 			$table->display();
 			?>
@@ -106,6 +120,7 @@ if ( $import_state ) {
 		<!-- Preview panel -->
 		<div class="swmd-import-preview">
 			<h2><?php esc_html_e( 'Import Preview', 'swift-menu-duplicator' ); ?></h2>
+			<div class="swmd-preview-table-scroll">
 			<table class="widefat swmd-preview-table">
 				<thead>
 					<tr>
@@ -126,6 +141,7 @@ if ( $import_state ) {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+			</div>
 			<p class="description">
 				<?php
 				printf(
@@ -279,8 +295,13 @@ if ( $import_state ) {
 									continue;
 								}
 
-								$details = get_blog_details( $blog_id );
-								echo '<option value="' . absint( $blog_id ) . '">' . esc_html( $details->blogname ?? ( 'Site ' . absint( $blog_id ) ) ) . '</option>';
+								$site_name = '' !== $site->blogname ? $site->blogname : sprintf(
+									/* translators: %d: numeric site ID on a multisite network */
+									__( 'Site %d', 'swift-menu-duplicator' ),
+									$blog_id
+								);
+
+								echo '<option value="' . absint( $blog_id ) . '">' . esc_html( $site_name ) . '</option>';
 							}
 							?>
 						</select>

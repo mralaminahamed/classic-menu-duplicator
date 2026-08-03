@@ -1,0 +1,178 @@
+/**
+ * Menu Manager admin page.
+ *
+ * Follows core admin conventions — the same card border, link blue, and muted
+ * grey WordPress uses elsewhere — so the screen reads as part of the admin
+ * rather than as a plugin bolted onto it.
+ */
+
+/* ── Layout ──────────────────────────────────────────────────── */
+
+.swmd-manager-wrap .swmd-tab-nav {
+	margin-bottom: 0;
+}
+
+.swmd-manager-wrap .swmd-tab-panel {
+	padding: 20px 24px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.swmd-manager-wrap .swmd-tab-panel > h2:first-child {
+	margin-top: 0;
+}
+
+.swmd-manager-wrap .swmd-muted {
+	color: #787c82;
+}
+
+/* The table sits flush inside its panel. */
+.swmd-manager-wrap .swmd-tab-panel .wp-list-table {
+	border-left: none;
+	border-right: none;
+}
+
+/* ── Import form ─────────────────────────────────────────────── */
+
+.swmd-import-form-wrap {
+	max-width: 780px;
+}
+
+.swmd-import-form-wrap > .description {
+	margin-bottom: 20px;
+	font-size: 13px;
+}
+
+.swmd-import-form .form-table th {
+	width: 180px;
+	padding-top: 16px;
+}
+
+.swmd-import-form input[type="file"] {
+	padding: 8px;
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	width: 100%;
+	max-width: 420px;
+	cursor: pointer;
+}
+
+.swmd-import-form input[type="file"]:hover {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.swmd-import-form textarea#swmd_json_paste {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	line-height: 1.6;
+	white-space: pre;
+	overflow-x: auto;
+}
+
+/* Find/replace pair reads as one control group. */
+.swmd-import-form .form-table td > p {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0 0 8px;
+}
+
+.swmd-import-form .form-table td > p > label {
+	flex: 0 0 72px;
+	color: #50575e;
+	font-size: 13px;
+}
+
+/* ── Import preview ──────────────────────────────────────────── */
+
+.swmd-import-preview {
+	max-width: 900px;
+}
+
+.swmd-import-preview h2 {
+	margin-top: 0;
+}
+
+.swmd-preview-table {
+	margin-bottom: 12px;
+	border-collapse: collapse;
+}
+
+.swmd-preview-table thead th {
+	position: sticky;
+	top: 0;
+	background: #f6f7f7;
+	font-weight: 600;
+	z-index: 1;
+}
+
+.swmd-preview-table th,
+.swmd-preview-table td {
+	padding: 8px 10px;
+	font-size: 13px;
+	vertical-align: top;
+	word-break: break-word;
+}
+
+.swmd-preview-table tbody tr:nth-child(even) {
+	background: #f9f9f9;
+}
+
+.swmd-preview-table td:nth-child(3) {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	color: #50575e;
+}
+
+/* Long import lists scroll inside the panel instead of the page. */
+.swmd-import-preview .swmd-preview-table-scroll {
+	max-height: 420px;
+	overflow: auto;
+	border: 1px solid #c3c4c7;
+	margin-bottom: 12px;
+}
+
+/* ── Copy to site (multisite) ────────────────────────────────── */
+
+#swmd-copy-to-site-form {
+	max-width: 780px;
+}
+
+#swmd-copy-result {
+	margin-top: 12px;
+}
+
+#swmd-copy-result .notice {
+	margin: 0;
+}
+
+/* ── Narrow screens ──────────────────────────────────────────── */
+
+@media screen and (max-width: 782px) {
+
+	.swmd-manager-wrap .swmd-tab-panel {
+		padding: 16px;
+	}
+
+	.swmd-import-form .form-table th {
+		width: auto;
+		padding-bottom: 0;
+	}
+
+	.swmd-import-form .form-table td > p {
+		flex-wrap: wrap;
+	}
+
+	.swmd-import-form .form-table td > p > label {
+		flex-basis: 100%;
+	}
+
+	.swmd-import-form input[type="text"],
+	.swmd-import-form input[type="file"] {
+		max-width: 100%;
+	}
+}

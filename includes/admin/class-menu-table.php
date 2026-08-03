@@ -48,12 +48,24 @@ class Menu_Table extends WP_List_Table {
 	 */
 	public function get_columns(): array {
 		return array(
-			'cb'         => '<input type="checkbox" />',
-			'name'       => __( 'Menu Name', 'swift-menu-duplicator' ),
-			'item_count' => __( 'Items', 'swift-menu-duplicator' ),
-			'locations'  => __( 'Theme Locations', 'swift-menu-duplicator' ),
-			'created'    => __( 'Created', 'swift-menu-duplicator' ),
+			'cb'          => '<input type="checkbox" />',
+			'name'        => __( 'Menu Name', 'swift-menu-duplicator' ),
+			'slug'        => __( 'Slug', 'swift-menu-duplicator' ),
+			'description' => __( 'Description', 'swift-menu-duplicator' ),
+			'item_count'  => __( 'Items', 'swift-menu-duplicator' ),
+			'locations'   => __( 'Theme Locations', 'swift-menu-duplicator' ),
+			'snapshots'   => __( 'Snapshots', 'swift-menu-duplicator' ),
+			'created'     => __( 'Created', 'swift-menu-duplicator' ),
 		);
+	}
+
+	/**
+	 * Columns hidden until the user enables them in Screen Options.
+	 *
+	 * @return string[]
+	 */
+	public static function default_hidden_columns(): array {
+		return array( 'slug', 'description' );
 	}
 
 	/**
@@ -63,8 +75,11 @@ class Menu_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns(): array {
 		return array(
-			'name'    => array( 'name', true ),
-			'created' => array( 'created', false ),
+			'name'       => array( 'name', true ),
+			'slug'       => array( 'slug', false ),
+			'item_count' => array( 'item_count', false ),
+			'snapshots'  => array( 'snapshots', false ),
+			'created'    => array( 'created', false ),
 		);
 	}
 
@@ -94,8 +109,9 @@ class Menu_Table extends WP_List_Table {
 	public function prepare_items(): void {
 		$this->_column_headers = array(
 			$this->get_columns(),
-			array(),
+			$this->screen instanceof \WP_Screen ? get_hidden_columns( $this->screen ) : array(),
 			$this->get_sortable_columns(),
+			'name',
 		);
 
 		$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
@@ -111,10 +127,7 @@ class Menu_Table extends WP_List_Table {
 		usort(
 			$menus,
 			static function ( \WP_Term $a, \WP_Term $b ) use ( $orderby, $order ): int {
-				$val_a = 'created' === $orderby ? (int) get_term_meta( $a->term_id, '_swmd_created', true ) : strtolower( $a->name );
-				$val_b = 'created' === $orderby ? (int) get_term_meta( $b->term_id, '_swmd_created', true ) : strtolower( $b->name );
-
-				$cmp = 'created' === $orderby ? ( $val_a <=> $val_b ) : strcmp( (string) $val_a, (string) $val_b );
+				$cmp = self::compare_terms( $a, $b, $orderby );
 
 				return 'desc' === $order ? - $cmp : $cmp;
 			}
@@ -183,14 +196,17 @@ class Menu_Table extends WP_List_Table {
 		);
 
 		if ( current_user_can( 'edit_theme_options' ) ) {
-			$delete_url        = wp_nonce_url(
+			$delete_url = wp_nonce_url(
 				admin_url( 'nav-menus.php?action=delete-menu&menu=' . $item->term_id ),
 				'delete-nav_menu-' . $item->term_id
 			);
+			// The confirm prompt is bound in menu-manager.js; keeping it out of an
+			// inline onclick attribute avoids inline JS on an admin screen that
+			// already loads a script.
 			$actions['delete'] = sprintf(
-				'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\')">%s</a>',
+				'<a href="%s" class="submitdelete swmd-row-delete" data-confirm="%s">%s</a>',
 				esc_url( $delete_url ),
-				esc_js( __( 'Delete this menu?', 'swift-menu-duplicator' ) ),
+				esc_attr__( 'Delete this menu?', 'swift-menu-duplicator' ),
 				esc_html__( 'Delete', 'swift-menu-duplicator' )
 			);
 		}
@@ -200,6 +216,97 @@ class Menu_Table extends WP_List_Table {
 			esc_url( $edit_url ),
 			esc_html( $item->name ),
 			$this->row_actions( $actions )
+		);
+	}
+
+	/**
+	 * Compares two menus for the requested sort column.
+	 *
+	 * @param \WP_Term $a       First term.
+	 * @param \WP_Term $b       Second term.
+	 * @param string   $orderby Column being sorted.
+	 *
+	 * @return int Standard comparison result.
+	 */
+	private static function compare_terms( \WP_Term $a, \WP_Term $b, string $orderby ): int {
+		switch ( $orderby ) {
+			case 'created':
+				return (int) get_term_meta( $a->term_id, '_swmd_created', true )
+					<=> (int) get_term_meta( $b->term_id, '_swmd_created', true );
+
+			case 'item_count':
+				return (int) $a->count <=> (int) $b->count;
+
+			case 'snapshots':
+				return self::snapshot_count( $a->term_id ) <=> self::snapshot_count( $b->term_id );
+
+			case 'slug':
+				return strcmp( $a->slug, $b->slug );
+
+			default:
+				return strcmp( strtolower( $a->name ), strtolower( $b->name ) );
+		}
+	}
+
+	/**
+	 * Returns how many snapshots a menu currently holds.
+	 *
+	 * @param int $menu_id Menu term ID.
+	 *
+	 * @return int
+	 */
+	private static function snapshot_count( int $menu_id ): int {
+		$count  = count( (array) get_term_meta( $menu_id, '_swmd_snapshot', false ) );
+		$legacy = get_term_meta( $menu_id, '_swmd_snapshots', true );
+
+		return $count + ( is_array( $legacy ) ? count( $legacy ) : 0 );
+	}
+
+	/**
+	 * Renders the Slug column.
+	 *
+	 * @param \WP_Term $item Current row term.
+	 *
+	 * @return string
+	 */
+	protected function column_slug( $item ): string {
+		return '<code>' . esc_html( $item->slug ) . '</code>';
+	}
+
+	/**
+	 * Renders the Description column.
+	 *
+	 * @param \WP_Term $item Current row term.
+	 *
+	 * @return string
+	 */
+	protected function column_description( $item ): string {
+		if ( '' === $item->description ) {
+			return '<span class="swmd-muted">' . esc_html__( '—', 'swift-menu-duplicator' ) . '</span>';
+		}
+
+		return esc_html( wp_trim_words( $item->description, 12 ) );
+	}
+
+	/**
+	 * Renders the Snapshots column, linking to the menu editor where the
+	 * snapshot panel lives.
+	 *
+	 * @param \WP_Term $item Current row term.
+	 *
+	 * @return string
+	 */
+	protected function column_snapshots( $item ): string {
+		$count = self::snapshot_count( $item->term_id );
+
+		if ( 0 === $count ) {
+			return '<span class="swmd-muted">' . esc_html__( '—', 'swift-menu-duplicator' ) . '</span>';
+		}
+
+		return sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'nav-menus.php?action=edit&menu=' . $item->term_id ) ),
+			esc_html( (string) $count )
 		);
 	}
 
