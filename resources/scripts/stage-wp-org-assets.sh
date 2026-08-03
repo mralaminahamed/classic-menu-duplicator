@@ -16,10 +16,10 @@
 # the ASSETS_DIR environment variable.
 #
 # Usage:
-#   bash bin/stage-wp-org-assets.sh                  # stage into ./.wp-org-staged
-#   bash bin/stage-wp-org-assets.sh --output DIR     # custom staging dir
-#   bash bin/stage-wp-org-assets.sh --list           # show what would be copied
-#   bash bin/stage-wp-org-assets.sh --help
+#   bash resources/scripts/stage-wp-org-assets.sh                  # stage into ./.wp-org-staged
+#   bash resources/scripts/stage-wp-org-assets.sh --output DIR     # custom staging dir
+#   bash resources/scripts/stage-wp-org-assets.sh --list           # show what would be copied
+#   bash resources/scripts/stage-wp-org-assets.sh --help
 #
 # Author: Al Amin Ahamed <mrabir.ahamed@gmail.com>
 # License: GPL-2.0-or-later
@@ -33,7 +33,8 @@ set -o pipefail
 # ─────────────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$( cd -- "${SCRIPT_DIR}/.." &> /dev/null && pwd )"
+# Two levels up: this script lives in resources/scripts/.
+PROJECT_ROOT="$( cd -- "${SCRIPT_DIR}/../.." &> /dev/null && pwd )"
 SOURCE_DIR="${PROJECT_ROOT}/.wordpress-org"
 OUTPUT_DIR="${PROJECT_ROOT}/.wp-org-staged"
 LIST_ONLY=0
@@ -193,6 +194,22 @@ main() {
 		fi
 		copied=$(( copied + 1 ))
 	done < <( find "${SOURCE_DIR}" -maxdepth 1 -type f -print0 | LC_ALL=C sort -z )
+
+	# WordPress.org reads assets/blueprints/blueprint.json to offer the "Live
+	# Preview" button. It lives in a subdirectory, so the flat sweep above
+	# never sees it — and because the SVN assets folder is mirrored rather
+	# than merged, leaving it out would delete the blueprint from the
+	# directory listing.
+	if [ -f "${SOURCE_DIR}/blueprints/blueprint.json" ]; then
+		if [ "${LIST_ONLY}" -eq 1 ]; then
+			printf '  would copy  %s\n' 'blueprints/blueprint.json'
+		else
+			mkdir -p "${OUTPUT_DIR}/blueprints"
+			cp -p "${SOURCE_DIR}/blueprints/blueprint.json" "${OUTPUT_DIR}/blueprints/blueprint.json"
+		fi
+
+		copied=$(( copied + 1 ))
+	fi
 
 	printf '\n'
 
