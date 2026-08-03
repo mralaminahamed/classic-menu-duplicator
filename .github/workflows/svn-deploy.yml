@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - "*"
+  # Manual re-run, for when a tag push produced no run (Actions disabled at the
+  # time, an outage, or a deploy that needs repeating). Dispatch against the
+  # tag itself — `gh workflow run svn-deploy.yml --ref 1.1.0` — or pass the tag
+  # explicitly when dispatching from a branch.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (defaults to the ref this runs on)'
+        required: false
+        type: string
 
 permissions:
   contents: write # needed to create GitHub release
@@ -37,8 +47,19 @@ jobs:
 
       - name: Validate tag and plugin version alignment
         id: version_check
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          TAG_REF="${GITHUB_REF#refs/tags/}"
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG_REF="${INPUT_TAG}"
+          else
+            TAG_REF="${GITHUB_REF#refs/tags/}"
+          fi
+          # A dispatch from a branch with no tag input has nothing to validate.
+          if [ "${TAG_REF}" = "${GITHUB_REF}" ]; then
+            echo "Not a tag ref and no tag input supplied — pass one via workflow_dispatch." >&2
+            exit 1
+          fi
           # Strip leading v if present
           if [[ "$TAG_REF" =~ ^v ]]; then TAG_STRIPPED=${TAG_REF#v}; else TAG_STRIPPED=$TAG_REF; fi
           # Extract Version from plugin header (first match)
@@ -117,7 +138,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.tag || github.ref_name }}
           name: Release ${{ steps.version_check.outputs.version }}
           body: |
             Release ${{ steps.version_check.outputs.version }} of ${{ steps.plugin_name.outputs.plugin_name }}.
