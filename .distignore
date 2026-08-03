@@ -6,6 +6,8 @@ package-*.*
 composer.lock
 yarn.*
 *.config.js
+*.config.mjs
+*.config.cjs
 
 # Development tools and configuration
 /.claude
