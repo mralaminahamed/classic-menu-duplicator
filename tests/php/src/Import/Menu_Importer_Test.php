@@ -280,13 +280,13 @@ class Menu_Importer_Test extends SwiftMenuDuplicatorTestCase {
 		$payload = $this->make_export_payload( 'Action Test', 1 );
 		$fired   = false;
 
-		add_action( 'swmd_after_import_menu', static function () use ( &$fired ) {
+		add_action( 'swift_menu_duplicator_after_import_menu', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		$this->importer->import( $payload );
 
-		remove_all_actions( 'swmd_after_import_menu' );
+		remove_all_actions( 'swift_menu_duplicator_after_import_menu' );
 
 		$this->assertTrue( $fired );
 	}
@@ -297,11 +297,11 @@ class Menu_Importer_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_swmd_import_menu_name_filter_is_applied(): void {
 		$payload = $this->make_export_payload( 'Filter Menu', 1 );
 
-		add_filter( 'swmd_import_menu_name', static fn () => 'Filtered Import Name' );
+		add_filter( 'swift_menu_duplicator_import_menu_name', static fn () => 'Filtered Import Name' );
 
 		$new_menu_id = $this->importer->import( $payload );
 
-		remove_all_filters( 'swmd_import_menu_name' );
+		remove_all_filters( 'swift_menu_duplicator_import_menu_name' );
 
 		$term = get_term( $new_menu_id, 'nav_menu' );
 		$this->assertEquals( 'Filtered Import Name', $term->name );
@@ -398,33 +398,97 @@ class Menu_Importer_Test extends SwiftMenuDuplicatorTestCase {
 		return (string) wp_json_encode( $this->make_export_payload( $name, $item_count ) );
 	}
 
+	// -----------------------------------------------------------------------
+	// Empty menus, name collisions, descriptions, and import_items().
+	// -----------------------------------------------------------------------
+
 	/**
-	 * Creates a menu with a single custom-link item pointing to $url.
-	 *
-	 * @param string $name Menu name.
-	 * @param string $url  Custom link URL.
-	 *
-	 * @return int Menu term ID.
+	 * @covers Menu_Importer::validate
 	 */
-	private function create_custom_link_menu( string $name, string $url ): int {
-		$menu_id = wp_create_nav_menu( $name );
-
-		if ( is_wp_error( $menu_id ) ) {
-			return 0;
-		}
-
-		wp_update_nav_menu_item(
-			$menu_id,
-			0,
+	public function test_validate_accepts_export_of_empty_menu(): void {
+		$result = $this->importer->validate(
 			array(
-				'menu-item-title'   => 'Custom Link',
-				'menu-item-url'     => $url,
-				'menu-item-type'    => 'custom',
-				'menu-item-status'  => 'publish',
-				'menu-item-position' => 1,
+				'menu'  => array( 'name' => 'Empty Menu' ),
+				'items' => array(),
 			)
 		);
 
-		return $menu_id;
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Empty Menu', $result['menu']['name'] );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_import_of_empty_menu_creates_term(): void {
+		$menu_id = $this->importer->import(
+			array(
+				'menu'  => array( 'name' => 'Empty Import' ),
+				'items' => array(),
+			)
+		);
+
+		$this->assertIsInt( $menu_id );
+		$this->assertSame( 'Empty Import', get_term( $menu_id, 'nav_menu' )->name );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_import_resolves_name_collision_instead_of_failing(): void {
+		$payload = $this->make_export_payload( 'Collision Menu', 1 );
+
+		$first  = $this->importer->import( $payload );
+		$second = $this->importer->import( $payload );
+
+		$this->assertIsInt( $first );
+		$this->assertIsInt( $second );
+		$this->assertNotSame( $first, $second );
+
+		$this->assertSame( 'Collision Menu', get_term( $first, 'nav_menu' )->name );
+		$this->assertSame( 'Collision Menu (2)', get_term( $second, 'nav_menu' )->name );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_import_restores_item_description(): void {
+		$source_id = $this->create_menu_with_items( 'Description Source', 1 );
+		$items     = wp_get_nav_menu_items( $source_id );
+
+		wp_update_post(
+			array(
+				'ID'           => $items[0]->ID,
+				'post_content' => 'Round-tripped description.',
+			)
+		);
+
+		$payload     = $this->duplicator->export( $source_id );
+		$new_menu_id = $this->importer->import( $payload, 'Description Target' );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		$this->assertSame( 'Round-tripped description.', $new_items[0]->post_content );
+	}
+
+	/**
+	 * @covers Menu_Importer::import_items
+	 */
+	public function test_import_items_fills_an_existing_menu(): void {
+		$source_id = $this->create_nested_menu( 'Items Source' );
+		$payload   = $this->duplicator->export( $source_id );
+
+		$target_id = wp_create_nav_menu( 'Items Target' );
+
+		$id_map = $this->importer->import_items( $payload, $target_id );
+
+		$this->assertCount( 2, $id_map );
+		$this->assertCount( 2, wp_get_nav_menu_items( $target_id ) );
+
+		$children = array_filter(
+			wp_get_nav_menu_items( $target_id ),
+			static fn ( $i ) => 0 !== (int) $i->menu_item_parent
+		);
+
+		$this->assertCount( 1, $children );
 	}
 }

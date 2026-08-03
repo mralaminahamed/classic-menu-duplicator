@@ -129,12 +129,12 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_swmd_new_menu_name_filter_is_applied(): void {
 		$menu_id = $this->create_menu_with_items( 'Menu', 1 );
 
-		add_filter( 'swmd_new_menu_name', static fn () => 'Filtered Name', 10, 1 );
+		add_filter( 'swift_menu_duplicator_new_menu_name', static fn () => 'Filtered Name', 10, 1 );
 
 		$result   = $this->duplicator->duplicate( $menu_id );
 		$new_term = get_term( $result, 'nav_menu' );
 
-		remove_all_filters( 'swmd_new_menu_name' );
+		remove_all_filters( 'swift_menu_duplicator_new_menu_name' );
 
 		$this->assertEquals( 'Filtered Name', $new_term->name );
 	}
@@ -215,13 +215,13 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 		$item_id = $items[0]->ID;
 
 		$fired = false;
-		add_action( 'swmd_after_duplicate_item', static function () use ( &$fired ) {
+		add_action( 'swift_menu_duplicator_after_duplicate_item', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		$this->duplicator->duplicate_item( $item_id, $menu_id );
 
-		remove_all_actions( 'swmd_after_duplicate_item' );
+		remove_all_actions( 'swift_menu_duplicator_after_duplicate_item' );
 
 		$this->assertTrue( $fired );
 	}
@@ -267,13 +267,13 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_snapshot_limit_is_enforced(): void {
 		$menu_id = $this->create_menu_with_items( 'Menu', 1 );
 
-		add_filter( 'swmd_snapshot_limit', static fn () => 3 );
+		add_filter( 'swift_menu_duplicator_snapshot_limit', static fn () => 3 );
 
 		for ( $i = 1; $i <= 5; ++$i ) {
 			$this->duplicator->save_snapshot( $menu_id, "Snap {$i}" );
 		}
 
-		remove_all_filters( 'swmd_snapshot_limit' );
+		remove_all_filters( 'swift_menu_duplicator_snapshot_limit' );
 
 		$snapshots = $this->duplicator->get_snapshots( $menu_id );
 
@@ -399,7 +399,7 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 		$menu_id = $this->create_menu_with_items( 'Filter Test', 1 );
 
 		add_filter(
-			'swmd_export_payload',
+			'swift_menu_duplicator_export_payload',
 			static function ( array $payload ): array {
 				$payload['custom_key'] = 'custom_value';
 				return $payload;
@@ -408,9 +408,179 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 
 		$payload = $this->duplicator->export( $menu_id );
 
-		remove_all_filters( 'swmd_export_payload' );
+		remove_all_filters( 'swift_menu_duplicator_export_payload' );
 
 		$this->assertArrayHasKey( 'custom_key', $payload );
 		$this->assertEquals( 'custom_value', $payload['custom_key'] );
+	}
+
+	// -----------------------------------------------------------------------
+	// Item descriptions (post_content).
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers Menu_Duplicator::duplicate
+	 */
+	public function test_duplicate_preserves_item_description(): void {
+		$menu_id = $this->create_menu_with_items( 'Described Menu', 1 );
+		$items   = wp_get_nav_menu_items( $menu_id );
+
+		wp_update_post(
+			array(
+				'ID'           => $items[0]->ID,
+				'post_content' => 'Shown under the item title.',
+			)
+		);
+
+		$new_menu_id = $this->duplicator->duplicate( $menu_id );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		$this->assertSame( 'Shown under the item title.', $new_items[0]->post_content );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::duplicate_item
+	 */
+	public function test_duplicate_item_preserves_description(): void {
+		$menu_id = $this->create_menu_with_items( 'Item Description Menu', 1 );
+		$items   = wp_get_nav_menu_items( $menu_id );
+
+		wp_update_post(
+			array(
+				'ID'           => $items[0]->ID,
+				'post_content' => 'Item level description.',
+			)
+		);
+
+		$new_item_id = $this->duplicator->duplicate_item( $items[0]->ID, $menu_id );
+
+		$this->assertIsInt( $new_item_id );
+		$this->assertSame( 'Item level description.', get_post( $new_item_id )->post_content );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::export
+	 */
+	public function test_export_includes_item_description(): void {
+		$menu_id = $this->create_menu_with_items( 'Export Description Menu', 1 );
+		$items   = wp_get_nav_menu_items( $menu_id );
+
+		wp_update_post(
+			array(
+				'ID'           => $items[0]->ID,
+				'post_content' => 'Exported description.',
+			)
+		);
+
+		$payload = $this->duplicator->export( $menu_id );
+
+		$this->assertArrayHasKey( 'content', $payload['items'][0] );
+		$this->assertSame( 'Exported description.', $payload['items'][0]['content'] );
+	}
+
+	// -----------------------------------------------------------------------
+	// Snapshot restore.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_puts_back_removed_items(): void {
+		$menu_id = $this->create_menu_with_items( 'Restore Source', 3 );
+
+		$this->duplicator->save_snapshot( $menu_id, 'Full menu' );
+		$snapshot_id = $this->duplicator->get_snapshots( $menu_id )[0]['id'];
+
+		foreach ( wp_get_nav_menu_items( $menu_id ) as $item ) {
+			wp_delete_post( $item->ID, true );
+		}
+
+		$restored = $this->duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+		$this->assertSame( 3, $restored );
+		$this->assertCount( 3, wp_get_nav_menu_items( $menu_id ) );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_keeps_the_same_menu_term(): void {
+		$menu_id = $this->create_menu_with_items( 'Same Term Menu', 2 );
+
+		$this->duplicator->save_snapshot( $menu_id, 'Snapshot' );
+		$snapshot_id = $this->duplicator->get_snapshots( $menu_id )[0]['id'];
+
+		$this->duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+		$this->assertInstanceOf( \WP_Term::class, get_term( $menu_id, 'nav_menu' ) );
+		$this->assertSame( 'Same Term Menu', get_term( $menu_id, 'nav_menu' )->name );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_preserves_hierarchy(): void {
+		$menu_id = $this->create_nested_menu( 'Nested Restore' );
+
+		$this->duplicator->save_snapshot( $menu_id, 'Nested snapshot' );
+		$snapshot_id = $this->duplicator->get_snapshots( $menu_id )[0]['id'];
+
+		foreach ( wp_get_nav_menu_items( $menu_id ) as $item ) {
+			wp_delete_post( $item->ID, true );
+		}
+
+		$this->duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+		$items    = wp_get_nav_menu_items( $menu_id );
+		$children = array_filter( $items, static fn ( $i ) => 0 !== (int) $i->menu_item_parent );
+
+		$this->assertCount( 2, $items );
+		$this->assertCount( 1, $children );
+
+		$child       = array_values( $children )[0];
+		$parent_ids  = wp_list_pluck( $items, 'ID' );
+
+		$this->assertContains( (int) $child->menu_item_parent, $parent_ids );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_saves_a_safety_snapshot_first(): void {
+		$menu_id = $this->create_menu_with_items( 'Safety Net Menu', 1 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshots' );
+
+		$this->duplicator->save_snapshot( $menu_id, 'Original' );
+		$snapshot_id = $this->duplicator->get_snapshots( $menu_id )[0]['id'];
+
+		$this->duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+		$snapshots = $this->duplicator->get_snapshots( $menu_id );
+
+		$this->assertCount( 2, $snapshots );
+		$this->assertStringContainsString( 'before restore', $snapshots[0]['label'] );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_with_unknown_id_returns_error(): void {
+		$menu_id = $this->create_menu_with_items( 'Unknown Snapshot', 1 );
+
+		$result = $this->duplicator->restore_snapshot( $menu_id, 'no-such-uuid' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertEquals( 'invalid_snapshot', $result->get_error_code() );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::restore_snapshot
+	 */
+	public function test_restore_snapshot_with_invalid_menu_returns_error(): void {
+		$result = $this->duplicator->restore_snapshot( 99999, 'any-uuid' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertEquals( 'invalid_menu', $result->get_error_code() );
 	}
 }
