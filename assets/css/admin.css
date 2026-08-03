@@ -64,11 +64,18 @@
 
 /* ── Snapshot panel ─────────────────────────────────────────── */
 #swmd-snapshot-panel {
+
+	/*
+	 * Sits below the admin bar rather than under it: the bar is fixed at a
+	 * higher z-index, so a panel starting at top:0 has its own header covered.
+	 * Core exposes the bar's height as a custom property, which also tracks
+	 * the taller mobile bar.
+	 */
 	position: fixed;
-	top: 0;
+	top: var(--wp-admin--admin-bar--height, 32px);
 	right: -320px;
 	width: 300px;
-	height: 100vh;
+	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
 	background: #fff;
 	border-left: 1px solid #c3c4c7;
 	box-shadow: -2px 0 8px rgba(0,0,0,.1);
