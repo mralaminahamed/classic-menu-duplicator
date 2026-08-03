@@ -50,6 +50,8 @@ Thumbs.db
 # Testing
 /coverage/
 /test-results/
+/playwright-report/
+tests/e2e/.auth/
 /tmp/
 .*.result.cache
 

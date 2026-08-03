@@ -1,8 +1,13 @@
-# Build the WordPress.org brand assets (icons + banners) from the SVG masters
-# in .wordpress-org/ and surface the resulting PNGs as a workflow artifact.
+# Build the WordPress.org brand assets (icon + banners) from their sources and
+# surface the resulting PNGs as a workflow artifact.
+#
+# The icon comes from .wordpress-org/icon.svg and the banners from
+# resources/brand/banner.html; both are rendered by Playwright — see
+# .wordpress-org/BRAND.md §6. Screenshots are NOT built here: they are captured
+# from a live WordPress admin, which CI has no access to.
 #
 # Trigger:
-#   - on push to main when any SVG master or the build script changes
+#   - on push to trunk when a source or the rendering spec changes
 #   - manually via workflow_dispatch
 #   - as a reusable workflow (workflow_call) so the release pipeline can chain
 #     this job in front of the SVN deploy step
@@ -15,8 +20,10 @@ on:
   push:
     branches: [ trunk ]
     paths:
-      - '.wordpress-org/*.draft.svg'
-      - 'bin/build-brand-assets.sh'
+      - '.wordpress-org/icon.svg'
+      - 'resources/brand/**'
+      - 'tests/e2e/assets/wporg-brand.spec.ts'
+      - 'playwright*.config.ts'
       - '.github/workflows/brand-assets.yml'
   workflow_dispatch:
   workflow_call:
@@ -30,37 +37,62 @@ permissions:
 
 jobs:
   build:
-    name: Rasterise SVG masters to PNG
+    name: Render icon and banners
     runs-on: ubuntu-latest
-
     outputs:
-      artifact-name: brand-assets
+      artifact-name: ${{ steps.meta.outputs.artifact-name }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      # `act`-compatible guard: skip apt-get when running locally with act,
-      # which boots a slim image and may already carry the tooling.
-      - name: Install rasterisation tooling
-        if: ${{ !env.ACT }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y \
-            librsvg2-bin \
-            oxipng \
-            imagemagick
-
-      - name: Validate SVG inputs
-        run: bash bin/build-brand-assets.sh --check
-
-      - name: Build PNG assets
-        run: bash bin/build-brand-assets.sh
-
-      - name: Upload brand-assets artifact
-        uses: actions/upload-artifact@v7
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          name: brand-assets
-          path: .wordpress-org/*.png
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # The local pipeline uses `channel: 'chrome'` so contributors do not need
+      # a browser download; CI has no Chrome, so install Playwright's Chromium
+      # and point the run at it.
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Render brand assets
+        run: yarn playwright test --config=playwright.wporg-shots.config.ts --project=brand
+        env:
+          PLAYWRIGHT_CHROMIUM_CHANNEL: ''
+
+      - name: Verify output dimensions
+        run: |
+          set -euo pipefail
+          sudo apt-get update && sudo apt-get install -y imagemagick
+          check() {
+            actual="$(identify -format '%wx%h' "$1")"
+            if [ "$actual" != "$2" ]; then
+              echo "::error::$1 is $actual, expected $2"
+              exit 1
+            fi
+            echo "$1 $actual OK"
+          }
+          check .wordpress-org/icon-256x256.png 256x256
+          check .wordpress-org/icon-128x128.png 128x128
+          check .wordpress-org/banner-1544x500.png 1544x500
+          check .wordpress-org/banner-772x250.png 772x250
+
+      - name: Name the artifact
+        id: meta
+        run: echo "artifact-name=brand-assets-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload brand assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact-name }}
+          path: |
+            .wordpress-org/icon-*.png
+            .wordpress-org/banner-*.png
           if-no-files-found: error
-          retention-days: 30

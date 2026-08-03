@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Swift Menu Duplicator — directory banner</title>
+<!--
+	Source markup for the WordPress.org banners.
+
+	Rendered to PNG by tests/e2e/assets/wporg-brand.spec.ts at both required
+	sizes. The layout is driven by CSS custom properties on .banner so the
+	1544x500 and 772x250 versions stay the same composition rather than one
+	being a squashed copy of the other.
+
+	Colour and type tokens mirror .wordpress-org/BRAND.md.
+-->
+<style>
+	*, *::before, *::after { box-sizing: border-box; }
+
+	html, body {
+		margin: 0;
+		padding: 0;
+		background: #0B1220;
+	}
+
+	.banner {
+		--pad-x: 88px;
+		--wordmark: 74px;
+		--tagline: 26px;
+		--pill: 17px;
+		--gap: 24px;
+		--card-w: 210px;
+		--card-h: 262px;
+
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		width: 1544px;
+		height: 500px;
+		padding: 0 var(--pad-x);
+		overflow: hidden;
+		background:
+			radial-gradient(90% 140% at 76% 50%, rgba(34, 211, 238, .18) 0%, rgba(34, 211, 238, 0) 60%),
+			linear-gradient(160deg, #0F172A 0%, #0B1220 100%);
+		font-family: Inter, 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+		color: #fff;
+	}
+
+	/* 772x250 — same composition, every measure halved. */
+	.banner.is-narrow {
+		--pad-x: 44px;
+		--wordmark: 37px;
+		--tagline: 13px;
+		--pill: 10px;
+		--gap: 12px;
+		--card-w: 105px;
+		--card-h: 131px;
+
+		width: 772px;
+		height: 250px;
+	}
+
+	/* A hairline of brand cyan along the top edge. */
+	.banner::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: 4px;
+		background: linear-gradient(90deg, #22D3EE 0%, #3B82F6 45%, transparent 100%);
+	}
+
+	.copy {
+		position: relative;
+		z-index: 1;
+		/* Optical, not mathematical: the cyan top rule pulls the eye upward. */
+		padding-top: calc(var(--gap) * .5);
+		max-width: 66%;
+	}
+
+	.wordmark {
+		margin: 0;
+		font-size: var(--wordmark);
+		font-weight: 800;
+		letter-spacing: -.025em;
+		line-height: 1.02;
+		white-space: nowrap;
+	}
+
+	.wordmark .accent {
+		background: linear-gradient(90deg, #22D3EE, #38BDF8);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.tagline {
+		margin: calc(var(--gap) * .7) 0 0;
+		font-size: var(--tagline);
+		font-weight: 400;
+		line-height: 1.35;
+		color: rgba(255, 255, 255, .74);
+	}
+
+	.pills {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: calc(var(--gap) * .42);
+		margin: var(--gap) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pills li {
+		padding: calc(var(--pill) * .48) calc(var(--pill) * 1);
+		font-size: var(--pill);
+		font-weight: 600;
+		white-space: nowrap;
+		color: rgba(255, 255, 255, .9);
+		background: rgba(255, 255, 255, .07);
+		border: 1px solid rgba(255, 255, 255, .13);
+		border-radius: 999px;
+	}
+
+	/*
+	 * Right-hand visual: the icon's idea at scale — one menu card, and a copy
+	 * of it emerging from behind. Both cards sit fully inside the canvas; the
+	 * banner gets cropped on some WordPress.org views, so nothing important
+	 * may touch an edge.
+	 */
+	.stack {
+		position: absolute;
+		top: 50%;
+		right: var(--pad-x);
+		display: flex;
+		align-items: center;
+		transform: translateY(-50%);
+	}
+
+	.card {
+		width: var(--card-w);
+		height: var(--card-h);
+		padding: calc(var(--card-w) * .13);
+		background: #fff;
+		border-radius: calc(var(--card-w) * .1);
+		box-shadow: 0 28px 70px rgba(0, 0, 0, .5);
+	}
+
+	.card.is-back {
+		position: absolute;
+		right: calc(var(--card-w) * -.28);
+		background: linear-gradient(135deg, #3B82F6, #1E40AF);
+		opacity: .5;
+		transform: rotate(8deg);
+	}
+
+	.card.is-front {
+		position: relative;
+		z-index: 1;
+		transform: rotate(-3deg);
+	}
+
+	.row {
+		height: calc(var(--card-h) * .073);
+		margin-bottom: calc(var(--card-h) * .07);
+		background: linear-gradient(90deg, #22D3EE, #0EA5E9);
+		border-radius: 999px;
+	}
+
+	.row.is-short { width: 60%; }
+	.row.is-pale { background: #E2E8F0; }
+	.row:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+	<div class="banner" id="banner">
+		<div class="copy">
+			<h1 class="wordmark">Swift Menu <span class="accent">Duplicator</span></h1>
+			<p class="tagline">Clone any navigation menu in one click — every item, every level.</p>
+			<ul class="pills">
+				<li>Snapshots &amp; undo</li>
+				<li>Export / import JSON</li>
+				<li>Block themes</li>
+				<li>WP-CLI &amp; REST</li>
+			</ul>
+		</div>
+
+		<div class="stack" aria-hidden="true">
+			<div class="card is-back"></div>
+			<div class="card is-front">
+				<div class="row"></div>
+				<div class="row is-short"></div>
+				<div class="row"></div>
+				<div class="row is-pale is-short"></div>
+				<div class="row is-pale"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
