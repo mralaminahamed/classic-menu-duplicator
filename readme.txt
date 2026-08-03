@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.7
+Stable tag:        1.0.8
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -182,13 +182,19 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Screenshots ==
 
-1. Duplicate Menu button in the menu editor footer.
-2. Menu Manager page — sortable list of all menus with bulk actions.
-3. Snapshot panel in the menu editor — browse, restore, and delete revisions.
-4. JSON import form with URL find & replace and dry-run preview.
-5. WP-CLI `duplicate` and `export` commands in a terminal.
+1. Duplicating a menu from the menu editor — name the copy before it is created.
+2. Menu Manager — every menu on the site, with item and snapshot counts, sortable columns, and bulk actions.
+3. Snapshot panel in the menu editor — save, browse, restore, and delete revisions.
+4. JSON import with URL find & replace, for moving menus between environments.
+5. Deleting a menu can be undone, theme locations included.
 
 == Changelog ==
+
+= 1.0.8 =
+* Fix: The snapshot panel started at the top of the window, so the WordPress admin bar covered its heading and close button. It now sits below the bar and tracks the taller mobile bar automatically.
+* Changed: New plugin icon. The previous mark read as "fast" but said nothing about menus or duplication; the new one combines the two symbols the audience already knows — stacked bars for a menu, an offset card for a copy — and stays legible down to a 16px favicon.
+* Changed: New banners and fresh screenshots showing the current interface, including the Menu Manager columns, the styled import screen, and the undo notice.
+* Changed: Directory assets are now rendered by Playwright from their sources (`yarn assets:brand`, `yarn assets:shots`) rather than by the old PHP/Imagick scripts, so they can be regenerated after any UI change with one command.
 
 = 1.0.7 =
 * Feature: **Deleting a menu can now be undone.** The menu is captured before deletion — including which theme locations it occupied — and an Undo link appears while it is still recoverable (one hour by default, filterable via `swift_menu_duplicator_undo_ttl`). Restoring recreates the menu, its items, and its location assignments. Covers the Menu Manager's bulk delete, the row Delete action, and the Delete Menu button in the menu editor.
@@ -265,6 +271,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.8 =
+Fixes the snapshot panel being partly hidden behind the admin bar, and refreshes the plugin icon, banners, and screenshots.
 
 = 1.0.7 =
 Deleting a menu is no longer permanent: it is captured beforehand and can be restored — with its theme locations — for an hour afterwards.

@@ -17,7 +17,7 @@
  * Plugin Name:       Swift Menu Duplicator
  * Plugin URI:        https://github.com/mralaminahamed/swift-menu-duplicator
  * Description:       Duplicate menus and items, snapshot revisions, export/import JSON, bulk-manage menus, copy across multisite, automate via WP-CLI or REST.
- * Version:           1.0.7
+ * Version:           1.0.8
  * Author:            Al Amin Ahamed
  * Author URI:        https://github.com/mralaminahamed
  * License:           GPL-2.0-or-later
@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SWIFT_MENU_DUPLICATOR_VERSION', '1.0.7' );
+define( 'SWIFT_MENU_DUPLICATOR_VERSION', '1.0.8' );
 define( 'SWIFT_MENU_DUPLICATOR_FILE', __FILE__ );
 define( 'SWIFT_MENU_DUPLICATOR_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_MENU_DUPLICATOR_URL', plugin_dir_url( __FILE__ ) );
