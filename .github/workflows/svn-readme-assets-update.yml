@@ -25,12 +25,15 @@ jobs:
       # has no .distignore equivalent for the assets folder, so the
       # filtering happens here and the action is pointed at the staged dir.
       - name: Stage WordPress.org assets
-        run: bash bin/stage-wp-org-assets.sh
+        run: bash resources/scripts/stage-wp-org-assets.sh
 
       - name: WordPress.org plugin asset/readme update
         uses: 10up/action-wordpress-plugin-asset-update@stable
         env:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-          IGNORE_OTHER_FILES: true
+          # Mirror, do not merge: anything in the SVN assets directory that is
+          # not in the staged payload is removed. Without this the 1.0.1-era
+          # icon, banners, and screenshots would linger alongside the new ones.
+          IGNORE_OTHER_FILES: false
           ASSETS_DIR: .wp-org-staged

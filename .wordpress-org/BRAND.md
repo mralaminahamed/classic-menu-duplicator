@@ -10,6 +10,17 @@ The WordPress.org plugin directory consumes the following files from this folder
 
 | File | Dimensions | Purpose | Source |
 |---|---|---|---|
+| `icon.svg` | vector | Canonical vector icon. WordPress.org consumes this directly when present. | Authored here (production master) |
+| `icon-256x256.png` | 256×256 | Directory hero icon (retina) | Rasterised from `icon.svg` |
+| `icon-128x128.png` | 128×128 | Directory thumbnail | Rasterised from `icon.svg` |
+| `banner-1544x500.png` | 1544×500 | Desktop directory banner (retina) | Rendered from `resources/brand/banner.html` |
+| `banner-772x250.png` | 772×250 | Mobile / non-retina banner | Rendered from the same markup at the narrow variant |
+| `screenshot-1.png` … `screenshot-5.png` | 1440×900 | Feature screenshots | Captured from a live admin |
+
+Everything in this folder is generated — see §6. `icon.svg` and
+`resources/brand/banner.html` are the only files edited by hand.
+
+---|---|---|---|
 | `icon.svg` | vector | Canonical vector icon. WordPress.org plugin directory consumes this directly when available. | Authored in this folder (production master) |
 | `icon-256x256.png` | 256×256 | Directory hero icon (retina) | Rasterised from `icon.svg` |
 | `icon-128x128.png` | 128×128 | Directory thumbnail | Rasterised from `icon.svg` |
@@ -70,35 +81,56 @@ A single soft shadow is permitted on cards and the central icon stack: `0 3–10
 
 ## 3. Icon Construction
 
-The icon direction is **Brand Monogram — Twin Chevron**, locked in on 2026-05-22 and stored as `.wordpress-org/icon.svg`. It is the production master; do not author alternative icon directions in this folder.
-
-The icon carries two simultaneous semantic signals:
-
-1. **"Swift"** — the chevron is the universal fast-forward / forward-motion glyph; the doubled form reads as *speed*.
-2. **"Duplicate"** — the second chevron offset behind the first reinforces the duplication idea without needing any literal menu illustration.
+The icon direction is **Menu + Offset Copy**, locked in on 2026-08-03 and
+stored as `.wordpress-org/icon.svg`. It is the production master; do not
+author alternative icon directions in this folder.
 
 ### Why this direction was chosen
 
-The earlier *Hierarchy Clone* icon (a literal picture of a menu with a duplicate badge) was technically competent but strategically average — it told viewers what the plugin did but did not establish a *brand*. Comparing against the leading WordPress plugins (Yoast, Elementor, Duplicator), every top-tier plugin uses an *abstract brand mark* rather than a UI illustration. The Twin Chevron follows that pattern: it works as a logo on a sticker, a slide deck, a marketing site, or a favicon — not just inside the WordPress plugin directory listing. It also ages cleanly because it does not depend on current WordPress admin styling.
+The mark combines the two glyphs its audience already knows:
+
+1. **Three stacked bars on a card** — the menu idiom. Every WordPress user
+   reads it as "a navigation menu" without being taught.
+2. **A second card offset behind it** — the copy idiom every desktop operating
+   system uses for duplicate.
+
+Together they state the plugin's promise in one shape: *this menu, and a copy
+of it*. The previous direction (Twin Chevron) was a competent abstract mark,
+but it communicated "fast" and nothing else — neither *menu* nor *duplicate*
+was legible in it, so the icon carried no meaning a first-time browser of the
+directory could decode. Icon guidance is consistent on this point: if the
+symbolic association does not land within about five seconds, the link between
+word, action, and symbol is too weak to be worth the abstraction.
+
+The trade is deliberate. This mark is less "logo-like" than a monogram, but a
+plugin icon is not a company logo — it is a wayfinding device in a grid of
+several thousand competitors, and legibility beats abstraction there.
 
 ### Construction rules
 
-- **Squircle background**: 56px corner radius on the 256px master (22% of the canvas).
-- **Background gradient**: deep indigo `#1E1B4B` → near-black `#0B1220`, top-left to bottom-right.
-- **Front chevron**: stroked V, path `M 104 64 L 184 128 L 104 192`. Stroke width 36px. Round caps and joins. Gradient cyan `#22D3EE` → sky `#0EA5E9`. This is the primary mark.
-- **Back chevron**: same shape scaled to ~83%, path `M 72 84 L 132 128 L 72 172`. Stroke width 32px. Same round caps. Indigo gradient `#3B82F6` → `#1E40AF`. Opacity 0.55. Offset up-left of the front chevron.
-- **Shadow**: single soft shadow at opacity 0.4, 3px blur, 3px Y-offset. No glow, no inner shadow.
-- **Negative space**: the front chevron's apex must not sit closer than 30px to the right edge of the squircle; the open mouth of the chevron must not sit closer than 40px to the left edge. These margins keep the mark legible at 32px.
+Built entirely from rounded rectangles, so it survives every size it will be
+seen at — 256px in the directory hero, 128px in the listing grid, 32px in the
+Plugins screen, 16px in a browser tab.
 
-Changes to any of the above values require updating both the SVG and this rule list — the document is the contract.
-
----
+- **Background**: squircle, radius 56px at 256 (22% of the canvas), vertical
+  gradient `#0F172A` → `#0B1220`.
+- **Back card**: `x=96 y=52 w=108 h=132 r=16`, diagonal gradient `#3B82F6` →
+  `#1E40AF` at 55% opacity. It reads as *behind*, never as a second subject.
+- **Front card**: `x=52 y=72 w=124 h=132 r=18`, solid `#FFFFFF`. Pure white,
+  not tinted — the contrast against the dark ground is what makes the mark
+  visible at 32px.
+- **Menu bars**: three rounded bars, 14px tall, `r=7`, at `y=104 / 132 / 160`,
+  widths `80 / 56 / 80`, horizontal gradient `#22D3EE` → `#0EA5E9`. The short
+  middle bar is load-bearing: with three equal bars the shape reads as a
+  document, not a menu.
+- **Negative space**: no element may sit closer than 40px to the squircle edge
+  at the 256 master.
 
 ## 4. Banner Composition
 
 Both banner variants — 1544×500 and 772×250 — use the **same brand-forward composition**. They share the 3.088:1 aspect ratio (the mobile is geometrically a 50% scale of the desktop) and the same four-element arrangement:
 
-1. **Oversized Twin Chevron mark** (left, bleeding slightly off the top and bottom edges — treated as a hero brand object, not a small decorative icon)
+1. **Wordmark block** (left): plugin name, one-line tagline, and a row of capability pills. Held to 66% of the canvas width so it never collides with the visual.
 2. **Atmospheric glow** centred on the mark's visual centre — two concentric circles in cyan and indigo at low opacity
 3. **Two-line wordmark + cyan accent rule + single tagline** (right of the mark)
 4. **Credibility strip** along the bottom edge
@@ -120,9 +152,9 @@ The two banners are derived from a single specification. Every value is expresse
 | Glow inner | `r: 220` (44% of H), fill blue, opacity 0.10 | `r: 110` (same %), same fill / opacity | Proportional radius, fixed opacity |
 | Mark anchor | `translate(120, -10)` (7.8% W, -2% H) | `translate(60, -5)` (same %) | Mark vertical bleed proportional |
 | Mark visual height | ~328px (~66% of H) | ~164px (~66% of H) | Constant percentage of canvas height |
-| Front chevron stroke | 72 | 36 | 50% scale |
-| Back chevron stroke | 64 | 32 | 50% scale |
-| Back chevron opacity | 0.55 | 0.55 | Fixed across both |
+| Card width | 210 | 105 | 50% scale |
+| Card height | 262 | 131 | 50% scale |
+| Back card opacity | 0.5 | 0.5 | Fixed across both |
 | Wordmark anchor x | 720 (46.6% of W) | 360 (46.6% of W) | Same proportion |
 | Wordmark anchor y | 178 (35.6% of H) | 89 (35.6% of H) | Same proportion |
 | Wordmark font size | 86 | 43 | 50% scale |
@@ -201,56 +233,50 @@ The plugin code ZIP is a separate concern: `/.wordpress-org/` is already exclude
 
 ---
 
-## 6. Building the Production PNGs
+## 6. Building the Assets
 
-A POSIX shell script lives at `bin/build-brand-assets.sh`. It prefers `rsvg-convert` (lightweight, accurate) and falls back to `inkscape --export-type=png` if the former is not installed.
-
-### 6.1 Local prerequisites (macOS, Homebrew)
-
-```sh
-brew install librsvg     # provides rsvg-convert
-brew install oxipng      # optional, lossless PNG optimisation
-```
-
-### 6.2 Running the build
+Everything in this folder is produced by Playwright, driving a Chrome that is
+already installed — nothing to rasterise by hand, and no ImageMagick or
+librsvg dependency. The two commands are independent: the brand assets need
+no running site, the screenshots need a logged-in one.
 
 ```sh
-cd /path/to/swift-menu-duplicator
-bash bin/build-brand-assets.sh
+yarn install
+
+# icon-*.png and banner-*.png — renders local markup only
+yarn assets:brand
+
+# screenshot-*.png — drives a real WordPress admin
+WP_LOGIN_URL="$(wp login create admin --url-only)" yarn assets:shots
 ```
 
-The script:
+### 6.1 How it is wired
 
-1. Validates that all four SVG masters exist.
-2. Rasterises each at the exact pixel dimensions required by the WordPress.org plugin directory.
-3. Validates output dimensions with ImageMagick `identify` (or `file`, as a fallback).
-4. Runs `oxipng -o 4 --strip safe` on each output when `oxipng` is available — typically halves file size with no visual loss.
-5. Reports the final byte sizes and warns if any output exceeds 250 KB (the soft cap for a polite WP.org listing).
+| File | Role |
+|---|---|
+| `playwright.config.ts` | Base config: `WP_BASE_URL`, self-signed certs tolerated |
+| `playwright.wporg-shots.config.ts` | The `brand` and `shots` projects, viewport pinned to 1440×900 |
+| `tests/e2e/auth.setup.ts` | Signs in once, stores the session for `shots` |
+| `tests/e2e/assets/wporg-brand.spec.ts` | Icon PNGs from `icon.svg`; banners from `resources/brand/banner.html` |
+| `tests/e2e/assets/wporg-shots.spec.ts` | The five listing screenshots |
 
-### 6.3 GitHub Actions integration
+`channel: 'chrome'` is deliberate: it uses the installed browser instead of
+requiring `playwright install`, so the pipeline works on a laptop that
+already has Chrome.
 
-Add the following job to the existing release workflow (between `lint` and the SVN deploy step):
+### 6.2 Authentication
 
-```yaml
-build-brand-assets:
-  runs-on: ubuntu-latest
-  needs: lint
-  steps:
-    - uses: actions/checkout@v6
-    - name: Install rasterisation tooling
-      run: sudo apt-get update && sudo apt-get install -y librsvg2-bin oxipng
-    - name: Build brand assets
-      run: bash bin/build-brand-assets.sh
-    - name: Upload brand assets
-      uses: actions/upload-artifact@v7
-      with:
-        name: brand-assets
-        path: .wordpress-org/*.png
-```
+`auth.setup.ts` takes either a one-time magic link (`WP_LOGIN_URL`, e.g. from
+`wp login create <user> --url-only`) or `WP_ADMIN_USER` + `WP_ADMIN_PASS`. No
+credential is ever written to the repository; the session lands in
+`tests/e2e/.auth/`, which is git-ignored.
 
-The SVN deploy job should download the `brand-assets` artifact and copy the PNGs into the SVN `assets/` directory before commit.
+### 6.3 Regenerating after a UI change
 
----
+Any change to the Menu Manager, the snapshot panel, or the import screen
+invalidates the screenshots. Re-run `yarn assets:shots` and commit whatever
+changed — the captions in `readme.txt` are positional, so if a shot is added
+or removed the list there has to move with it.
 
 ## 7. Screenshot Standards
 
@@ -283,6 +309,7 @@ The following are explicitly outside the system. Reject any contribution that in
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-08-03 | Icon redirected to **Menu + Offset Copy**. The Twin Chevron read as "fast" but carried neither *menu* nor *duplicate*, so it told a directory browser nothing about the plugin. The new mark composes the two idioms its audience already knows — stacked bars for a menu, an offset card for a copy — and is built from primitives so it holds together down to 16px. Banners rebuilt around a wordmark block plus a single card-stack visual, rendered from HTML rather than hand-authored SVG. Asset pipeline moved to Playwright (see §6); the PHP/Imagick generators and the rejected concept drafts were removed. | Al Amin Ahamed |
 | 2026-05-22 | Initial brand system. Replaced misleading orange `+` icon with Hierarchy Clone direction. Banner restructured around proof (faux Menu Manager UI fragment) rather than feature-name pills. | Al Amin Ahamed |
 | 2026-05-22 | Added `bin/stage-wp-org-assets.sh` and wired it into both SVN workflows (`svn-readme-assets-update.yml`, `svn-deploy.yml`) so design drafts (`*.draft.svg`) and internal docs (`BRAND.md`) never reach WordPress.org SVN. | Al Amin Ahamed |
 | 2026-05-22 | Unified banner composition. Rebuilt the mobile banner to mirror the desktop layout (wordmark + tagline + lead pill + faux Menu Manager fragment + credibility strip) with size-tuned adaptations. The two banner files are now a paired set. | Al Amin Ahamed |

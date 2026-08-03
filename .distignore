@@ -8,6 +8,7 @@ yarn.*
 *.config.js
 *.config.mjs
 *.config.cjs
+*.config.ts
 
 # Development tools and configuration
 /.claude
