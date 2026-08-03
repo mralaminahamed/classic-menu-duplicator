@@ -200,6 +200,7 @@ class Menu_Admin_Ajax_Test extends WP_Ajax_UnitTestCase {
 	public function test_save_and_get_snapshots(): void {
 		$menu_id = $this->create_menu_with_items( 'Snapshot Menu', 2 );
 
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
 		delete_term_meta( $menu_id, '_swmd_snapshots' );
 
 		$this->login_as_menu_editor();
@@ -275,6 +276,7 @@ class Menu_Admin_Ajax_Test extends WP_Ajax_UnitTestCase {
 	public function test_delete_snapshot_removes_it(): void {
 		$menu_id = $this->create_menu_with_items( 'Delete Snapshot Menu', 1 );
 
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
 		delete_term_meta( $menu_id, '_swmd_snapshots' );
 
 		$duplicator = new Menu_Duplicator();
