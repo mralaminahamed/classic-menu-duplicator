@@ -5,7 +5,19 @@
  * @see https://github.com/WordPress/wordpress-develop/blob/trunk/wp-tests-config-sample.php
  */
 
-$wordpress_dir = dirname( __DIR__, 2 ) . '/wordpress/';
+/*
+ * Where WordPress core lives, in order of preference:
+ *
+ *   WP_PATH              explicit, used by CI where core is unpacked to /tmp
+ *   <plugin>/wordpress/  a checkout kept inside the plugin
+ *   five levels up       the site this plugin is installed into (local dev)
+ */
+$wordpress_dir = getenv( 'WP_PATH' ) ? rtrim( getenv( 'WP_PATH' ), '/' ) . '/' : '';
+
+if ( '' === $wordpress_dir || ! is_dir( $wordpress_dir ) ) {
+	$wordpress_dir = dirname( __DIR__, 2 ) . '/wordpress/';
+}
+
 if ( ! is_dir( $wordpress_dir ) ) {
 	$wordpress_dir = dirname( __DIR__, 5 ) . '/';
 }

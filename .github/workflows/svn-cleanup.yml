@@ -1,0 +1,140 @@
+name: SVN Cleanup
+
+# Deletes paths from the plugin's WordPress.org SVN — for when something that
+# should never have shipped reached trunk or a tag. Manual only, and it commits
+# to a public directory, so the dry run is the default and has to be turned off
+# deliberately.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "SVN target — 'trunk', 'assets', or a tag e.g. 'tags/1.1.0'"
+        required: true
+        default: "trunk"
+      paths:
+        description: "Space-separated paths to delete (e.g. tests resources composer.json)"
+        required: true
+      dry_run:
+        # Defaults to a preview. This commits deletions to a public SVN
+        # repository, and the cost of an accidental run is higher than the cost
+        # of running it twice.
+        description: "Dry run — preview deletions without committing"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+# Read-only against this repository; the SVN credentials are what grant write,
+# and they go to WordPress.org.
+permissions:
+  contents: read
+
+# Never two SVN conversations at once, and never interrupt one mid-commit.
+concurrency:
+  group: svn-cleanup
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cleanup:
+    name: "Remove paths from SVN ${{ inputs.target }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Install Subversion
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y subversion
+
+      - name: Check out the SVN target (immediates only)
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          PLUGIN_SLUG="swift-menu-duplicator"
+
+          case "$TARGET" in
+            trunk|assets|tags/*) ;;
+            *) echo "::error::target must be 'trunk', 'assets', or 'tags/<version>' — got '$TARGET'."; exit 1 ;;
+          esac
+
+          # --depth immediates: one level is enough to delete a path, and a full
+          # checkout of a plugin with history is needlessly slow.
+          svn checkout \
+            --depth immediates \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
+            --no-auth-cache --non-interactive \
+            "https://plugins.svn.wordpress.org/${PLUGIN_SLUG}/${TARGET}" svn-work
+
+      - name: Preview or delete
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          TARGET:  ${{ inputs.target }}
+          PATHS:   ${{ inputs.paths }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          cd svn-work
+
+          FOUND=0
+          MISSING=0
+
+          # Read the paths as words, never as code: this input is attacker-
+          # controlled in principle and must not reach a shell as a command.
+          for p in $PATHS; do
+            case "$p" in
+              /*|*..*)
+                echo "::error::Refusing path '$p' — must be relative and must not traverse upward."
+                exit 1
+                ;;
+            esac
+
+            if [ -e "$p" ]; then
+              echo "  will delete: $p"
+              FOUND=$(( FOUND + 1 ))
+            else
+              echo "  not present: $p"
+              MISSING=$(( MISSING + 1 ))
+            fi
+          done
+
+          echo "$FOUND path(s) present, $MISSING absent."
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "::notice::Nothing to delete in ${TARGET}."
+            exit 0
+          fi
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "::notice::Dry run — nothing was committed. Re-run with dry_run=false to apply."
+            exit 0
+          fi
+
+          for p in $PATHS; do
+            [ -e "$p" ] && svn rm --force "$p"
+          done
+
+          svn commit \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
+            --no-auth-cache --non-interactive \
+            -m "Remove ${PATHS} from ${TARGET}"
+
+      - name: Summary
+        if: always()
+        env:
+          TARGET:  ${{ inputs.target }}
+          PATHS:   ${{ inputs.paths }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          {
+            echo "## SVN cleanup"
+            echo "- Target: \`${TARGET}\`"
+            echo "- Paths: \`${PATHS}\`"
+            echo "- Dry run: \`${DRY_RUN}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

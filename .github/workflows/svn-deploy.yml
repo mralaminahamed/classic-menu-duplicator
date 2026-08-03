@@ -3,11 +3,14 @@ name: Release Plugin to WP.org
 on:
   push:
     tags:
-      - "*"
+      # `1.1.0` is the convention here; a leading `v` is tolerated because the
+      # meta job strips it before comparing against the plugin header.
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+      - "[0-9]+.[0-9]+.[0-9]+*"
   # Manual re-run, for when a tag push produced no run (Actions disabled at the
-  # time, an outage, or a deploy that needs repeating). Dispatch against the
-  # tag itself — `gh workflow run svn-deploy.yml --ref 1.1.0` — or pass the tag
-  # explicitly when dispatching from a branch.
+  # time, an outage, or a deploy that needs repeating). Dispatch against the tag
+  # ref — `gh workflow run svn-deploy.yml --ref 1.1.0` — or pass it explicitly
+  # when dispatching from a branch.
   workflow_dispatch:
     inputs:
       tag:
@@ -16,115 +19,352 @@ on:
         type: string
 
 permissions:
-  contents: write # needed to create GitHub release
+  contents: write # Required to create a GitHub release
 
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
+defaults:
+  run:
+    shell: bash
+
+# ---------------------------------------------------------------------------
+# Pipeline DAG:
+#
+#   meta ──┬── lint ────┐
+#          ├── analyze ─┤
+#          ├── test ────┤
+#          └── i18n ────┴── package ── deploy
+#
+#   meta    : resolve slug, validate tag == plugin header version, prerelease flag
+#   lint    : PHPCS (WordPress standard)          — gate, parallel
+#   analyze : PHPStan                             — gate, parallel
+#   test    : PHPUnit against real WordPress      — gate, parallel
+#   i18n    : wp i18n make-pot -> languages/      — producer, parallel
+#   package : composer --no-dev + .distignore rsync -> dist/<slug>, zip. Waits
+#             on the gates too, so a rejected commit is never packaged.
+#   deploy  : 10up SVN deploy (BUILD_DIR) + staged assets + GitHub release
+#
+# This was a single job running every step in sequence, so a PHPCS failure was
+# discovered only after the whole build had run — and the test suite never ran
+# at release time at all.
+# ---------------------------------------------------------------------------
 jobs:
-  release:
-    name: Release
+
+  # -------------------------------------------------------------------------
+  # JOB 1 — meta: resolve plugin identifiers and validate tag/version.
+  # -------------------------------------------------------------------------
+  meta:
+    name: "Meta: validate version"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plugin_slug: ${{ steps.info.outputs.plugin_slug }}
+      version:     ${{ steps.info.outputs.version }}
+      tag:         ${{ steps.info.outputs.tag }}
+      prerelease:  ${{ steps.info.outputs.prerelease }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v6
 
-      - name: Set plugin name
-        id: plugin_name
-        run: |
-          # Pinned to the published WordPress.org slug so the deploy targets the
-          # correct SVN repo and main plugin file regardless of the GitHub repo name.
-          PLUGIN_SLUG="swift-menu-duplicator"
-          PLUGIN_FILE="${PLUGIN_SLUG}.php"
-          # Convert kebab-case to Title Case for display
-          PLUGIN_NAME=$(echo "$PLUGIN_SLUG" | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
-          echo "plugin_slug=$PLUGIN_SLUG" >> $GITHUB_OUTPUT
-          echo "plugin_file=$PLUGIN_FILE" >> $GITHUB_OUTPUT
-          echo "plugin_name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
-
-      - name: Validate tag and plugin version alignment
-        id: version_check
+      - name: Resolve slug and validate the tag matches the plugin header
+        id: info
         env:
           INPUT_TAG: ${{ inputs.tag }}
         run: |
+          # Pinned to the published WordPress.org slug so the deploy targets the
+          # right SVN repository regardless of what the GitHub repo is called.
+          SLUG="swift-menu-duplicator"
+          FILE="${SLUG}.php"
+          [ -f "$FILE" ] || { echo "::error::Plugin main file '$FILE' not found."; exit 1; }
+
           if [ -n "${INPUT_TAG}" ]; then
-            TAG_REF="${INPUT_TAG}"
+            TAG="${INPUT_TAG}"
           else
-            TAG_REF="${GITHUB_REF#refs/tags/}"
+            TAG="${GITHUB_REF#refs/tags/}"
           fi
+
           # A dispatch from a branch with no tag input has nothing to validate.
-          if [ "${TAG_REF}" = "${GITHUB_REF}" ]; then
-            echo "Not a tag ref and no tag input supplied — pass one via workflow_dispatch." >&2
+          if [ "${TAG}" = "${GITHUB_REF}" ]; then
+            echo "::error::Not a tag ref and no tag input supplied — pass one via workflow_dispatch."
             exit 1
           fi
-          # Strip leading v if present
-          if [[ "$TAG_REF" =~ ^v ]]; then TAG_STRIPPED=${TAG_REF#v}; else TAG_STRIPPED=$TAG_REF; fi
-          # Extract Version from plugin header (first match)
-          PLUGIN_VERSION=$(grep -E "^[[:space:]]*\*[[:space:]]*Version:" ${{ steps.plugin_name.outputs.plugin_file }} | head -n1 | sed -E 's/.*Version:[[:space:]]*([^ ]+).*/\1/')
-          echo "Tag: $TAG_REF";
-          echo "Stripped Tag: $TAG_STRIPPED";
-          echo "Plugin Version: $PLUGIN_VERSION";
-          if [ -z "$PLUGIN_VERSION" ]; then echo "Could not determine plugin version from ${{ steps.plugin_name.outputs.plugin_file }}"; exit 1; fi
-          if [ "$PLUGIN_VERSION" != "$TAG_STRIPPED" ]; then echo "Version mismatch: tag ($TAG_STRIPPED) != plugin header ($PLUGIN_VERSION)"; exit 1; fi
-          echo "version=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Ensure composer.lock is present
+          VERSION="${TAG#v}"
+
+          HEADER=$(grep -E "^[[:space:]]*\*[[:space:]]*Version:" "$FILE" | head -n1 \
+            | sed -E 's/.*Version:[[:space:]]*([^ ]+).*/\1/')
+          [ -n "$HEADER" ] || { echo "::error::Could not read Version from $FILE."; exit 1; }
+
+          if [ "$HEADER" != "$VERSION" ]; then
+            echo "::error::Version mismatch: tag ($VERSION) != plugin header ($HEADER)."
+            exit 1
+          fi
+
+          # readme.txt decides what wp.org actually serves, so a Stable tag that
+          # disagrees with the release ships a zip nobody receives.
+          STABLE=$(grep -E "^Stable tag:" readme.txt | head -n1 | awk '{print $3}')
+          if [ "$STABLE" != "$VERSION" ]; then
+            echo "::error::readme.txt Stable tag ($STABLE) != release version ($VERSION)."
+            exit 1
+          fi
+
+          case "$VERSION" in
+            *-*|*alpha*|*beta*|*rc*) PRERELEASE=true ;;
+            *)                       PRERELEASE=false ;;
+          esac
+
+          {
+            echo "plugin_slug=$SLUG"
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+            echo "prerelease=$PRERELEASE"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Releasing $SLUG $VERSION (tag $TAG, prerelease=$PRERELEASE)"
+
+  # -------------------------------------------------------------------------
+  # JOB 2 — lint: PHPCS. A gate.
+  # -------------------------------------------------------------------------
+  lint:
+    name: "Lint: PHPCS"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: meta
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          coverage: none
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Run PHP CodeSniffer
+        run: composer lint
+
+  # -------------------------------------------------------------------------
+  # JOB 3 — analyze: PHPStan. A gate.
+  # -------------------------------------------------------------------------
+  analyze:
+    name: "PHPStan: static analysis"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: meta
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          coverage: none
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Run PHPStan
+        run: composer analyze
+
+  # -------------------------------------------------------------------------
+  # JOB 4 — test: PHPUnit against real WordPress. A gate.
+  #
+  # One PHP version here, not the full CI matrix: the matrix belongs on every
+  # push, and a release only needs to prove the declared floor still works.
+  # -------------------------------------------------------------------------
+  test:
+    name: "Tests: PHPUnit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: meta
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wp_phpunit_tests
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          coverage: none
+          extensions: mysqli, json, zip
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Install WordPress for testing
         run: |
-          if [ ! -f composer.lock ]; then
-            echo "composer.lock is missing. Please commit it before tagging a release." >&2
+          wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz
+          mkdir -p /tmp/wordpress
+          tar xzf /tmp/wordpress.tar.gz -C /tmp/wordpress --strip-components=1
+      - name: Run PHPUnit
+        env:
+          WP_DB_NAME:      wp_phpunit_tests
+          WP_DB_USER:      root
+          WP_DB_PASS:      root
+          WP_DB_HOST:      127.0.0.1
+          WP_PHPUNIT__DIR: vendor/wp-phpunit/wp-phpunit
+          WP_PATH:         /tmp/wordpress
+        run: composer test
+
+  # -------------------------------------------------------------------------
+  # JOB 5 — i18n: prove the committed POT describes the code being released.
+  # -------------------------------------------------------------------------
+  i18n:
+    name: "i18n: translations"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: meta
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          coverage: none
+          tools: composer:v2, wp-cli
+      - name: Regenerate POT
+        run: composer makepot
+      - name: Fail if the committed POT is stale
+        run: |
+          # Only the timestamp and the generator banner may differ: CI runs a
+          # different wp-cli build from whoever last ran makepot, and comparing
+          # those would fail every release for no reason. Anything else means
+          # the catalogue in git does not describe the code being released.
+          if ! git diff --quiet \
+               -I'POT-Creation-Date' \
+               -I'X-Generator' \
+               -- languages/; then
+            echo "::error::languages/ is out of date. Run 'composer makepot' and commit the result."
+            git --no-pager diff --stat -- languages/
             exit 1
           fi
+          echo "POT is current."
+      - name: Upload languages/
+        uses: actions/upload-artifact@v4
+        with:
+          name: languages-${{ needs.meta.outputs.version }}
+          path: languages
+          retention-days: 1
 
-      - name: Setup PHP 7.4
-        uses: shivammathur/setup-php@v2
+  # -------------------------------------------------------------------------
+  # JOB 6 — package: assemble the distributable and zip it.
+  #
+  # The gates are in `needs` as well as the producer: packaging is the
+  # expensive half of the run, and there is no reason to spend it on a commit
+  # PHPCS, PHPStan or PHPUnit has already rejected.
+  # -------------------------------------------------------------------------
+  package:
+    name: "Package: assemble + zip"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [meta, lint, analyze, test, i18n]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: "7.4"
           coverage: none
           tools: composer:v2
 
-      - name: Cache Composer dependencies
-        uses: actions/cache@v5
+      - name: Download languages/
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.composer/cache
-            vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            composer-${{ runner.os }}-
+          name: languages-${{ needs.meta.outputs.version }}
+          path: languages
 
-      - name: Install PHP dependencies (with dev for build tooling)
+      - name: Install production dependencies
         run: |
-          composer install --no-interaction --prefer-dist
+          # `install`, not `update`: vendor stays pinned to the committed lock
+          # that lint, analyze and test all exercised.
+          composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
+          composer dump-autoload --no-dev --optimize --classmap-authoritative
 
-      - name: Optimize production autoloader (remove dev deps)
-        run: |
-          composer install --no-dev --no-interaction --prefer-dist -o
-
-      - name: "Guard: composer.lock unchanged after build"
+      - name: Guard — composer.lock unchanged after build
         run: |
           if ! git diff --quiet --exit-code composer.lock; then
-            echo "composer.lock changed during build. Commit updated lock file before release." >&2
+            echo "::error::composer.lock changed during build. Commit the updated lock before tagging."
             git --no-pager diff composer.lock | head -n 100
             exit 1
           fi
 
-      - name: Install SVN (Subversion)
+      - name: Assemble distributable (.distignore-filtered)
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y subversion
+          SLUG="${{ needs.meta.outputs.plugin_slug }}"
+          rm -rf dist release
+          mkdir -p "dist/$SLUG"
+          rsync -a \
+            --exclude-from='.distignore' \
+            --exclude='/dist' \
+            --exclude='/release' \
+            ./ "dist/$SLUG/"
+          [ -f "dist/$SLUG/$SLUG.php" ] || { echo "::error::Main file missing from distributable."; exit 1; }
 
-      # Stage a curated .wordpress-org/ payload that excludes design drafts
-      # (*.draft.svg) and internal docs (BRAND.md), then point the 10up
-      # deploy action at the staged directory via the ASSETS_DIR env var.
-      # The plugin ZIP itself is unaffected — .distignore already excludes
-      # the entire /.wordpress-org/ folder from the code payload.
+      - name: Verify distributable is clean (defence in depth)
+        run: |
+          DIR="dist/${{ needs.meta.outputs.plugin_slug }}"
+
+          # Dev, VCS, CI and tooling artefacts must never reach wp.org trunk,
+          # whether or not .distignore was updated when they were added.
+          ANY=$(find "$DIR" \( \
+                 -name ".git"        -o -name ".github"      -o -name ".wordpress-org" \
+              -o -name "tests"       -o -name "node_modules" -o -name ".yarn" \
+              -o -name "resources"   -o -name ".claude"      -o -name ".remember" \
+              -o -name ".idea"       -o -name ".vscode" \
+              -o -name "phpcs*.xml*" -o -name "phpstan.neon" -o -name "phpunit.xml*" \
+              -o -name "playwright*.config.ts" \
+              -o \( \( -name "composer.json" -o -name "composer.lock" -o -name "package.json" \) \
+                    -a ! -path "*/vendor/*" \) \
+              -o -name "*.zip" -o -name ".DS_Store" -o -name "Thumbs.db" \
+            \) -print)
+
+          if [ -n "$ANY" ]; then
+            echo "::error::Distributable contains files that must not ship:"
+            echo "$ANY"
+            exit 1
+          fi
+          echo "Distributable is clean."
+
+      - name: Create release zip
+        run: |
+          SLUG="${{ needs.meta.outputs.plugin_slug }}"
+          ( cd dist && zip -rq "${SLUG}-${{ needs.meta.outputs.version }}.zip" "$SLUG" )
+
+      - name: Upload dist/
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-dist-${{ needs.meta.outputs.version }}
+          path: dist
+          retention-days: 1
+
+  # -------------------------------------------------------------------------
+  # JOB 7 — deploy: publish to WordPress.org SVN and create the GitHub release.
+  # -------------------------------------------------------------------------
+  deploy:
+    name: "Deploy: WP.org SVN + GitHub release"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [meta, package]
+    steps:
+      - name: Checkout (provides .wordpress-org for the assets staging)
+        uses: actions/checkout@v6
+
+      - name: Download dist/
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-dist-${{ needs.meta.outputs.version }}
+          path: dist
+
+      # BRAND.md and any draft lives in .wordpress-org/ and must not reach SVN,
+      # so the payload is filtered into a staging directory first.
       - name: Stage WordPress.org assets
         run: bash resources/scripts/stage-wp-org-assets.sh
 
-      - name: WordPress Plugin Deploy
+      - name: Deploy to WordPress.org via SVN
         id: deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
         with:
@@ -132,19 +372,35 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-          SLUG: ${{ steps.plugin_name.outputs.plugin_slug }}
-          ASSETS_DIR: .wp-org-staged
+          SLUG:         ${{ needs.meta.outputs.plugin_slug }}
+          BUILD_DIR:    ./dist/${{ needs.meta.outputs.plugin_slug }}
+          # The stripped version, not the git ref: with a `v` prefix the action
+          # would publish to tags/v1.1.0 while readme.txt points Stable tag at
+          # 1.1.0, and wp.org would serve nothing.
+          VERSION:      ${{ needs.meta.outputs.version }}
+          ASSETS_DIR:   .wp-org-staged
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
-          name: Release ${{ steps.version_check.outputs.version }}
+          tag_name:   ${{ needs.meta.outputs.tag }}
+          name:       "Release ${{ needs.meta.outputs.version }}"
+          prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
+          files: dist/${{ needs.meta.outputs.plugin_slug }}-${{ needs.meta.outputs.version }}.zip
           body: |
-            Release ${{ steps.version_check.outputs.version }} of ${{ steps.plugin_name.outputs.plugin_name }}.
+            ## ${{ needs.meta.outputs.plugin_slug }} — ${{ needs.meta.outputs.version }}
 
-            Full changelog: https://wordpress.org/plugins/swift-menu-duplicator/#developers
-            (mirrored in readme.txt).
-          files: ${{ steps.deploy.outputs.zip-path }}
+            Full changelog: https://wordpress.org/plugins/${{ needs.meta.outputs.plugin_slug }}/#developers
+            (mirrored in readme.txt)
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Release ${{ needs.meta.outputs.version }}"
+            echo "- WordPress.org: https://wordpress.org/plugins/${{ needs.meta.outputs.plugin_slug }}/"
+            echo "- GitHub release: https://github.com/${{ github.repository }}/releases/tag/${{ needs.meta.outputs.tag }}"
+          } >> "$GITHUB_STEP_SUMMARY"

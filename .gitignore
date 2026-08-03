@@ -5,6 +5,9 @@ vendor/
 # Build outputs
 build/
 dist/
+/.wp-org-staged/
+/svn-work/
+/wordpress/
 release/
 
 # Logs
@@ -13,9 +16,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Lock files (composer.lock is committed intentionally for reproducible builds)
+# Lock files are committed intentionally, for reproducible builds
 !composer.lock
-yarn.lock
+!yarn.lock
 package-lock.json
 
 # Environment files
