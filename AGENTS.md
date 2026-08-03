@@ -49,6 +49,19 @@ yarn lint:css        # Stylelint only (assets/css)
 composer makepot     # Generate .pot file
 ```
 
+### WordPress.org assets
+```bash
+yarn assets:brand    # Render icon + banners from source (no site needed)
+
+# Screenshots — drives a logged-in admin
+WP_LOGIN_URL="$(wp login create admin --url-only)" yarn assets:shots
+```
+
+Rendered by Playwright; see `.wordpress-org/BRAND.md` §6. Re-run
+`assets:shots` after any admin UI change — the screenshots in
+`.wordpress-org/` and their captions in `readme.txt` are positional and must
+stay in step.
+
 ESLint uses flat config (`eslint.config.mjs`) — ESLint 10 does not read
 `.eslintrc.*` at all. Stylelint config lives in `stylelint.config.mjs`.
 

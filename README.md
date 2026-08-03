@@ -168,6 +168,10 @@ composer test        # PHPUnit
 composer lint        # PHPCS (WordPress Coding Standards)
 composer analyze     # PHPStan (level 4, PHP 7.4)
 composer release     # build the distributable ZIP
+
+yarn install
+yarn lint            # ESLint + Stylelint
+yarn assets:brand    # re-render the directory icon and banners
 ```
 
 Releases are cut by pushing a git tag — the [SVN deploy workflow](.github/workflows/svn-deploy.yml) validates the tag against the plugin version, builds the production artifact, deploys to the WordPress.org SVN repository, and attaches a ZIP to the GitHub release.
