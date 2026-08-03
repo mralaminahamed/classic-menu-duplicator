@@ -66,9 +66,8 @@ Thumbs.db
 .Trashes
 ehthumbs.db
 
-# Claude AI files
+# Claude AI files (CLAUDE.md is tracked; excluded from the release ZIP via .distignore)
 /.claude/
-CLAUDE.md
 /.yarn/
 /.remember/
 /.playwright-mcp/

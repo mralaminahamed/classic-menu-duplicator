@@ -1,7 +1,21 @@
 {
+  "name": "swift-menu-duplicator",
+  "version": "1.0.3",
+  "description": "Duplicate WordPress navigation menus, snapshot revisions, export/import JSON, and manage every menu from one screen.",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "scripts": {
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "eslint assets/js",
+    "lint:js:fix": "eslint assets/js --fix",
+    "lint:css": "stylelint \"assets/css/**/*.css\"",
+    "lint:css:fix": "stylelint \"assets/css/**/*.css\" --fix"
+  },
   "devDependencies": {
-    "@wordpress/eslint-plugin": "^25.0.0",
-    "@wordpress/stylelint-config": "^23.36.0"
+    "@wordpress/eslint-plugin": "^25.8.0",
+    "@wordpress/stylelint-config": "^24.1.0",
+    "eslint": "^10.8.0",
+    "stylelint": "^17.14.1"
   },
   "packageManager": "yarn@4.14.1"
 }
