@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace SwiftMenuDuplicator\Admin;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Menu_Undo;
 use SwiftMenuDuplicator\Core\Navigation_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
 use SwiftMenuDuplicator\Utils\Filesystem;
@@ -69,6 +70,11 @@ class Menu_Admin_Page {
 
 		// Explain the classic-menu scope on block themes.
 		add_action( 'admin_notices', array( $this, 'maybe_render_block_theme_notice' ) );
+
+		// Deletion safety net: capture before core deletes, offer an undo after.
+		add_action( 'admin_init', array( $this, 'capture_menu_before_core_delete' ), 5 );
+		add_action( 'admin_init', array( $this, 'handle_undo_delete' ) );
+		add_action( 'admin_notices', array( $this, 'maybe_render_undo_notice' ) );
 
 		// Plugin action links on the Plugins list page.
 		add_filter(
@@ -297,6 +303,124 @@ class Menu_Admin_Page {
 				esc_url( admin_url( 'site-editor.php' ) ),
 				esc_html__( 'Edit navigation in the Site Editor', 'swift-menu-duplicator' )
 			)
+		);
+	}
+
+	/**
+	 * Captures a menu before core's own delete handler runs.
+	 *
+	 * Core's nav-menus.php processes `action=delete-menu` in its page body, which
+	 * runs after admin_init — so this is the last point at which the menu is
+	 * still intact. Covers the Delete Menu button in the menu editor and the
+	 * Delete row action, which both hand off to core.
+	 *
+	 * @return void
+	 */
+	public function capture_menu_before_core_delete(): void {
+		global $pagenow;
+
+		if ( 'nav-menus.php' !== $pagenow ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below, before anything is captured.
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : '';
+
+		if ( 'delete-menu' !== $action ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same.
+		$menu_id = isset( $_REQUEST['menu'] ) ? absint( $_REQUEST['menu'] ) : 0;
+
+		if ( $menu_id <= 0 || ! current_user_can( 'edit_theme_options' ) ) {
+			return;
+		}
+
+		// Core verifies this same nonce before deleting; checking it here keeps
+		// a forged request from filling the undo buffer.
+		if ( ! isset( $_REQUEST['_wpnonce'] ) ) {
+			return;
+		}
+
+		$nonce = sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) );
+
+		if ( ! wp_verify_nonce( $nonce, 'delete-nav_menu-' . $menu_id ) ) {
+			return;
+		}
+
+		( new Menu_Undo() )->capture( $menu_id );
+	}
+
+	/**
+	 * Restores every menu sitting in the undo buffer.
+	 *
+	 * @return void
+	 */
+	public function handle_undo_delete(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified immediately below.
+		if ( ! isset( $_GET['swmd_action'] ) || 'undo_delete' !== sanitize_key( wp_unslash( $_GET['swmd_action'] ) ) ) {
+			return;
+		}
+
+		check_admin_referer( 'swmd_undo_delete' );
+
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'swift-menu-duplicator' ) );
+		}
+
+		$restored = ( new Menu_Undo() )->restore();
+
+		wp_safe_redirect(
+			admin_url( 'themes.php?page=swmd-menu-manager&restored=' . count( $restored ) )
+		);
+		exit;
+	}
+
+	/**
+	 * Offers an undo link while deleted menus are still restorable.
+	 *
+	 * @return void
+	 */
+	public function maybe_render_undo_notice(): void {
+		global $pagenow;
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$here   = ( $screen instanceof \WP_Screen && $screen->id === $this->page_hook ) || 'nav-menus.php' === $pagenow;
+
+		if ( ! $here || ! current_user_can( 'edit_theme_options' ) ) {
+			return;
+		}
+
+		$pending = ( new Menu_Undo() )->get_pending();
+
+		if ( empty( $pending ) ) {
+			return;
+		}
+
+		$names = implode( ', ', wp_list_pluck( $pending, 'name' ) );
+
+		$undo_url = wp_nonce_url(
+			admin_url( 'themes.php?page=swmd-menu-manager&swmd_action=undo_delete' ),
+			'swmd_undo_delete'
+		);
+
+		printf(
+			'<div class="notice notice-warning is-dismissible"><p>%s <a href="%s" class="button button-small">%s</a></p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %s: comma-separated list of deleted menu names */
+					_n(
+						'Deleted menu: %s. It can still be restored.',
+						'Deleted menus: %s. They can still be restored.',
+						count( $pending ),
+						'swift-menu-duplicator'
+					),
+					$names
+				)
+			),
+			esc_url( $undo_url ),
+			esc_html__( 'Undo', 'swift-menu-duplicator' )
 		);
 	}
 
@@ -541,7 +665,12 @@ class Menu_Admin_Page {
 		}
 
 		if ( 'swmd_bulk_delete' === $action ) {
+			$undo = new Menu_Undo();
+
 			foreach ( $ids as $id ) {
+				// Capture first: wp_delete_nav_menu() removes the items before
+				// the term, so nothing downstream can still see the menu.
+				$undo->capture( $id );
 				wp_delete_nav_menu( $id );
 			}
 

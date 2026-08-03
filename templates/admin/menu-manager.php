@@ -20,6 +20,7 @@ $deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0; // 
 $duplicated    = isset( $_GET['duplicated'] ) ? absint( $_GET['duplicated'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $nav_created   = isset( $_GET['nav_duplicated'] ) ? absint( $_GET['nav_duplicated'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $nav_trashed   = isset( $_GET['nav_trashed'] ) ? absint( $_GET['nav_trashed'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$restored      = isset( $_GET['restored'] ) ? absint( $_GET['restored'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 if ( $import_state ) {
 	delete_transient( $transient_key );
@@ -55,6 +56,20 @@ if ( $import_state ) {
 					/* translators: %d: number of duplicated menus */
 					esc_html( _n( '%d menu duplicated.', '%d menus duplicated.', $duplicated, 'swift-menu-duplicator' ) ),
 					(int) $duplicated
+				);
+				?>
+			</p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $restored > 0 ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %d: number of restored menus */
+					esc_html( _n( '%d menu restored. Check its theme locations.', '%d menus restored. Check their theme locations.', $restored, 'swift-menu-duplicator' ) ),
+					(int) $restored
 				);
 				?>
 			</p>
