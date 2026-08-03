@@ -1,13 +1,13 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Swift Menu Duplicator 1.0.5\n"
+"Project-Id-Version: Swift Menu Duplicator 1.0.6\n"
 "Report-Msgid-Bugs-To: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-03T09:02:42+00:00\n"
+"POT-Creation-Date: 2026-08-03T09:11:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.13.0-alpha-3eb2dd7\n"
 "X-Domain: swift-menu-duplicator\n"
@@ -62,7 +62,7 @@ msgstr ""
 
 #: includes/admin/class-menu-admin-page.php:228
 #: includes/admin/class-menu-admin.php:103
-#: includes/admin/class-menu-admin.php:122
+#: includes/admin/class-menu-admin.php:124
 #: includes/admin/class-menu-table.php:93
 #: includes/admin/class-menu-table.php:188
 #: includes/admin/class-navigation-table.php:76
@@ -78,7 +78,7 @@ msgid "Export JSON"
 msgstr ""
 
 #: includes/admin/class-menu-admin-page.php:230
-#: includes/admin/class-menu-admin.php:125
+#: includes/admin/class-menu-admin.php:127
 msgid "Action failed. Please try again."
 msgstr ""
 
@@ -105,7 +105,7 @@ msgstr ""
 #: includes/admin/class-menu-admin-page.php:390
 #: includes/admin/class-menu-admin-page.php:898
 #: includes/admin/class-menu-admin-page.php:971
-#: includes/admin/class-menu-admin.php:452
+#: includes/admin/class-menu-admin.php:454
 msgid "Insufficient permissions."
 msgstr ""
 
@@ -141,7 +141,7 @@ msgstr ""
 
 #: includes/admin/class-menu-admin-page.php:894
 #: includes/admin/class-menu-admin-page.php:967
-#: includes/admin/class-menu-admin.php:445
+#: includes/admin/class-menu-admin.php:447
 msgid "Security check failed."
 msgstr ""
 
@@ -154,7 +154,7 @@ msgid "Destination site not found."
 msgstr ""
 
 #: includes/admin/class-menu-admin.php:100
-#: includes/admin/class-menu-admin.php:120
+#: includes/admin/class-menu-admin.php:122
 msgid "Duplicate Menu"
 msgstr ""
 
@@ -199,43 +199,51 @@ msgstr ""
 msgid "Delete this snapshot?"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:121
-msgid "New menu name"
+#: includes/admin/class-menu-admin.php:119
+msgid "Delete snapshot"
+msgstr ""
+
+#: includes/admin/class-menu-admin.php:120
+msgid "Close snapshot panel"
 msgstr ""
 
 #: includes/admin/class-menu-admin.php:123
+msgid "New menu name"
+msgstr ""
+
+#: includes/admin/class-menu-admin.php:125
 #: templates/admin/menu-manager.php:208
 msgid "Cancel"
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:149
-#: includes/admin/class-menu-admin.php:188
-#: includes/admin/class-menu-admin.php:264
-#: includes/admin/class-menu-admin.php:300
+#: includes/admin/class-menu-admin.php:151
+#: includes/admin/class-menu-admin.php:190
+#: includes/admin/class-menu-admin.php:266
+#: includes/admin/class-menu-admin.php:302
 msgid "Invalid menu ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:232
+#: includes/admin/class-menu-admin.php:234
 msgid "Invalid item or menu ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:274
+#: includes/admin/class-menu-admin.php:276
 #: includes/rest/class-menu-rest-controller.php:539
 msgid "Could not save snapshot."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:330
-#: includes/admin/class-menu-admin.php:366
+#: includes/admin/class-menu-admin.php:332
+#: includes/admin/class-menu-admin.php:368
 msgid "Invalid parameters."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:376
+#: includes/admin/class-menu-admin.php:378
 #: includes/core/class-menu-duplicator.php:571
 #: includes/rest/class-menu-rest-controller.php:588
 msgid "Snapshot not found."
 msgstr ""
 
-#: includes/admin/class-menu-admin.php:423
+#: includes/admin/class-menu-admin.php:425
 msgid "Auto-snapshot (before save)"
 msgstr ""
 

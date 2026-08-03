@@ -2,7 +2,7 @@
 	"name": "mralaminahamed/swift-menu-duplicator",
 	"description": "A simple yet powerful WordPress plugin that allows users to duplicate navigation menus with a single click.",
 	"type": "wordpress-plugin",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"license": "GPL-2.0-or-later",
 	"authors": [
 		{

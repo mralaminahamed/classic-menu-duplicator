@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.5
+Stable tag:        1.0.6
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -182,6 +182,14 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Changelog ==
 
+= 1.0.6 =
+* Accessibility: The Duplicate Menu dialog now traps Tab focus, moves focus to the name field when it opens, returns focus to the button that opened it when it closes, and marks the page behind it inert where the browser supports it.
+* Accessibility: The snapshot panel is reachable and operable by keyboard — Escape closes it, Tab stays inside it, focus moves into it on open and back out on close, and the toggle button reports its state with `aria-expanded`.
+* Accessibility: Success and error messages are announced to screen readers via `wp.a11y.speak()` and carry `role="status"` / `role="alert"`.
+* Accessibility: The snapshot delete and panel close buttons had hardcoded English accessible names ("Delete", "Close"); both are now translatable and more descriptive.
+* Accessibility: Added visible focus styles for the controls the plugin injects, and honoured `prefers-reduced-motion`.
+* Fix: Notice text is inserted as text rather than markup, so a menu name containing HTML can no longer break the notice.
+
 = 1.0.5 =
 * Feature: **Block theme support.** Navigation menus stored as `wp_navigation` posts — the ones block themes actually render — can now be duplicated, exported, and imported. A new "Navigation (Block)" tab in the Menu Manager lists them with per-row Duplicate and Export JSON, bulk duplicate and trash, link counts, and a link into the Site Editor. Previously the plugin only told block-theme users that it did not apply to them.
 * Feature: WP-CLI `wp swift-menu-duplicator navigation list|duplicate|export|import`.
@@ -245,6 +253,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.6 =
+Accessibility release: keyboard focus management for the duplicate dialog and snapshot panel, screen-reader announcements for notices, translatable accessible names, and visible focus styles.
 
 = 1.0.5 =
 Adds block theme support: the navigation menus block themes render (`wp_navigation`) can now be duplicated, exported, and imported from the admin, WP-CLI, and REST.
