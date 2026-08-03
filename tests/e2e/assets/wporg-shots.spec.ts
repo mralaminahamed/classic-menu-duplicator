@@ -22,15 +22,34 @@ const shot = async ( page: Page, n: number ) => {
 };
 
 /**
- * Collapses the admin menu and hides notices other plugins inject, so the
- * screenshots show this plugin rather than whatever else is installed.
+ * Strips the surrounding WordPress chrome so each shot is about this plugin.
+ *
+ * The admin bar and the admin menu are removed rather than dimmed: they take
+ * roughly a quarter of a 1440x900 frame, and in a directory listing that is a
+ * quarter spent on furniture every WordPress user has already seen. Notices
+ * other plugins inject go too, for the same reason.
  */
 async function tidyChrome( page: Page ): Promise< void > {
 	await page.addStyleTag( {
 		content: `
-			#wpfooter, #screen-meta-links .screen-meta-toggle:not(:first-child) { display: none !important; }
+			#wpadminbar,
+			#adminmenumain, #adminmenuback, #adminmenuwrap,
+			#wpfooter,
+			#screen-meta-links .screen-meta-toggle:not(:first-child) {
+				display: none !important;
+			}
+
 			.notice:not(.swmd-keep), .update-nag, .updated, .error { display: none !important; }
-			#wpadminbar { opacity: .35; }
+
+			/* Reclaim the space the removed chrome was holding. */
+			html.wp-toolbar { padding-top: 0 !important; }
+			#wpcontent, #wpbody-content, #wpfooter { margin-left: 0 !important; }
+			#wpcontent { padding-left: 24px !important; }
+			#wpbody { padding-top: 12px !important; }
+
+			/* The snapshot panel offsets itself by the admin bar height. */
+			:root { --wp-admin--admin-bar--height: 0px !important; }
+
 			/* Freeze motion: a capture mid-transition ghosts the whole page. */
 			*, *::before, *::after {
 				transition: none !important;
