@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.8
+Stable tag:        1.1.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -190,66 +190,43 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Changelog ==
 
-= 1.0.8 =
-* Fix: The snapshot panel started at the top of the window, so the WordPress admin bar covered its heading and close button. It now sits below the bar and tracks the taller mobile bar automatically.
-* Changed: New plugin icon. The previous mark read as "fast" but said nothing about menus or duplication; the new one combines the two symbols the audience already knows — stacked bars for a menu, an offset card for a copy — and stays legible down to a 16px favicon.
-* Changed: New banners and fresh screenshots showing the current interface, including the Menu Manager columns, the styled import screen, and the undo notice.
-* Changed: Directory assets are now rendered by Playwright from their sources (`yarn assets:brand`, `yarn assets:shots`) rather than by the old PHP/Imagick scripts, so they can be regenerated after any UI change with one command.
+= 1.1.0 =
 
-= 1.0.7 =
-* Feature: **Deleting a menu can now be undone.** The menu is captured before deletion — including which theme locations it occupied — and an Undo link appears while it is still recoverable (one hour by default, filterable via `swift_menu_duplicator_undo_ttl`). Restoring recreates the menu, its items, and its location assignments. Covers the Menu Manager's bulk delete, the row Delete action, and the Delete Menu button in the menu editor.
-* Note: A restored menu receives a new ID, because WordPress does not allow a term ID to be reused. Anything referencing the old menu by ID needs updating; theme locations are handled automatically.
+Everything below shipped as one release: versions 1.0.2 through 1.0.8 were development iterations that never reached the directory, so 1.0.1 is the version you are upgrading from.
 
-= 1.0.6 =
-* Accessibility: The Duplicate Menu dialog now traps Tab focus, moves focus to the name field when it opens, returns focus to the button that opened it when it closes, and marks the page behind it inert where the browser supports it.
-* Accessibility: The snapshot panel is reachable and operable by keyboard — Escape closes it, Tab stays inside it, focus moves into it on open and back out on close, and the toggle button reports its state with `aria-expanded`.
-* Accessibility: Success and error messages are announced to screen readers via `wp.a11y.speak()` and carry `role="status"` / `role="alert"`.
-* Accessibility: The snapshot delete and panel close buttons had hardcoded English accessible names ("Delete", "Close"); both are now translatable and more descriptive.
-* Accessibility: Added visible focus styles for the controls the plugin injects, and honoured `prefers-reduced-motion`.
-* Fix: Notice text is inserted as text rather than markup, so a menu name containing HTML can no longer break the notice.
+**New**
 
-= 1.0.5 =
-* Feature: **Block theme support.** Navigation menus stored as `wp_navigation` posts — the ones block themes actually render — can now be duplicated, exported, and imported. A new "Navigation (Block)" tab in the Menu Manager lists them with per-row Duplicate and Export JSON, bulk duplicate and trash, link counts, and a link into the Site Editor. Previously the plugin only told block-theme users that it did not apply to them.
-* Feature: WP-CLI `wp swift-menu-duplicator navigation list|duplicate|export|import`.
-* Feature: REST endpoints `GET /navigations`, `POST /navigations/{id}/duplicate`, `GET /navigations/{id}/export`, and `POST /navigations/import`, each with a schema.
-* Changed: The Menu Manager tabs are ordered All Menus, Navigation (Block), Copy to Site, Import JSON.
-* Fix: The Menu Manager's "+ New Menu" button opened the last-edited menu instead of the create-a-menu screen.
+* Snapshot restore. The panel could save and delete revisions but never restore one — the feature was documented from 1.0.0 and missing until now. Restoring replaces the menu's items in place and snapshots the current state first, so a restore can itself be undone.
+* Block theme support. Navigation menus stored as `wp_navigation` posts — the ones block themes actually render — can be duplicated, exported, and imported from a dedicated Menu Manager tab, WP-CLI, and REST.
+* Deleting a menu can be undone, theme locations included, for an hour afterwards.
+* The Menu Manager gained Slug, Description, and Snapshots columns, sortable counts, a working Screen Options panel, and a stylesheet — the screen previously had none.
+* REST API gained import and snapshot endpoints, and every route now publishes a schema.
+* New WP-CLI commands: `snapshot list|save|restore|delete` and `navigation list|duplicate|export|import`.
+* JSON can be pasted into the import screen instead of uploading a file.
 
-= 1.0.4 =
-* Fix: Duplication and import now write menu items through core's `wp_update_nav_menu_item()` instead of inserting posts and postmeta directly. Core normalises the item meta and fires `wp_add_nav_menu_item` / `wp_update_nav_menu_item`, so WPML, Polylang, caching, and mega-menu plugins finally see cloned items.
-* Fix: Duplicated custom links no longer carry the source item's `_menu_item_object_id`; core's own invariant (a custom link points at itself) is respected.
-* Fix: Importing to a different site re-resolves each item's target by the slug recorded at export time, and falls back to a custom link using the original URL when the object does not exist. Previously the raw ID was kept, so items pointed at whatever content happened to hold that ID.
-* Fix: The menu description is copied on duplicate and restored on import — the export already carried it, but nothing applied it.
-* Fix: Bulk "Duplicate" and "Export as JSON" now have server-side handlers. Without JavaScript they silently did nothing.
-* Fix: Snapshots are stored one term meta row each, instead of rewriting the entire stack into a single row on every save. Existing snapshots migrate automatically.
-* Feature: The Menu Manager table gains Slug, Description, and Snapshots columns (Slug and Description hidden by default), sortable item and snapshot counts, and a working Screen Options panel for per-page and column visibility.
-* Feature: The Menu Manager finally has a stylesheet — the import tab, preview table, and multisite copy form were previously unstyled.
-* Feature: REST API gains import and snapshot endpoints (list, save, restore, delete), and every route now publishes a schema.
-* Feature: New `wp swift-menu-duplicator snapshot list|save|restore|delete` command.
-* Fix: Block themes now get an explanatory notice on the Menu Manager screen — they render Navigation blocks, not classic menus.
-* Fix: Uninstall removes the new snapshot rows as well as the legacy ones.
-* Changed: Admin scripts load with `defer`; downloads send `nocache_headers()` and `X-Content-Type-Options: nosniff`; the multisite site list uses `get_site()` data rather than `get_blog_details()`; the row Delete confirm moved out of an inline `onclick`.
+**Fixed**
 
-= 1.0.3 =
-* Feature: Snapshot **restore** now exists. The snapshot panel documented since 1.0.0 could only save and delete — restoring a menu from a snapshot was never implemented. Restoring replaces the menu's items in place (the menu ID and theme locations survive) and snapshots the current state first, so a restore can itself be undone.
-* Fix: Menu item **descriptions** were silently dropped by duplication, export, and import. They are stored in `post_content`, which the clone never copied; exports now carry a `content` field per item.
-* Fix: Importing a file exported from the same site failed outright, because WordPress rejects a duplicate menu name. The importer now falls back to "{name} (2)".
-* Fix: An export of an empty menu was rejected as malformed on import; a valid but empty `items` array is now accepted.
-* Fix: The Menu Manager's multisite copy ignored the URL find/replace documented for it — the fields are now present in the UI and applied on the destination site.
-* Fix: The import screen now accepts pasted JSON as well as a file upload, as documented.
-* Fix: Auto-snapshots are no longer written for empty menus, so duplicating or importing a menu no longer pushes a snapshot of nothing onto the stack.
-* Fix: Uninstall now removes the plugin's term meta (`_swmd_snapshots`, `_swmd_created`); previously snapshots survived deletion of the plugin.
-* Fix: The test suite could not load at all (the base test case's file name did not match its class) and targeted the pre-1.0.2 hook names and REST namespace. The suite runs green again and covers restore, descriptions, and the AJAX handlers.
-* Changed: `ext-zip` is now a Composer suggestion rather than a hard requirement — bulk ZIP export already degrades gracefully without it.
+* Duplication and import now write menu items through core's `wp_update_nav_menu_item()` instead of inserting posts and postmeta directly, so WPML, Polylang, caching, and mega-menu plugins finally see cloned items.
+* Menu item descriptions and menu descriptions were silently dropped by duplication, export, and import.
+* Importing to a different site now re-resolves each item's target by slug, falling back to a custom link, instead of keeping an ID that points at unrelated content on the destination.
+* Importing a file back into the site it came from failed outright; the name now falls back to "{name} (2)".
+* Bulk "Duplicate" and "Export as JSON" silently did nothing without JavaScript.
+* The multisite copy ignored the URL find/replace it documented.
+* Duplicated custom links carried the source item's object ID.
+* The snapshot panel sat behind the admin bar, and could not be operated by keyboard at all. The duplicate dialog claimed to be modal without trapping focus.
+* Notices are announced to screen readers, and accessible names are translatable rather than hardcoded English.
+* Uninstall now removes the plugin's term meta; snapshots used to survive deleting the plugin.
+* Snapshots are stored one row each instead of rewriting the whole stack on every save.
 
-= 1.0.2 =
-* Security: Import now sanitizes every menu-item field (URLs, CSS classes, types, targets) instead of trusting the JSON file, preventing stored cross-site scripting from a malicious import.
-* Security: JSON uploads are validated as genuine uploads and capped in size and item count before they are processed.
-* Fix: The Delete action (row and bulk) relied on a capability that does not exist and never worked; it now uses `edit_theme_options` like every other action.
-* Fix: Multisite copy now confirms the destination site exists before switching to it (admin UI and WP-CLI).
-* Changed: **Breaking:** the REST API namespace moved from the generic `cmd/v1` to `swift-menu-duplicator/v1`. Update any REST clients to `/wp-json/swift-menu-duplicator/v1/`.
-* Fix: Corrected developer-hook names throughout the documentation (they use the `swift_menu_duplicator_` prefix).
-* Fix: Repaired the release workflow (correct plugin slug and asset-staging path) and the static-analysis configuration.
+**Security**
+
+* Imported menu fields are sanitized field-by-field, uploads are validated and size-capped, and the bundled coding-standards dependency was updated for CVE-2026-45293.
+
+**Changed**
+
+* **Breaking:** the REST namespace moved from `cmd/v1` to `swift-menu-duplicator/v1`. Update any REST clients.
+* **Breaking:** the WP-CLI command group is `wp swift-menu-duplicator`, not `wp menu-duplicator`.
+* New plugin icon, banners, and screenshots.
 
 = 1.0.1 =
 * Fix: WP-CLI command renamed from `wp menu-duplicator` to `wp swift-menu-duplicator` for consistency with the plugin slug.
@@ -272,26 +249,8 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Upgrade Notice ==
 
-= 1.0.8 =
-Fixes the snapshot panel being partly hidden behind the admin bar, and refreshes the plugin icon, banners, and screenshots.
-
-= 1.0.7 =
-Deleting a menu is no longer permanent: it is captured beforehand and can be restored — with its theme locations — for an hour afterwards.
-
-= 1.0.6 =
-Accessibility release: keyboard focus management for the duplicate dialog and snapshot panel, screen-reader announcements for notices, translatable accessible names, and visible focus styles.
-
-= 1.0.5 =
-Adds block theme support: the navigation menus block themes render (`wp_navigation`) can now be duplicated, exported, and imported from the admin, WP-CLI, and REST.
-
-= 1.0.4 =
-Duplication and import now go through WordPress's own menu-item API, so translation and caching plugins see cloned items, and cross-site imports re-resolve their targets by slug instead of trusting raw IDs. Adds snapshot REST/CLI endpoints, new Menu Manager columns, and styles for the import screen.
-
-= 1.0.3 =
-Snapshot restore now works (it was documented but missing), menu item descriptions survive duplication and export/import, and importing a menu back into its own site no longer fails. Uninstall now clears leftover snapshot data.
-
-= 1.0.2 =
-Security and reliability fixes: imported menu fields are now sanitized, uploads are validated, and the Delete action works. Breaking: the REST namespace changed from `cmd/v1` to `swift-menu-duplicator/v1` — update any REST API clients.
+= 1.1.0 =
+Large release. Snapshot restore now exists, block themes are supported, deleting a menu can be undone, and duplication goes through WordPress's own menu-item API so translation and caching plugins see cloned items. Breaking: the REST namespace is now `swift-menu-duplicator/v1` and the WP-CLI group is `wp swift-menu-duplicator`.
 
 = 1.0.1 =
 WP-CLI users: the command has been renamed from `wp menu-duplicator` to `wp swift-menu-duplicator`. Update any scripts or aliases accordingly.
