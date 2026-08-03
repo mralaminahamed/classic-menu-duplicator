@@ -13,7 +13,7 @@ use SwiftMenuDuplicator\Test\SwiftMenuDuplicatorTestCase;
 
 /**
  * Tests the multilingual compatibility layer in isolation by using the
- * swmd_compat_wpml_active and swmd_compat_polylang_active filters to
+ * swift_menu_duplicator_compat_wpml_active and swift_menu_duplicator_compat_polylang_active filters to
  * simulate both plugins without requiring them to be installed.
  */
 class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
@@ -29,12 +29,12 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 		$wpdb->query( "DELETE FROM {$wpdb->terms} WHERE 1=1" );
 		$wpdb->query( "DELETE FROM {$wpdb->termmeta} WHERE 1=1" );
 
-		remove_all_filters( 'swmd_compat_wpml_active' );
-		remove_all_filters( 'swmd_compat_polylang_active' );
-		remove_all_filters( 'swmd_item_meta_keys' );
-		remove_all_filters( 'swmd_compat_excluded_meta_keys' );
-		remove_all_actions( 'swmd_after_duplicate_menu_item' );
-		remove_all_actions( 'swmd_after_import_item' );
+		remove_all_filters( 'swift_menu_duplicator_compat_wpml_active' );
+		remove_all_filters( 'swift_menu_duplicator_compat_polylang_active' );
+		remove_all_filters( 'swift_menu_duplicator_item_meta_keys' );
+		remove_all_filters( 'swift_menu_duplicator_compat_excluded_meta_keys' );
+		remove_all_actions( 'swift_menu_duplicator_after_duplicate_menu_item' );
+		remove_all_actions( 'swift_menu_duplicator_after_import_item' );
 
 		parent::tear_down();
 	}
@@ -50,31 +50,31 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
 
-		$this->assertFalse( has_filter( 'swmd_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
+		$this->assertFalse( has_filter( 'swift_menu_duplicator_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
 	}
 
 	/**
 	 * @covers Menu_Compat::register_hooks
 	 */
 	public function test_hooks_registered_when_wpml_active(): void {
-		add_filter( 'swmd_compat_wpml_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_wpml_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
 
-		$this->assertNotFalse( has_filter( 'swmd_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
+		$this->assertNotFalse( has_filter( 'swift_menu_duplicator_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
 	}
 
 	/**
 	 * @covers Menu_Compat::register_hooks
 	 */
 	public function test_hooks_registered_when_polylang_active(): void {
-		add_filter( 'swmd_compat_polylang_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_polylang_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
 
-		$this->assertNotFalse( has_filter( 'swmd_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
+		$this->assertNotFalse( has_filter( 'swift_menu_duplicator_item_meta_keys', array( $compat, 'filter_item_meta_keys' ) ) );
 	}
 
 	// -----------------------------------------------------------------------
@@ -85,13 +85,13 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 	 * @covers Menu_Compat::filter_item_meta_keys
 	 */
 	public function test_wpml_meta_keys_removed_from_copy_list(): void {
-		add_filter( 'swmd_compat_wpml_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_wpml_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
 
 		$keys = apply_filters(
-			'swmd_item_meta_keys',
+			'swift_menu_duplicator_item_meta_keys',
 			array(
 				'_menu_item_type',
 				'_icl_lang_duplicate_of',
@@ -110,13 +110,13 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 	 * @covers Menu_Compat::filter_item_meta_keys
 	 */
 	public function test_polylang_meta_keys_removed_from_copy_list(): void {
-		add_filter( 'swmd_compat_polylang_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_polylang_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
 
 		$keys = apply_filters(
-			'swmd_item_meta_keys',
+			'swift_menu_duplicator_item_meta_keys',
 			array(
 				'_menu_item_type',
 				'_pll_synced_taxonomies',
@@ -136,7 +136,7 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 	 * @covers Menu_Compat::clean_item_meta
 	 */
 	public function test_clean_item_meta_deletes_wpml_keys_from_duplicated_item(): void {
-		add_filter( 'swmd_compat_wpml_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_wpml_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
@@ -178,7 +178,7 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 	 * @covers Menu_Compat::clean_item_meta
 	 */
 	public function test_clean_item_meta_deletes_polylang_keys_from_duplicated_item(): void {
-		add_filter( 'swmd_compat_polylang_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_polylang_active', '__return_true' );
 
 		$compat = new Menu_Compat();
 		$compat->register_hooks();
@@ -218,10 +218,10 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 	 * @covers Menu_Compat::get_excluded_meta_keys (via filter)
 	 */
 	public function test_excluded_meta_keys_filter_allows_extending_list(): void {
-		add_filter( 'swmd_compat_wpml_active', '__return_true' );
+		add_filter( 'swift_menu_duplicator_compat_wpml_active', '__return_true' );
 
 		add_filter(
-			'swmd_compat_excluded_meta_keys',
+			'swift_menu_duplicator_compat_excluded_meta_keys',
 			static function ( array $keys ): array {
 				$keys[] = '_my_custom_i18n_meta';
 				return $keys;
@@ -268,13 +268,13 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 		$items   = wp_get_nav_menu_items( $menu_id );
 
 		$fired = false;
-		add_action( 'swmd_before_duplicate_item', static function () use ( &$fired ) {
+		add_action( 'swift_menu_duplicator_before_duplicate_item', static function () use ( &$fired ) {
 			$fired = true;
 		} );
 
 		( new Menu_Duplicator() )->duplicate_item( $items[0]->ID, $menu_id );
 
-		remove_all_actions( 'swmd_before_duplicate_item' );
+		remove_all_actions( 'swift_menu_duplicator_before_duplicate_item' );
 
 		$this->assertTrue( $fired );
 	}
@@ -289,7 +289,7 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 
 		$captured = array();
 		add_action(
-			'swmd_before_duplicate_item',
+			'swift_menu_duplicator_before_duplicate_item',
 			static function ( int $i, int $m ) use ( &$captured ) {
 				$captured = array( 'item_id' => $i, 'menu_id' => $m );
 			},
@@ -299,7 +299,7 @@ class Menu_Compat_Test extends SwiftMenuDuplicatorTestCase {
 
 		( new Menu_Duplicator() )->duplicate_item( $item_id, $menu_id );
 
-		remove_all_actions( 'swmd_before_duplicate_item' );
+		remove_all_actions( 'swift_menu_duplicator_before_duplicate_item' );
 
 		$this->assertEquals( $item_id, $captured['item_id'] );
 		$this->assertEquals( $menu_id, $captured['menu_id'] );

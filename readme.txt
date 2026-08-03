@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.2
+Stable tag:        1.0.3
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ Duplicate WordPress menus in one click. Snapshot revisions, export/import JSON, 
 
 * **Auto-snapshot** — a snapshot is saved automatically before every menu save
 * **Manual snapshots** — save named snapshots from the menu editor at any time
-* **Browse & restore** — view all snapshots in an expandable panel and restore with one click
+* **Browse & restore** — view all snapshots in an expandable panel and restore with one click; the pre-restore state is snapshotted first
 * **Housekeeping** — delete individual snapshots you no longer need
 
 === Menu Manager (Appearance → Menu Manager) ===
@@ -47,7 +47,7 @@ Duplicate WordPress menus in one click. Snapshot revisions, export/import JSON, 
 === Multisite Support ===
 
 * Copy any menu to another site in your WordPress Multisite network
-* Automatic URL rewriting in item URLs when copying across sub-sites
+* Optional URL find & replace applied to item URLs on the destination site
 
 === REST API ===
 
@@ -80,6 +80,7 @@ Full command-line support under the `wp swift-menu-duplicator` command group:
 * `swift_menu_duplicator_rest_permission` — control REST API access
 * `swift_menu_duplicator_before_duplicate_item` / `swift_menu_duplicator_after_duplicate_menu_item` — fired around item duplication
 * `swift_menu_duplicator_after_import_menu` — fired after a successful import
+* `swift_menu_duplicator_before_restore_snapshot` / `swift_menu_duplicator_after_restore_snapshot` — fired around a snapshot restore
 * `swift_menu_duplicator_item_meta_keys` — control which meta keys are copied
 * `swift_menu_duplicator_compat_excluded_meta_keys` — extend the multilingual meta exclusion list
 * `wp_update_nav_menu` — triggers auto-snapshot before every menu save
@@ -157,6 +158,18 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Changelog ==
 
+= 1.0.3 =
+* Feature: Snapshot **restore** now exists. The snapshot panel documented since 1.0.0 could only save and delete — restoring a menu from a snapshot was never implemented. Restoring replaces the menu's items in place (the menu ID and theme locations survive) and snapshots the current state first, so a restore can itself be undone.
+* Fix: Menu item **descriptions** were silently dropped by duplication, export, and import. They are stored in `post_content`, which the clone never copied; exports now carry a `content` field per item.
+* Fix: Importing a file exported from the same site failed outright, because WordPress rejects a duplicate menu name. The importer now falls back to "{name} (2)".
+* Fix: An export of an empty menu was rejected as malformed on import; a valid but empty `items` array is now accepted.
+* Fix: The Menu Manager's multisite copy ignored the URL find/replace documented for it — the fields are now present in the UI and applied on the destination site.
+* Fix: The import screen now accepts pasted JSON as well as a file upload, as documented.
+* Fix: Auto-snapshots are no longer written for empty menus, so duplicating or importing a menu no longer pushes a snapshot of nothing onto the stack.
+* Fix: Uninstall now removes the plugin's term meta (`_swmd_snapshots`, `_swmd_created`); previously snapshots survived deletion of the plugin.
+* Fix: The test suite could not load at all (the base test case's file name did not match its class) and targeted the pre-1.0.2 hook names and REST namespace. The suite runs green again and covers restore, descriptions, and the AJAX handlers.
+* Changed: `ext-zip` is now a Composer suggestion rather than a hard requirement — bulk ZIP export already degrades gracefully without it.
+
 = 1.0.2 =
 * Security: Import now sanitizes every menu-item field (URLs, CSS classes, types, targets) instead of trusting the JSON file, preventing stored cross-site scripting from a malicious import.
 * Security: JSON uploads are validated as genuine uploads and capped in size and item count before they are processed.
@@ -186,6 +199,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Snapshot restore now works (it was documented but missing), menu item descriptions survive duplication and export/import, and importing a menu back into its own site no longer fails. Uninstall now clears leftover snapshot data.
 
 = 1.0.2 =
 Security and reliability fixes: imported menu fields are now sanitized, uploads are validated, and the Delete action works. Breaking: the REST namespace changed from `cmd/v1` to `swift-menu-duplicator/v1` — update any REST API clients.

@@ -159,6 +159,24 @@
 	margin-top: 2px;
 }
 
+.swmd-snapshot-restore {
+	align-self: flex-start;
+	margin-top: 6px;
+	padding: 0;
+	font-size: 11px;
+	color: #2271b1;
+	cursor: pointer;
+}
+
+.swmd-snapshot-restore:hover {
+	color: #135e96;
+}
+
+.swmd-snapshot-restore[disabled] {
+	color: #787c82;
+	cursor: default;
+}
+
 .swmd-snapshot-delete {
 	position: absolute;
 	top: 10px;

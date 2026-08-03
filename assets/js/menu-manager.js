@@ -188,6 +188,8 @@
 			menu_id:        menuId,
 			target_blog_id: targetBlog,
 			menu_name:      menuName,
+			find:           $.trim( $( '#swmd-copy-find' ).val() ),
+			replace:        $.trim( $( '#swmd-copy-replace' ).val() ),
 		} )
 			.done( function ( response ) {
 				if ( response.success ) {

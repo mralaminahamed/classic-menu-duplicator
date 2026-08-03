@@ -27,12 +27,12 @@ WordPress ships no way to copy a navigation menu — rebuilding one by hand is s
 **Duplication**
 - **One-click duplicate** from the menu editor footer — no page reload
 - Full **hierarchy preserved** via a two-pass clone that re-maps every parent–child relationship
-- All item metadata copied — type, object, URL, target, CSS classes, XFN
+- All item metadata copied — type, object, URL, target, CSS classes, XFN, description
 - Duplicate a **single item** (with its children) without cloning the whole menu
 
 **Snapshots (revisions)**
 - **Auto-snapshot** taken automatically before every menu save
-- **Manual snapshots** on demand — browse and restore from an expandable panel
+- **Manual snapshots** on demand — browse and restore from an expandable panel; a restore snapshots the current state first, so it is always reversible
 - Capped, filterable history (`swift_menu_duplicator_snapshot_limit`, default 10)
 
 **Menu Manager** — `Appearance → Menu Manager`
@@ -108,6 +108,8 @@ wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name
 | `swift_menu_duplicator_before_duplicate_item` | action | Before an item (and its children) is duplicated |
 | `swift_menu_duplicator_after_duplicate_menu_item` | action | After each item is cloned |
 | `swift_menu_duplicator_after_import_menu` | action | After a successful import |
+| `swift_menu_duplicator_before_restore_snapshot` | action | Before a menu is rolled back to a snapshot |
+| `swift_menu_duplicator_after_restore_snapshot` | action | After a snapshot restore completes |
 
 ## How it works
 

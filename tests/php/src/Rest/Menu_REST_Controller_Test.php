@@ -13,7 +13,7 @@ use WP_REST_Request;
 
 /**
  * Tests REST route registration, callback correctness, HTTP statuses,
- * and the swmd_rest_permission filter.
+ * and the swift_menu_duplicator_rest_permission filter.
  *
  * Uses WP_UnitTestCase's built-in REST server factory so actual route
  * dispatching is exercised without a real HTTP stack.
@@ -46,7 +46,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$wpdb->query( "DELETE FROM {$wpdb->terms} WHERE 1=1" );
 		$wpdb->query( "DELETE FROM {$wpdb->termmeta} WHERE 1=1" );
 
-		remove_all_filters( 'swmd_rest_permission' );
+		remove_all_filters( 'swift_menu_duplicator_rest_permission' );
 
 		parent::tear_down();
 	}
@@ -61,7 +61,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_duplicate_menu_route_is_registered(): void {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertArrayHasKey( '/cmd/v1/menus/(?P<id>[\d]+)/duplicate', $routes );
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/duplicate', $routes );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_export_menu_route_is_registered(): void {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertArrayHasKey( '/cmd/v1/menus/(?P<id>[\d]+)/export', $routes );
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/export', $routes );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_duplicate_item_route_is_registered(): void {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertArrayHasKey( '/cmd/v1/menus/(?P<id>[\d]+)/items/(?P<item_id>[\d]+)/duplicate', $routes );
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/items/(?P<item_id>[\d]+)/duplicate', $routes );
 	}
 
 	// -----------------------------------------------------------------------
@@ -89,15 +89,18 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 	/**
 	 * @covers Menu_REST_Controller::check_permission
 	 */
-	public function test_unauthenticated_request_returns_403(): void {
+	public function test_unauthenticated_request_is_rejected(): void {
 		wp_set_current_user( 0 );
 
 		$menu_id = $this->create_menu_with_items( 'Perm Test', 1 );
-		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		// rest_authorization_required_code() answers 401 for logged-out callers
+		// and 403 once a user is authenticated but lacks the capability.
+		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 'rest_forbidden', $response->get_data()['code'] );
 	}
 
 	/**
@@ -108,7 +111,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'Auth Test', 1 );
-		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 
@@ -124,16 +127,16 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		add_filter( 'swmd_rest_permission', '__return_false' );
+		add_filter( 'swift_menu_duplicator_rest_permission', '__return_false' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Deny', 1 );
-		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 403, $response->get_status() );
 
 		wp_set_current_user( 0 );
-		remove_all_filters( 'swmd_rest_permission' );
+		remove_all_filters( 'swift_menu_duplicator_rest_permission' );
 	}
 
 	/**
@@ -144,16 +147,16 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $user_id );
 
-		add_filter( 'swmd_rest_permission', '__return_true' );
+		add_filter( 'swift_menu_duplicator_rest_permission', '__return_true' );
 
 		$menu_id  = $this->create_menu_with_items( 'Filter Grant', 1 );
-		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
 
 		wp_set_current_user( 0 );
-		remove_all_filters( 'swmd_rest_permission' );
+		remove_all_filters( 'swift_menu_duplicator_rest_permission' );
 	}
 
 	// -----------------------------------------------------------------------
@@ -168,7 +171,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'REST Dup', 2 );
-		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -191,7 +194,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'Custom REST', 1 );
-		$request = new WP_REST_Request( 'POST', '/cmd/v1/menus/' . $menu_id . '/duplicate' );
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/duplicate' );
 		$request->set_param( 'name', 'My REST Copy' );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -209,7 +212,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$request  = new WP_REST_Request( 'POST', '/cmd/v1/menus/99999/duplicate' );
+		$request  = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/99999/duplicate' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -229,7 +232,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		wp_set_current_user( $user_id );
 
 		$menu_id = $this->create_menu_with_items( 'REST Export', 3 );
-		$request = new WP_REST_Request( 'GET', '/cmd/v1/menus/' . $menu_id . '/export' );
+		$request = new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/export' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -250,7 +253,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$request  = new WP_REST_Request( 'GET', '/cmd/v1/menus/99999/export' );
+		$request  = new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/menus/99999/export' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -275,7 +278,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 
 		$request = new WP_REST_Request(
 			'POST',
-			'/cmd/v1/menus/' . $menu_id . '/items/' . $item_id . '/duplicate'
+			'/swift-menu-duplicator/v1/menus/' . $menu_id . '/items/' . $item_id . '/duplicate'
 		);
 
 		$response = rest_get_server()->dispatch( $request );
@@ -299,7 +302,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 		$menu_id = $this->create_menu_with_items( 'REST 404 Item', 1 );
 		$request = new WP_REST_Request(
 			'POST',
-			'/cmd/v1/menus/' . $menu_id . '/items/99999/duplicate'
+			'/swift-menu-duplicator/v1/menus/' . $menu_id . '/items/99999/duplicate'
 		);
 
 		$response = rest_get_server()->dispatch( $request );

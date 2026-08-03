@@ -174,7 +174,22 @@ if ( $import_state ) {
 							<label for="swmd_json_file"><?php esc_html_e( 'JSON File', 'swift-menu-duplicator' ); ?></label>
 						</th>
 						<td>
-							<input type="file" id="swmd_json_file" name="swmd_json_file" accept=".json" required />
+							<input type="file" id="swmd_json_file" name="swmd_json_file" accept=".json" />
+							<p class="description">
+								<?php esc_html_e( 'Upload a file, or paste the JSON below.', 'swift-menu-duplicator' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="swmd_json_paste"><?php esc_html_e( 'Or Paste JSON', 'swift-menu-duplicator' ); ?></label>
+						</th>
+						<td>
+							<textarea id="swmd_json_paste" name="swmd_json_paste" rows="8" class="large-text code"
+									placeholder="<?php esc_attr_e( '{ "menu": { … }, "items": [ … ] }', 'swift-menu-duplicator' ); ?>"></textarea>
+							<p class="description">
+								<?php esc_html_e( 'Ignored when a file is uploaded.', 'swift-menu-duplicator' ); ?>
+							</p>
 						</td>
 					</tr>
 					<tr>
@@ -278,6 +293,24 @@ if ( $import_state ) {
 					<td>
 						<input type="text" id="swmd-copy-menu-name" class="regular-text"
 								placeholder="<?php esc_attr_e( 'Leave blank to keep original name', 'swift-menu-duplicator' ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'URL Replacement', 'swift-menu-duplicator' ); ?></th>
+					<td>
+						<p>
+							<label for="swmd-copy-find"><?php esc_html_e( 'Find:', 'swift-menu-duplicator' ); ?></label>
+							<input type="text" id="swmd-copy-find" class="regular-text"
+									placeholder="<?php echo esc_attr( home_url() ); ?>" />
+						</p>
+						<p>
+							<label for="swmd-copy-replace"><?php esc_html_e( 'Replace:', 'swift-menu-duplicator' ); ?></label>
+							<input type="text" id="swmd-copy-replace" class="regular-text"
+									placeholder="https://other-site.example.com" />
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Applied to custom link item URLs on the destination site. Leave both fields blank to copy URLs unchanged.', 'swift-menu-duplicator' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
