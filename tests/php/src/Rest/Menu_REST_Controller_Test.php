@@ -41,7 +41,7 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 	public function tear_down() {
 		global $wpdb;
 
-		$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_type = 'nav_menu_item'" );
+		$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_type IN ( 'nav_menu_item', 'wp_navigation' )" );
 		$wpdb->query( "DELETE FROM {$wpdb->term_taxonomy} WHERE taxonomy = 'nav_menu'" );
 		$wpdb->query( "DELETE FROM {$wpdb->terms} WHERE 1=1" );
 		$wpdb->query( "DELETE FROM {$wpdb->termmeta} WHERE 1=1" );
@@ -469,5 +469,114 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 			$this->assertArrayHasKey( 'schema', $options, $route );
 			$this->assertIsArray( call_user_func( $options['schema'] ), $route );
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Block navigation routes.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Creates a block navigation menu.
+	 *
+	 * @param string $title Navigation title.
+	 *
+	 * @return int Post ID.
+	 */
+	private function create_navigation( string $title = 'Header' ): int {
+		return (int) self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_navigation',
+				'post_title'   => $title,
+				'post_content' => '<!-- wp:navigation-link {"label":"Home"} /-->',
+				'post_status'  => 'publish',
+			)
+		);
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::list_navigations
+	 * @covers Menu_REST_Controller::duplicate_navigation
+	 */
+	public function test_navigation_can_be_listed_and_duplicated(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$navigation_id = $this->create_navigation( 'REST Header' );
+
+		$listed = rest_get_server()->dispatch(
+			new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/navigations' )
+		);
+
+		$this->assertEquals( 200, $listed->get_status() );
+		$this->assertSame( 'REST Header', $listed->get_data()[0]['title'] );
+		$this->assertStringContainsString( 'site-editor.php', $listed->get_data()[0]['edit_url'] );
+
+		$duplicate = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/navigations/' . $navigation_id . '/duplicate' );
+		$duplicate->set_body_params( array( 'title' => 'REST Header Copy' ) );
+
+		$duplicated = rest_get_server()->dispatch( $duplicate );
+
+		$this->assertEquals( 200, $duplicated->get_status() );
+		$this->assertSame( 'REST Header Copy', $duplicated->get_data()['title'] );
+		$this->assertNotSame( $navigation_id, $duplicated->get_data()['id'] );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::export_navigation
+	 * @covers Menu_REST_Controller::import_navigation
+	 */
+	public function test_navigation_export_import_round_trip(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$navigation_id = $this->create_navigation( 'Round Trip' );
+
+		$exported = rest_get_server()->dispatch(
+			new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/navigations/' . $navigation_id . '/export' )
+		);
+
+		$this->assertEquals( 200, $exported->get_status() );
+		$this->assertSame( 'wp_navigation', $exported->get_data()['type'] );
+
+		$import = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/navigations/import' );
+		$import->set_body_params(
+			array(
+				'payload' => $exported->get_data(),
+				'title'   => 'Round Trip Imported',
+			)
+		);
+
+		$imported = rest_get_server()->dispatch( $import );
+
+		$this->assertEquals( 200, $imported->get_status() );
+		$this->assertSame( 'Round Trip Imported', $imported->get_data()['title'] );
+		$this->assertSame(
+			$exported->get_data()['content'],
+			get_post( $imported->get_data()['id'] )->post_content
+		);
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::duplicate_navigation
+	 */
+	public function test_duplicating_an_unknown_navigation_returns_404(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$response = rest_get_server()->dispatch(
+			new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/navigations/999999/duplicate' )
+		);
+
+		$this->assertEquals( 404, $response->get_status() );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::check_permission
+	 */
+	public function test_navigation_routes_require_the_capability(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$response = rest_get_server()->dispatch(
+			new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/navigations' )
+		);
+
+		$this->assertEquals( 403, $response->get_status() );
 	}
 }
