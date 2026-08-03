@@ -549,6 +549,7 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_restore_snapshot_saves_a_safety_snapshot_first(): void {
 		$menu_id = $this->create_menu_with_items( 'Safety Net Menu', 1 );
 
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
 		delete_term_meta( $menu_id, '_swmd_snapshots' );
 
 		$this->duplicator->save_snapshot( $menu_id, 'Original' );
@@ -574,6 +575,120 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 		$this->assertEquals( 'invalid_snapshot', $result->get_error_code() );
 	}
 
+	// -----------------------------------------------------------------------
+	// Core write-path integration.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers Menu_Duplicator::duplicate
+	 */
+	public function test_duplicate_copies_menu_description(): void {
+		$menu_id = $this->create_menu_with_items( 'Described Menu', 1 );
+
+		wp_update_nav_menu_object(
+			$menu_id,
+			array(
+				'menu-name'   => 'Described Menu',
+				'description' => 'What this menu is for.',
+			)
+		);
+
+		$new_menu_id = $this->duplicator->duplicate( $menu_id );
+
+		$this->assertSame( 'What this menu is for.', get_term( $new_menu_id, 'nav_menu' )->description );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::duplicate
+	 */
+	public function test_duplicate_fires_core_menu_item_hooks(): void {
+		$menu_id = $this->create_menu_with_items( 'Hooked Menu', 2 );
+
+		$added = 0;
+		add_action(
+			'wp_add_nav_menu_item',
+			static function () use ( &$added ) {
+				++$added;
+			}
+		);
+
+		$this->duplicator->duplicate( $menu_id );
+
+		remove_all_actions( 'wp_add_nav_menu_item' );
+
+		// Third-party integrations (WPML, Polylang, caches) rely on this hook;
+		// writing the postmeta directly used to skip it entirely.
+		$this->assertSame( 2, $added );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::duplicate
+	 */
+	public function test_duplicated_custom_link_owns_its_object_id(): void {
+		$menu_id = $this->create_custom_link_menu( 'Custom Source', 'https://example.com/page' );
+
+		$new_menu_id = $this->duplicator->duplicate( $menu_id );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		// Core's invariant for custom links: object_id points at the item itself.
+		$this->assertSame(
+			(string) $new_items[0]->ID,
+			(string) get_post_meta( $new_items[0]->ID, '_menu_item_object_id', true )
+		);
+		$this->assertSame(
+			'https://example.com/page',
+			get_post_meta( $new_items[0]->ID, '_menu_item_url', true )
+		);
+	}
+
+	/**
+	 * @covers Menu_Duplicator::duplicate
+	 */
+	public function test_duplicate_preserves_attr_title_and_classes(): void {
+		$menu_id = $this->create_menu_with_items( 'Meta Menu', 1 );
+		$items   = wp_get_nav_menu_items( $menu_id );
+
+		wp_update_post(
+			array(
+				'ID'           => $items[0]->ID,
+				'post_excerpt' => 'Title attribute text',
+			)
+		);
+		update_post_meta( $items[0]->ID, '_menu_item_classes', array( 'promo', 'featured' ) );
+		update_post_meta( $items[0]->ID, '_menu_item_xfn', 'friend' );
+
+		$new_menu_id = $this->duplicator->duplicate( $menu_id );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		$this->assertSame( 'Title attribute text', $new_items[0]->post_excerpt );
+		$this->assertSame( array( 'promo', 'featured' ), get_post_meta( $new_items[0]->ID, '_menu_item_classes', true ) );
+		$this->assertSame( 'friend', get_post_meta( $new_items[0]->ID, '_menu_item_xfn', true ) );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::export
+	 */
+	public function test_export_records_portable_object_reference(): void {
+		$menu_id = $this->create_menu_with_items( 'Portable Menu', 1 );
+
+		$payload = $this->duplicator->export( $menu_id );
+
+		$this->assertArrayHasKey( 'object_slug', $payload['items'][0] );
+		$this->assertArrayHasKey( 'object_url', $payload['items'][0] );
+		$this->assertNotSame( '', $payload['items'][0]['object_slug'] );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::export
+	 */
+	public function test_export_omits_object_reference_for_custom_links(): void {
+		$menu_id = $this->create_custom_link_menu( 'Link Menu', 'https://example.com/x' );
+
+		$payload = $this->duplicator->export( $menu_id );
+
+		$this->assertArrayNotHasKey( 'object_slug', $payload['items'][0] );
+	}
+
 	/**
 	 * @covers Menu_Duplicator::restore_snapshot
 	 */
@@ -582,5 +697,108 @@ class Menu_Duplicator_Test extends SwiftMenuDuplicatorTestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertEquals( 'invalid_menu', $result->get_error_code() );
+	}
+
+	// -----------------------------------------------------------------------
+	// Snapshot storage.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers Menu_Duplicator::save_snapshot
+	 */
+	public function test_each_snapshot_gets_its_own_meta_row(): void {
+		$menu_id = $this->create_menu_with_items( 'Row Per Snapshot', 1 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
+		delete_term_meta( $menu_id, '_swmd_snapshots' );
+
+		$this->duplicator->save_snapshot( $menu_id, 'One' );
+		$this->duplicator->save_snapshot( $menu_id, 'Two' );
+
+		$this->assertCount( 2, get_term_meta( $menu_id, '_swmd_snapshot', false ) );
+		$this->assertSame( '', (string) get_term_meta( $menu_id, '_swmd_snapshots', true ) );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::get_snapshots
+	 */
+	public function test_legacy_single_row_snapshots_are_still_readable(): void {
+		$menu_id = $this->create_menu_with_items( 'Legacy Menu', 1 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
+
+		update_term_meta(
+			$menu_id,
+			'_swmd_snapshots',
+			array(
+				array(
+					'id'      => 'legacy-uuid',
+					'label'   => 'Legacy snapshot',
+					'created' => 100,
+					'data'    => array( 'items' => array() ),
+				),
+			)
+		);
+
+		$snapshots = $this->duplicator->get_snapshots( $menu_id );
+
+		$this->assertCount( 1, $snapshots );
+		$this->assertSame( 'Legacy snapshot', $snapshots[0]['label'] );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::save_snapshot
+	 */
+	public function test_legacy_snapshots_migrate_on_next_save(): void {
+		$menu_id = $this->create_menu_with_items( 'Migrating Menu', 1 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
+
+		update_term_meta(
+			$menu_id,
+			'_swmd_snapshots',
+			array(
+				array(
+					'id'      => 'legacy-uuid',
+					'label'   => 'Legacy snapshot',
+					'created' => 100,
+					'data'    => array( 'items' => array() ),
+				),
+			)
+		);
+
+		$this->duplicator->save_snapshot( $menu_id, 'Fresh snapshot' );
+
+		$this->assertSame( '', (string) get_term_meta( $menu_id, '_swmd_snapshots', true ) );
+		$this->assertCount( 2, get_term_meta( $menu_id, '_swmd_snapshot', false ) );
+
+		$labels = wp_list_pluck( $this->duplicator->get_snapshots( $menu_id ), 'label' );
+
+		$this->assertSame( array( 'Fresh snapshot', 'Legacy snapshot' ), $labels );
+	}
+
+	/**
+	 * @covers Menu_Duplicator::delete_snapshot
+	 */
+	public function test_delete_snapshot_removes_a_legacy_entry(): void {
+		$menu_id = $this->create_menu_with_items( 'Legacy Delete', 1 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
+
+		update_term_meta(
+			$menu_id,
+			'_swmd_snapshots',
+			array(
+				array(
+					'id'      => 'legacy-uuid',
+					'label'   => 'Legacy snapshot',
+					'created' => 100,
+					'data'    => array( 'items' => array() ),
+				),
+			)
+		);
+
+		$this->assertTrue( $this->duplicator->delete_snapshot( $menu_id, 'legacy-uuid' ) );
+		$this->assertSame( array(), $this->duplicator->get_snapshots( $menu_id ) );
 	}
 }

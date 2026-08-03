@@ -311,4 +311,163 @@ class Menu_REST_Controller_Test extends SwiftMenuDuplicatorTestCase {
 
 		wp_set_current_user( 0 );
 	}
+
+	// -----------------------------------------------------------------------
+	// Import and snapshot routes.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers Menu_REST_Controller::register_routes
+	 */
+	public function test_import_and_snapshot_routes_are_registered(): void {
+		$routes = rest_get_server()->get_routes();
+
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/import', $routes );
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/snapshots', $routes );
+		$this->assertArrayHasKey( '/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/snapshots/(?P<snapshot_id>[a-f0-9\-]+)', $routes );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::import_menu
+	 */
+	public function test_import_endpoint_creates_a_menu(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$source_id = $this->create_menu_with_items( 'REST Import Source', 2 );
+		$payload   = ( new \SwiftMenuDuplicator\Core\Menu_Duplicator() )->export( $source_id );
+
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/import' );
+		$request->set_body_params(
+			array(
+				'payload' => $payload,
+				'name'    => 'REST Import Target',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 'REST Import Target', $response->get_data()['name'] );
+		$this->assertCount( 2, wp_get_nav_menu_items( $response->get_data()['id'] ) );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::import_menu
+	 */
+	public function test_import_endpoint_rejects_a_malformed_payload(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/import' );
+		$request->set_body_params( array( 'payload' => array( 'nope' => true ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::create_snapshot
+	 * @covers Menu_REST_Controller::list_snapshots
+	 */
+	public function test_snapshot_can_be_created_and_listed(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$menu_id = $this->create_menu_with_items( 'REST Snapshot Menu', 2 );
+
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
+		delete_term_meta( $menu_id, '_swmd_snapshots' );
+
+		$create = new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/snapshots' );
+		$create->set_body_params( array( 'label' => 'Via REST' ) );
+
+		$created = rest_get_server()->dispatch( $create );
+
+		$this->assertEquals( 201, $created->get_status() );
+		$this->assertSame( 'Via REST', $created->get_data()[0]['label'] );
+		$this->assertSame( 2, $created->get_data()[0]['items'] );
+
+		// The stored payload must not leak into the listing.
+		$this->assertArrayNotHasKey( 'data', $created->get_data()[0] );
+
+		$listed = rest_get_server()->dispatch(
+			new WP_REST_Request( 'GET', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/snapshots' )
+		);
+
+		$this->assertEquals( 200, $listed->get_status() );
+		$this->assertCount( 1, $listed->get_data() );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::restore_snapshot
+	 * @covers Menu_REST_Controller::delete_snapshot
+	 */
+	public function test_snapshot_can_be_restored_and_deleted(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$menu_id    = $this->create_menu_with_items( 'REST Restore Menu', 2 );
+		$duplicator = new \SwiftMenuDuplicator\Core\Menu_Duplicator();
+
+		$duplicator->save_snapshot( $menu_id, 'Restore point' );
+		$snapshot_id = $duplicator->get_snapshots( $menu_id )[0]['id'];
+
+		foreach ( wp_get_nav_menu_items( $menu_id ) as $item ) {
+			wp_delete_post( $item->ID, true );
+		}
+
+		$restore = rest_get_server()->dispatch(
+			new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/snapshots/' . $snapshot_id )
+		);
+
+		$this->assertEquals( 200, $restore->get_status() );
+		$this->assertSame( 2, $restore->get_data()['restored'] );
+		$this->assertCount( 2, wp_get_nav_menu_items( $menu_id ) );
+
+		$delete = rest_get_server()->dispatch(
+			new WP_REST_Request( 'DELETE', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/snapshots/' . $snapshot_id )
+		);
+
+		$this->assertEquals( 200, $delete->get_status() );
+		$this->assertTrue( $delete->get_data()['deleted'] );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::restore_snapshot
+	 */
+	public function test_restoring_an_unknown_snapshot_returns_404(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$menu_id = $this->create_menu_with_items( 'REST Missing Snapshot', 1 );
+
+		$response = rest_get_server()->dispatch(
+			new WP_REST_Request( 'POST', '/swift-menu-duplicator/v1/menus/' . $menu_id . '/snapshots/abc-def' )
+		);
+
+		$this->assertEquals( 404, $response->get_status() );
+	}
+
+	/**
+	 * @covers Menu_REST_Controller::get_menu_schema
+	 */
+	public function test_routes_expose_a_schema(): void {
+		$server = rest_get_server();
+
+		// get_routes() moves non-numeric keys into the route options, so the
+		// schema is read back from there rather than from the route array.
+		$server->get_routes();
+
+		foreach (
+			array(
+				'/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/duplicate',
+				'/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/export',
+				'/swift-menu-duplicator/v1/menus/import',
+				'/swift-menu-duplicator/v1/menus/(?P<id>[\d]+)/snapshots',
+			) as $route
+		) {
+			$options = $server->get_route_options( $route );
+
+			$this->assertIsArray( $options, $route );
+			$this->assertArrayHasKey( 'schema', $options, $route );
+			$this->assertIsArray( call_user_func( $options['schema'] ), $route );
+		}
+	}
 }

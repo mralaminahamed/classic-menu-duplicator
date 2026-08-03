@@ -471,6 +471,128 @@ class Menu_Importer_Test extends SwiftMenuDuplicatorTestCase {
 	}
 
 	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_import_restores_menu_description(): void {
+		$source_id = $this->create_menu_with_items( 'Described Source', 1 );
+
+		wp_update_nav_menu_object(
+			$source_id,
+			array(
+				'menu-name'   => 'Described Source',
+				'description' => 'Carried across the export.',
+			)
+		);
+
+		$payload     = $this->duplicator->export( $source_id );
+		$new_menu_id = $this->importer->import( $payload, 'Described Target' );
+
+		$this->assertSame( 'Carried across the export.', get_term( $new_menu_id, 'nav_menu' )->description );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_import_fires_core_menu_item_hook(): void {
+		$payload = $this->make_export_payload( 'Hooked Import', 2 );
+
+		$added = 0;
+		add_action(
+			'wp_add_nav_menu_item',
+			static function () use ( &$added ) {
+				++$added;
+			}
+		);
+
+		$this->importer->import( $payload );
+
+		remove_all_actions( 'wp_add_nav_menu_item' );
+
+		$this->assertSame( 2, $added );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_same_site_import_keeps_object_ids(): void {
+		$source_id = $this->create_menu_with_items( 'Same Site Source', 1 );
+		$payload   = $this->duplicator->export( $source_id );
+
+		$original_object_id = (int) $payload['items'][0]['meta']['_menu_item_object_id'];
+
+		$new_menu_id = $this->importer->import( $payload, 'Same Site Target' );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		$this->assertSame( $original_object_id, (int) get_post_meta( $new_items[0]->ID, '_menu_item_object_id', true ) );
+		$this->assertSame( 'post_type', get_post_meta( $new_items[0]->ID, '_menu_item_type', true ) );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_cross_site_import_resolves_object_by_slug(): void {
+		$source_id = $this->create_menu_with_items( 'Cross Site Source', 1 );
+		$payload   = $this->duplicator->export( $source_id );
+
+		// Pretend the file came from somewhere else, and point the stored ID at
+		// a page that does not exist here.
+		$payload['site_url']                                  = 'https://staging.example.com';
+		$payload['items'][0]['meta']['_menu_item_object_id']  = 999999;
+
+		// Remove the page the export pointed at, then recreate a page carrying
+		// the same slug — the situation on a target site that has its own copy
+		// of the content under different IDs.
+		$slug = $payload['items'][0]['object_slug'];
+
+		foreach ( get_posts( array( 'post_type' => 'page', 'numberposts' => -1, 'fields' => 'ids' ) ) as $page_id ) {
+			wp_delete_post( (int) $page_id, true );
+		}
+
+		$local_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => $slug,
+				'post_title'  => 'Local Match',
+				'post_status' => 'publish',
+			)
+		);
+
+		$new_menu_id = $this->importer->import( $payload, 'Cross Site Target' );
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		$this->assertSame( $local_id, (int) get_post_meta( $new_items[0]->ID, '_menu_item_object_id', true ) );
+		$this->assertSame( 'post_type', get_post_meta( $new_items[0]->ID, '_menu_item_type', true ) );
+	}
+
+	/**
+	 * @covers Menu_Importer::import
+	 */
+	public function test_cross_site_import_falls_back_to_custom_link(): void {
+		$source_id = $this->create_menu_with_items( 'Orphan Source', 1 );
+		$payload   = $this->duplicator->export( $source_id );
+
+		$payload['site_url']                    = 'https://staging.example.com';
+		$payload['items'][0]['object_slug']     = 'nothing-here';
+		$payload['items'][0]['object_url']      = 'https://staging.example.com/nothing-here/';
+
+		$new_menu_id = $this->importer->import(
+			$payload,
+			'Orphan Target',
+			'https://staging.example.com',
+			'https://live.example.com'
+		);
+		$new_items   = wp_get_nav_menu_items( $new_menu_id );
+
+		// Rather than pointing at whatever holds that ID locally, the item
+		// becomes a custom link to the (rewritten) original URL.
+		$this->assertSame( 'custom', get_post_meta( $new_items[0]->ID, '_menu_item_type', true ) );
+		$this->assertSame(
+			'https://live.example.com/nothing-here/',
+			get_post_meta( $new_items[0]->ID, '_menu_item_url', true )
+		);
+	}
+
+	/**
 	 * @covers Menu_Importer::import_items
 	 */
 	public function test_import_items_fills_an_existing_menu(): void {

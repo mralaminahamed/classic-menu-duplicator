@@ -57,9 +57,17 @@ WordPress install five directories up, i.e. the site this plugin lives in.
   Multisite copy. Not `manage_options`.
 - **A menu item's description lives in `post_content`**, not in postmeta. Any
   code that copies items must carry it.
-- **Plugin data in the database**: term meta `_swmd_snapshots` (LIFO stack,
-  capped by `swift_menu_duplicator_snapshot_limit`) and `_swmd_created`. New
+- **Plugin data in the database**: term meta `_swmd_snapshot` (one row per
+  snapshot, capped by `swift_menu_duplicator_snapshot_limit`), the legacy
+  `_swmd_snapshots` stack from 1.0.3 and earlier, and `_swmd_created`. New
   storage must be added to `uninstall.php`.
+- **Write menu items through `wp_update_nav_menu_item()`.** Never insert the
+  `nav_menu_item` post and its `_menu_item_*` meta by hand: core normalises the
+  meta and fires `wp_add_nav_menu_item` / `wp_update_nav_menu_item`, which is
+  how translation, caching, and mega-menu plugins learn the item exists.
+- **Object IDs are site-local.** Exports also record `object_slug` /
+  `object_url` so a cross-site import can re-resolve the target, falling back
+  to a custom link.
 - **Do not stub core functions with Brain Monkey.** The suite boots real
   WordPress, so Patchwork cannot redefine functions core already loaded — it
   throws `DefinedTooEarly`. Use the real environment; for AJAX handlers extend

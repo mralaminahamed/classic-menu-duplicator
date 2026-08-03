@@ -102,6 +102,50 @@ class Menu_Admin_Test extends SwiftMenuDuplicatorTestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// Menus table.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * @covers \SwiftMenuDuplicator\Admin\Menu_Table::get_columns
+	 */
+	public function test_table_exposes_the_expected_columns(): void {
+		$columns = ( new \SwiftMenuDuplicator\Admin\Menu_Table() )->get_columns();
+
+		foreach ( array( 'cb', 'name', 'slug', 'description', 'item_count', 'locations', 'snapshots', 'created' ) as $key ) {
+			$this->assertArrayHasKey( $key, $columns );
+		}
+	}
+
+	/**
+	 * @covers \SwiftMenuDuplicator\Admin\Menu_Table::default_hidden_columns
+	 */
+	public function test_verbose_columns_are_hidden_by_default(): void {
+		$hidden = \SwiftMenuDuplicator\Admin\Menu_Table::default_hidden_columns();
+
+		$this->assertContains( 'slug', $hidden );
+		$this->assertContains( 'description', $hidden );
+		$this->assertNotContains( 'name', $hidden );
+	}
+
+	/**
+	 * @covers \SwiftMenuDuplicator\Admin\Menu_Table::prepare_items
+	 */
+	public function test_table_sorts_by_item_count(): void {
+		$this->create_menu_with_items( 'Small Menu', 1 );
+		$this->create_menu_with_items( 'Large Menu', 3 );
+
+		$_GET['orderby'] = 'item_count';
+		$_GET['order']   = 'desc';
+
+		$table = new \SwiftMenuDuplicator\Admin\Menu_Table();
+		$table->prepare_items();
+
+		unset( $_GET['orderby'], $_GET['order'] );
+
+		$this->assertSame( 'Large Menu', $table->items[0]->name );
+	}
+
+	// -----------------------------------------------------------------------
 	// Auto-snapshot.
 	// -----------------------------------------------------------------------
 
@@ -115,6 +159,7 @@ class Menu_Admin_Test extends SwiftMenuDuplicatorTestCase {
 
 		// The menu fixture itself may have triggered the hook; start from a
 		// known baseline so the assertion measures this call only.
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
 		delete_term_meta( $menu_id, '_swmd_snapshots' );
 
 		$this->admin->auto_snapshot_on_save( $menu_id );
@@ -131,6 +176,7 @@ class Menu_Admin_Test extends SwiftMenuDuplicatorTestCase {
 	public function test_auto_snapshot_on_save_skips_without_capability(): void {
 		$menu_id = $this->create_menu_with_items( 'Capability Test Menu', 1 );
 
+		delete_term_meta( $menu_id, '_swmd_snapshot' );
 		delete_term_meta( $menu_id, '_swmd_snapshots' );
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );

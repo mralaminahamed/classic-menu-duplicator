@@ -88,9 +88,10 @@ function swift_menu_duplicator_delete_transients(): void {
 /**
  * Removes the term meta the plugin attaches to nav_menu terms.
  *
- * Covers `_swmd_snapshots` (the snapshot stack written by the snapshot
- * feature) and `_swmd_created` (the creation timestamp shown in the Menu
- * Manager table). The menus themselves are left untouched.
+ * Covers `_swmd_snapshot` (one row per snapshot), `_swmd_snapshots` (the
+ * single-row stack written by 1.0.3 and earlier), and `_swmd_created` (the
+ * creation timestamp shown in the Menu Manager table). The menus themselves
+ * are left untouched.
  *
  * @return void
  */
@@ -108,6 +109,7 @@ function swift_menu_duplicator_delete_term_meta(): void {
 	}
 
 	foreach ( $menus as $menu_id ) {
+		delete_term_meta( (int) $menu_id, '_swmd_snapshot' );
 		delete_term_meta( (int) $menu_id, '_swmd_snapshots' );
 		delete_term_meta( (int) $menu_id, '_swmd_created' );
 	}

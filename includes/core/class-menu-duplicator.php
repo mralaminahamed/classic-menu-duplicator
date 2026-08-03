@@ -28,6 +28,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Menu_Duplicator {
 
 	/**
+	 * Item postmeta keys that core's wp_update_nav_menu_item() owns.
+	 *
+	 * Listed so duplication can copy third-party meta without stamping over
+	 * the values core just normalised.
+	 *
+	 * @var string[]
+	 */
+	/**
+	 * Term meta key holding a single snapshot (one row per snapshot).
+	 *
+	 * @var string
+	 */
+	private const SNAPSHOT_META_KEY = '_swmd_snapshot';
+
+	/**
+	 * Term meta key used by 1.0.3 and earlier, holding the whole stack in one row.
+	 *
+	 * @var string
+	 */
+	private const LEGACY_SNAPSHOT_META_KEY = '_swmd_snapshots';
+
+	private const CORE_META_KEYS = array(
+		'_menu_item_type',
+		'_menu_item_menu_item_parent',
+		'_menu_item_object_id',
+		'_menu_item_object',
+		'_menu_item_target',
+		'_menu_item_classes',
+		'_menu_item_xfn',
+		'_menu_item_url',
+	);
+
+	/**
 	 * Duplicates an existing navigation menu.
 	 *
 	 * Creates a new nav_menu term using a caller-supplied name (or falls
@@ -98,6 +131,18 @@ class Menu_Duplicator {
 
 		// wp_create_nav_menu() returns the new term ID (int) or a WP_Error.
 		$new_menu_id = (int) $new_term;
+
+		// wp_create_nav_menu() only sets the name, so carry the source menu's
+		// description across too.
+		if ( '' !== $source_term->description ) {
+			wp_update_nav_menu_object(
+				$new_menu_id,
+				array(
+					'menu-name'   => $new_name,
+					'description' => $source_term->description,
+				)
+			);
+		}
 
 		// ---------------------------------------------------------------
 		// 3. Collect all menu items from the source menu.
@@ -306,15 +351,21 @@ class Menu_Duplicator {
 				}
 			}
 
-			$exported_items[] = array(
-				'id'         => $item->ID,
-				'title'      => $item->post_title,
-				// Core stores the item's "Description" field in post_content.
-				'content'    => $item->post_content,
-				'excerpt'    => $item->post_excerpt,
-				'status'     => $item->post_status,
-				'menu_order' => $item->menu_order,
-				'meta'       => $meta,
+			$exported_items[] = array_merge(
+				array(
+					'id'         => $item->ID,
+					'title'      => $item->post_title,
+					// Core stores the item's "Description" field in post_content.
+					'content'    => $item->post_content,
+					'excerpt'    => $item->post_excerpt,
+					'status'     => $item->post_status,
+					'menu_order' => $item->menu_order,
+					'meta'       => $meta,
+				),
+				// Object IDs are meaningless on another site, so record what the
+				// item points at in portable terms. The importer uses these to
+				// re-resolve the target, falling back to a custom link.
+				$this->describe_item_target( $item, $meta )
 			);
 		}
 
@@ -352,9 +403,11 @@ class Menu_Duplicator {
 	/**
 	 * Saves a snapshot of the current menu state.
 	 *
-	 * Snapshots are stored as a serialised JSON blob in the term-meta table
-	 * under the key `_swmd_snapshots`, as a LIFO stack capped at the
-	 * `swift_menu_duplicator_snapshot_limit` filter value (default 10).
+	 * Each snapshot is its own term meta row under the key `_swmd_snapshot`,
+	 * capped by the `swift_menu_duplicator_snapshot_limit` filter (default 10).
+	 * Older releases packed the whole stack into a single `_swmd_snapshots`
+	 * row, which meant rewriting every stored payload on each save; those rows
+	 * are migrated the first time a menu is snapshotted again.
 	 *
 	 * @param int    $menu_id Term ID of the menu.
 	 * @param string $label   Optional. Human-readable label for the snapshot.
@@ -368,6 +421,8 @@ class Menu_Duplicator {
 			return false;
 		}
 
+		$this->migrate_legacy_snapshots( $menu_id );
+
 		$snapshot = array(
 			'id'      => wp_generate_uuid4(),
 			'label'   => '' !== $label ? $label : sprintf(
@@ -379,33 +434,102 @@ class Menu_Duplicator {
 			'data'    => $payload,
 		);
 
-		$limit     = (int) apply_filters( 'swift_menu_duplicator_snapshot_limit', 10 );
-		$snapshots = $this->get_snapshots( $menu_id );
-
-		array_unshift( $snapshots, $snapshot );
-
-		if ( count( $snapshots ) > $limit ) {
-			$snapshots = array_slice( $snapshots, 0, $limit );
+		if ( ! add_term_meta( $menu_id, self::SNAPSHOT_META_KEY, $snapshot, false ) ) {
+			return false;
 		}
 
-		return (bool) update_term_meta( $menu_id, '_swmd_snapshots', $snapshots );
+		$this->trim_snapshots( $menu_id );
+
+		return true;
 	}
 
 	/**
-	 * Retrieves all snapshots for a given menu.
+	 * Retrieves all snapshots for a given menu, newest first.
 	 *
 	 * @param int $menu_id Term ID of the menu.
 	 *
-	 * @return array<int,array<string,mixed>> Ordered list of snapshots (newest first).
+	 * @return array<int,array<string,mixed>> Ordered list of snapshots.
 	 */
 	public function get_snapshots( int $menu_id ): array {
-		$raw = get_term_meta( $menu_id, '_swmd_snapshots', true );
+		$rows = array_values(
+			array_filter(
+				(array) get_term_meta( $menu_id, self::SNAPSHOT_META_KEY, false ),
+				static function ( $snapshot ): bool {
+					return is_array( $snapshot ) && isset( $snapshot['id'], $snapshot['created'] );
+				}
+			)
+		);
 
-		if ( ! is_array( $raw ) ) {
-			return array();
+		// Rows written by 1.0.3 and earlier, before snapshots got a row each.
+		// That stack was newest-first; reverse it so the merged list runs
+		// oldest-first and predates anything stored per row.
+		$legacy = get_term_meta( $menu_id, self::LEGACY_SNAPSHOT_META_KEY, true );
+		$legacy = is_array( $legacy ) ? array_reverse( $legacy ) : array();
+
+		$ordered = array_merge( $legacy, $rows );
+
+		// Snapshots taken within the same second share a timestamp, so fall
+		// back to insertion order to keep "newest first" deterministic.
+		$indexed = array();
+
+		foreach ( $ordered as $index => $snapshot ) {
+			$indexed[] = array( $index, $snapshot );
 		}
 
-		return $raw;
+		usort(
+			$indexed,
+			static function ( array $a, array $b ): int {
+				$by_time = (int) $b[1]['created'] <=> (int) $a[1]['created'];
+
+				return 0 !== $by_time ? $by_time : ( $b[0] <=> $a[0] );
+			}
+		);
+
+		return array_column( $indexed, 1 );
+	}
+
+	/**
+	 * Moves any legacy single-row snapshot stack to one row per snapshot.
+	 *
+	 * @param int $menu_id Term ID of the menu.
+	 *
+	 * @return void
+	 */
+	private function migrate_legacy_snapshots( int $menu_id ): void {
+		$legacy = get_term_meta( $menu_id, self::LEGACY_SNAPSHOT_META_KEY, true );
+
+		if ( ! is_array( $legacy ) || empty( $legacy ) ) {
+			return;
+		}
+
+		foreach ( $legacy as $snapshot ) {
+			if ( is_array( $snapshot ) && isset( $snapshot['id'] ) ) {
+				add_term_meta( $menu_id, self::SNAPSHOT_META_KEY, $snapshot, false );
+			}
+		}
+
+		delete_term_meta( $menu_id, self::LEGACY_SNAPSHOT_META_KEY );
+	}
+
+	/**
+	 * Drops the oldest snapshots beyond the configured limit.
+	 *
+	 * @param int $menu_id Term ID of the menu.
+	 *
+	 * @return void
+	 */
+	private function trim_snapshots( int $menu_id ): void {
+		$limit = (int) apply_filters( 'swift_menu_duplicator_snapshot_limit', 10 );
+
+		if ( $limit < 1 ) {
+			$limit = 1;
+		}
+
+		$snapshots = $this->get_snapshots( $menu_id );
+
+		foreach ( array_slice( $snapshots, $limit ) as $snapshot ) {
+			delete_term_meta( $menu_id, self::SNAPSHOT_META_KEY, $snapshot );
+		}
 	}
 
 	/**
@@ -500,23 +624,35 @@ class Menu_Duplicator {
 	 * @return bool True if deleted, false if snapshot was not found.
 	 */
 	public function delete_snapshot( int $menu_id, string $snapshot_id ): bool {
-		$snapshots = $this->get_snapshots( $menu_id );
-		$filtered  = array_values(
-			array_filter(
-				$snapshots,
-				static function ( array $snap ) use ( $snapshot_id ): bool {
-					return $snap['id'] !== $snapshot_id;
-				}
-			)
-		);
+		$deleted = false;
 
-		if ( count( $filtered ) === count( $snapshots ) ) {
-			return false; // Nothing was removed.
+		foreach ( (array) get_term_meta( $menu_id, self::SNAPSHOT_META_KEY, false ) as $snapshot ) {
+			if ( is_array( $snapshot ) && isset( $snapshot['id'] ) && $snapshot['id'] === $snapshot_id ) {
+				delete_term_meta( $menu_id, self::SNAPSHOT_META_KEY, $snapshot );
+				$deleted = true;
+			}
 		}
 
-		update_term_meta( $menu_id, '_swmd_snapshots', $filtered );
+		// Also handle a stack still stored in the pre-1.0.4 single row.
+		$legacy = get_term_meta( $menu_id, self::LEGACY_SNAPSHOT_META_KEY, true );
 
-		return true;
+		if ( is_array( $legacy ) ) {
+			$filtered = array_values(
+				array_filter(
+					$legacy,
+					static function ( array $snapshot ) use ( $snapshot_id ): bool {
+						return $snapshot['id'] !== $snapshot_id;
+					}
+				)
+			);
+
+			if ( count( $filtered ) !== count( $legacy ) ) {
+				update_term_meta( $menu_id, self::LEGACY_SNAPSHOT_META_KEY, $filtered );
+				$deleted = true;
+			}
+		}
+
+		return $deleted;
 	}
 
 	// -----------------------------------------------------------------------
@@ -524,11 +660,18 @@ class Menu_Duplicator {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Duplicates a single nav_menu_item post and its postmeta.
+	 * Duplicates a single nav_menu_item post.
 	 *
-	 * The item description lives in post_content (that is where core's
-	 * wp_update_nav_menu_item() stores the "Description" field), so it is
-	 * copied alongside the title and excerpt.
+	 * Delegates the write to core's wp_update_nav_menu_item() rather than
+	 * inserting the post by hand. Core owns the meta contract for menu items —
+	 * it normalises `_menu_item_object_id` for custom links, clears
+	 * `_menu_item_orphaned`, and fires `wp_add_nav_menu_item` /
+	 * `wp_update_nav_menu_item`, which is how WPML, Polylang, caches, and
+	 * mega-menu plugins learn that an item exists. Writing the postmeta
+	 * directly skipped all of that.
+	 *
+	 * Fields map to core's arg names: the description lives in post_content and
+	 * the title attribute in post_excerpt.
 	 *
 	 * @param WP_Post $item        Original menu item post object.
 	 * @param int     $new_menu_id Term ID of the destination menu.
@@ -536,24 +679,32 @@ class Menu_Duplicator {
 	 * @return int|WP_Error New post ID, or WP_Error on failure.
 	 */
 	private function duplicate_menu_item( WP_Post $item, int $new_menu_id ) {
-		$new_item_id = wp_insert_post(
+		$classes = get_post_meta( $item->ID, '_menu_item_classes', true );
+
+		$new_item_id = wp_update_nav_menu_item(
+			$new_menu_id,
+			0,
 			array(
-				'post_type'    => 'nav_menu_item',
-				'post_status'  => $item->post_status,
-				'post_title'   => $item->post_title,
-				'post_content' => $item->post_content,
-				'post_excerpt' => $item->post_excerpt,
-				'menu_order'   => $item->menu_order,
-				'post_parent'  => 0,
-			),
-			true
+				'menu-item-object-id'   => (int) get_post_meta( $item->ID, '_menu_item_object_id', true ),
+				'menu-item-object'      => (string) get_post_meta( $item->ID, '_menu_item_object', true ),
+				// Parent references are remapped by the caller once every item exists.
+				'menu-item-parent-id'   => 0,
+				'menu-item-position'    => (int) $item->menu_order,
+				'menu-item-type'        => (string) get_post_meta( $item->ID, '_menu_item_type', true ),
+				'menu-item-title'       => $item->post_title,
+				'menu-item-url'         => (string) get_post_meta( $item->ID, '_menu_item_url', true ),
+				'menu-item-description' => $item->post_content,
+				'menu-item-attr-title'  => $item->post_excerpt,
+				'menu-item-target'      => (string) get_post_meta( $item->ID, '_menu_item_target', true ),
+				'menu-item-classes'     => is_array( $classes ) ? implode( ' ', $classes ) : (string) $classes,
+				'menu-item-xfn'         => (string) get_post_meta( $item->ID, '_menu_item_xfn', true ),
+				'menu-item-status'      => $item->post_status,
+			)
 		);
 
 		if ( is_wp_error( $new_item_id ) ) {
 			return $new_item_id;
 		}
-
-		wp_set_object_terms( $new_item_id, array( $new_menu_id ), 'nav_menu' );
 
 		$this->copy_item_postmeta( $item->ID, $new_item_id );
 
@@ -621,10 +772,14 @@ class Menu_Duplicator {
 	}
 
 	/**
-	 * Copies all _menu_item_* postmeta from source to destination.
+	 * Copies any non-core item postmeta from source to destination.
 	 *
-	 * The _menu_item_menu_item_parent meta is intentionally copied as-is
-	 * at this stage; the caller re-maps it after all items are processed.
+	 * The keys in self::CORE_META_KEYS are written by wp_update_nav_menu_item()
+	 * and are deliberately skipped: core normalises several of them (a custom
+	 * link's `_menu_item_object_id` must point at the item itself), so copying
+	 * the source values over the top would reintroduce the very drift this
+	 * method used to cause. Anything a third party adds through the
+	 * `swift_menu_duplicator_item_meta_keys` filter is still copied verbatim.
 	 *
 	 * @param int $source_id Source nav_menu_item post ID.
 	 * @param int $dest_id   Destination nav_menu_item post ID.
@@ -632,7 +787,9 @@ class Menu_Duplicator {
 	 * @return void
 	 */
 	private function copy_item_postmeta( int $source_id, int $dest_id ): void {
-		foreach ( $this->get_meta_keys() as $key ) {
+		$extra_keys = array_diff( $this->get_meta_keys(), self::CORE_META_KEYS );
+
+		foreach ( $extra_keys as $key ) {
 			$value = get_post_meta( $source_id, $key, true );
 
 			if ( '' === $value || false === $value ) {
@@ -641,6 +798,59 @@ class Menu_Duplicator {
 
 			update_post_meta( $dest_id, $key, $value );
 		}
+	}
+
+	/**
+	 * Describes what a menu item points at, in site-independent terms.
+	 *
+	 * A `post_type` or `taxonomy` item stores only a local object ID, which
+	 * addresses different content (or nothing) on another site. Recording the
+	 * slug and the resolved URL lets an import re-find the object by slug and,
+	 * failing that, degrade to a custom link that still goes somewhere sensible.
+	 *
+	 * @param WP_Post             $item Menu item post object.
+	 * @param array<string,mixed> $meta Item meta already collected for export.
+	 *
+	 * @return array<string,string> Extra export fields; empty for custom links.
+	 */
+	private function describe_item_target( WP_Post $item, array $meta ): array {
+		$type      = $meta['_menu_item_type'] ?? '';
+		$object    = $meta['_menu_item_object'] ?? '';
+		$object_id = (int) ( $meta['_menu_item_object_id'] ?? 0 );
+
+		if ( $object_id <= 0 || '' === $object ) {
+			return array();
+		}
+
+		if ( 'post_type' === $type ) {
+			$post = get_post( $object_id );
+
+			if ( ! $post instanceof WP_Post ) {
+				return array();
+			}
+
+			return array(
+				'object_slug' => $post->post_name,
+				'object_url'  => (string) get_permalink( $post ),
+			);
+		}
+
+		if ( 'taxonomy' === $type ) {
+			$term = get_term( $object_id, $object );
+
+			if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
+				return array();
+			}
+
+			$link = get_term_link( $term );
+
+			return array(
+				'object_slug' => $term->slug,
+				'object_url'  => is_wp_error( $link ) ? '' : (string) $link,
+			);
+		}
+
+		return array();
 	}
 
 	/**

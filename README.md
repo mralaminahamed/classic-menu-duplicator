@@ -40,12 +40,16 @@ WordPress ships no way to copy a navigation menu — rebuilding one by hand is s
 - Bulk **duplicate**, **export** (ZIP), and **delete**; row-level duplicate/export
 
 **Export / Import**
-- Portable **JSON** export of any menu
+- Portable **JSON** export of any menu, recording a slug-based reference so imports can re-resolve targets on another site
 - Import from a file upload or pasted JSON, with a **dry-run preview**
 - **URL find & replace** for staging → production migrations
+- Items whose target does not exist on the destination degrade to custom links rather than pointing at unrelated content
+
+**Scope**
+- Manages **classic** menus (`nav_menu`). Block themes render Navigation blocks, which WordPress stores separately and this plugin does not duplicate — the Menu Manager says so when it detects a block theme.
 
 **Multisite, CLI & REST**
-- Copy any menu to another sub-site on a Multisite network, with URL rewriting
+- Copy any menu to another sub-site on a Multisite network, with optional URL find & replace
 - Full **WP-CLI** command group and a versioned **REST API**
 
 **Multilingual-safe**
@@ -82,6 +86,11 @@ Base namespace `/wp-json/swift-menu-duplicator/v1/`. All routes require `edit_th
 | `POST` | `/menus/{id}/duplicate` | Duplicate a menu (optional `name`) |
 | `GET` | `/menus/{id}/export` | Export a menu as JSON |
 | `POST` | `/menus/{id}/items/{item_id}/duplicate` | Duplicate a single item |
+| `POST` | `/menus/import` | Import a menu from an export payload |
+| `GET` | `/menus/{id}/snapshots` | List snapshots |
+| `POST` | `/menus/{id}/snapshots` | Save a snapshot |
+| `POST` | `/menus/{id}/snapshots/{snapshot_id}` | Restore a snapshot |
+| `DELETE` | `/menus/{id}/snapshots/{snapshot_id}` | Delete a snapshot |
 
 Permission is filterable via `swift_menu_duplicator_rest_permission`.
 
@@ -92,6 +101,7 @@ wp swift-menu-duplicator duplicate <menu-id> [--name=<name>] [--porcelain]
 wp swift-menu-duplicator export <menu-id> [--output=<file>]
 wp swift-menu-duplicator import <file> [--name=<name>] [--find=<url>] [--replace=<url>] [--dry-run] [--porcelain]
 wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<url>] [--replace=<url>]
+wp swift-menu-duplicator snapshot list|save|restore|delete <menu-id> [--label=<label>] [--id=<uuid>]
 ```
 
 ## Developer hooks
@@ -110,6 +120,7 @@ wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name
 | `swift_menu_duplicator_after_import_menu` | action | After a successful import |
 | `swift_menu_duplicator_before_restore_snapshot` | action | Before a menu is rolled back to a snapshot |
 | `swift_menu_duplicator_after_restore_snapshot` | action | After a snapshot restore completes |
+| `swift_menu_duplicator_import_menu_name` | filter | Change the name given to an imported menu |
 
 ## How it works
 

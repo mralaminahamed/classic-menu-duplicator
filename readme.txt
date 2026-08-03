@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.3
+Stable tag:        1.0.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,11 @@ Full REST API at `/wp-json/swift-menu-duplicator/v1/` for headless and block-edi
 * `POST /menus/{id}/duplicate` — duplicate a menu (optional `name` parameter)
 * `GET  /menus/{id}/export` — export a menu as a JSON payload
 * `POST /menus/{id}/items/{item_id}/duplicate` — duplicate a single menu item
+* `POST /menus/import` — import a menu from an export payload
+* `GET  /menus/{id}/snapshots` — list snapshots
+* `POST /menus/{id}/snapshots` — save a snapshot
+* `POST /menus/{id}/snapshots/{snapshot_id}` — restore a snapshot
+* `DELETE /menus/{id}/snapshots/{snapshot_id}` — delete a snapshot
 
 Permission is controlled by the `swift_menu_duplicator_rest_permission` filter (defaults to `edit_theme_options`).
 
@@ -67,6 +72,7 @@ Full command-line support under the `wp swift-menu-duplicator` command group:
 * `wp swift-menu-duplicator export <menu-id> [--output=<file>]` — export to JSON
 * `wp swift-menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]` — import from JSON
 * `wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]` — copy to a sub-site
+* `wp swift-menu-duplicator snapshot list|save|restore|delete <menu-id> [--label=<label>] [--id=<uuid>]` — manage snapshots
 
 === Multilingual Compatibility ===
 
@@ -124,6 +130,10 @@ Yes. A name field is shown in the duplicate modal. You can also change the defau
 
 Yes. Translation and language meta keys are automatically stripped from duplicated items so the copy starts as a clean, language-neutral menu.
 
+= Does it work with block themes? =
+
+It manages **classic** menus (the `nav_menu` taxonomy). Block themes render Navigation blocks instead, which WordPress stores separately, and they hide **Appearance → Menus** unless the theme opts into menu or widget support. On a block theme the Menu Manager still works for any classic menus you have — for example ones a plugin or a classic child theme still uses — and the plugin tells you so on the screen, with a link to the Site Editor. Duplicating Navigation blocks is not supported.
+
 = Is it compatible with WooCommerce / HPOS? =
 
 Yes. The plugin only interacts with `nav_menu_item` posts and the `nav_menu` taxonomy. It has no dependency on WooCommerce or its High-Performance Order Storage.
@@ -157,6 +167,21 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 5. WP-CLI `duplicate` and `export` commands in a terminal.
 
 == Changelog ==
+
+= 1.0.4 =
+* Fix: Duplication and import now write menu items through core's `wp_update_nav_menu_item()` instead of inserting posts and postmeta directly. Core normalises the item meta and fires `wp_add_nav_menu_item` / `wp_update_nav_menu_item`, so WPML, Polylang, caching, and mega-menu plugins finally see cloned items.
+* Fix: Duplicated custom links no longer carry the source item's `_menu_item_object_id`; core's own invariant (a custom link points at itself) is respected.
+* Fix: Importing to a different site re-resolves each item's target by the slug recorded at export time, and falls back to a custom link using the original URL when the object does not exist. Previously the raw ID was kept, so items pointed at whatever content happened to hold that ID.
+* Fix: The menu description is copied on duplicate and restored on import — the export already carried it, but nothing applied it.
+* Fix: Bulk "Duplicate" and "Export as JSON" now have server-side handlers. Without JavaScript they silently did nothing.
+* Fix: Snapshots are stored one term meta row each, instead of rewriting the entire stack into a single row on every save. Existing snapshots migrate automatically.
+* Feature: The Menu Manager table gains Slug, Description, and Snapshots columns (Slug and Description hidden by default), sortable item and snapshot counts, and a working Screen Options panel for per-page and column visibility.
+* Feature: The Menu Manager finally has a stylesheet — the import tab, preview table, and multisite copy form were previously unstyled.
+* Feature: REST API gains import and snapshot endpoints (list, save, restore, delete), and every route now publishes a schema.
+* Feature: New `wp swift-menu-duplicator snapshot list|save|restore|delete` command.
+* Fix: Block themes now get an explanatory notice on the Menu Manager screen — they render Navigation blocks, not classic menus.
+* Fix: Uninstall removes the new snapshot rows as well as the legacy ones.
+* Changed: Admin scripts load with `defer`; downloads send `nocache_headers()` and `X-Content-Type-Options: nosniff`; the multisite site list uses `get_site()` data rather than `get_blog_details()`; the row Delete confirm moved out of an inline `onclick`.
 
 = 1.0.3 =
 * Feature: Snapshot **restore** now exists. The snapshot panel documented since 1.0.0 could only save and delete — restoring a menu from a snapshot was never implemented. Restoring replaces the menu's items in place (the menu ID and theme locations survive) and snapshots the current state first, so a restore can itself be undone.
@@ -199,6 +224,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.4 =
+Duplication and import now go through WordPress's own menu-item API, so translation and caching plugins see cloned items, and cross-site imports re-resolve their targets by slug instead of trusting raw IDs. Adds snapshot REST/CLI endpoints, new Menu Manager columns, and styles for the import screen.
 
 = 1.0.3 =
 Snapshot restore now works (it was documented but missing), menu item descriptions survive duplication and export/import, and importing a menu back into its own site no longer fails. Uninstall now clears leftover snapshot data.

@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace SwiftMenuDuplicator\Rest;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Import\Menu_Importer;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -64,26 +65,29 @@ class Menu_REST_Controller {
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/duplicate',
 			array(
-				'methods'             => \WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'duplicate_menu' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-				'args'                => array(
-					'id'   => array(
-						'description'       => __( 'Term ID of the menu to duplicate.', 'swift-menu-duplicator' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'minimum'           => 1,
-						'sanitize_callback' => 'absint',
-						'validate_callback' => 'rest_validate_request_arg',
-					),
-					'name' => array(
-						'description'       => __( 'Optional name for the duplicated menu. Defaults to "{original} (Copy)".', 'swift-menu-duplicator' ),
-						'type'              => 'string',
-						'required'          => false,
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_text_field',
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'duplicate_menu' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'   => array(
+							'description'       => __( 'Term ID of the menu to duplicate.', 'swift-menu-duplicator' ),
+							'type'              => 'integer',
+							'required'          => true,
+							'minimum'           => 1,
+							'sanitize_callback' => 'absint',
+							'validate_callback' => 'rest_validate_request_arg',
+						),
+						'name' => array(
+							'description'       => __( 'Optional name for the duplicated menu. Defaults to "{original} (Copy)".', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
 					),
 				),
+				'schema' => array( $this, 'get_menu_schema' ),
 			)
 		);
 
@@ -92,19 +96,22 @@ class Menu_REST_Controller {
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/export',
 			array(
-				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'export_menu' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-				'args'                => array(
-					'id' => array(
-						'description'       => __( 'Term ID of the menu to export.', 'swift-menu-duplicator' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'minimum'           => 1,
-						'sanitize_callback' => 'absint',
-						'validate_callback' => 'rest_validate_request_arg',
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'export_menu' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id' => array(
+							'description'       => __( 'Term ID of the menu to export.', 'swift-menu-duplicator' ),
+							'type'              => 'integer',
+							'required'          => true,
+							'minimum'           => 1,
+							'sanitize_callback' => 'absint',
+							'validate_callback' => 'rest_validate_request_arg',
+						),
 					),
 				),
+				'schema' => array( $this, 'get_export_schema' ),
 			)
 		);
 
@@ -113,28 +120,160 @@ class Menu_REST_Controller {
 			self::NAMESPACE,
 			'/menus/(?P<id>[\d]+)/items/(?P<item_id>[\d]+)/duplicate',
 			array(
-				'methods'             => \WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'duplicate_item' ),
-				'permission_callback' => array( $this, 'check_permission' ),
-				'args'                => array(
-					'id'      => array(
-						'description'       => __( 'Term ID of the menu that owns the item.', 'swift-menu-duplicator' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'minimum'           => 1,
-						'sanitize_callback' => 'absint',
-						'validate_callback' => 'rest_validate_request_arg',
-					),
-					'item_id' => array(
-						'description'       => __( 'Post ID of the nav_menu_item to duplicate.', 'swift-menu-duplicator' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'minimum'           => 1,
-						'sanitize_callback' => 'absint',
-						'validate_callback' => 'rest_validate_request_arg',
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'duplicate_item' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'      => array(
+							'description'       => __( 'Term ID of the menu that owns the item.', 'swift-menu-duplicator' ),
+							'type'              => 'integer',
+							'required'          => true,
+							'minimum'           => 1,
+							'sanitize_callback' => 'absint',
+							'validate_callback' => 'rest_validate_request_arg',
+						),
+						'item_id' => array(
+							'description'       => __( 'Post ID of the nav_menu_item to duplicate.', 'swift-menu-duplicator' ),
+							'type'              => 'integer',
+							'required'          => true,
+							'minimum'           => 1,
+							'sanitize_callback' => 'absint',
+							'validate_callback' => 'rest_validate_request_arg',
+						),
 					),
 				),
+				'schema' => array( $this, 'get_item_schema' ),
 			)
+		);
+
+		// POST /swift-menu-duplicator/v1/menus/import
+		register_rest_route(
+			self::NAMESPACE,
+			'/menus/import',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'import_menu' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'payload' => array(
+							'description' => __( 'Export payload produced by the export endpoint.', 'swift-menu-duplicator' ),
+							'type'        => 'object',
+							'required'    => true,
+						),
+						'name'    => array(
+							'description'       => __( 'Optional name for the imported menu.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'find'    => array(
+							'description'       => __( 'URL fragment to search for in item URLs.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'replace' => array(
+							'description'       => __( 'Replacement for the "find" fragment.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+				),
+				'schema' => array( $this, 'get_menu_schema' ),
+			)
+		);
+
+		// GET|POST /swift-menu-duplicator/v1/menus/{id}/snapshots
+		register_rest_route(
+			self::NAMESPACE,
+			'/menus/(?P<id>[\d]+)/snapshots',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'list_snapshots' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array( 'id' => $this->menu_id_arg() ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_snapshot' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'    => $this->menu_id_arg(),
+						'label' => array(
+							'description'       => __( 'Optional label for the snapshot.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+				),
+				'schema' => array( $this, 'get_snapshot_schema' ),
+			)
+		);
+
+		// POST|DELETE /swift-menu-duplicator/v1/menus/{id}/snapshots/{snapshot_id}
+		register_rest_route(
+			self::NAMESPACE,
+			'/menus/(?P<id>[\d]+)/snapshots/(?P<snapshot_id>[a-f0-9\-]+)',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'restore_snapshot' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'          => $this->menu_id_arg(),
+						'snapshot_id' => $this->snapshot_id_arg(),
+					),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_snapshot' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'          => $this->menu_id_arg(),
+						'snapshot_id' => $this->snapshot_id_arg(),
+					),
+				),
+				'schema' => array( $this, 'get_snapshot_schema' ),
+			)
+		);
+	}
+
+	/**
+	 * Shared arg definition for the menu term ID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function menu_id_arg(): array {
+		return array(
+			'description'       => __( 'Term ID of the menu.', 'swift-menu-duplicator' ),
+			'type'              => 'integer',
+			'required'          => true,
+			'minimum'           => 1,
+			'sanitize_callback' => 'absint',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+	}
+
+	/**
+	 * Shared arg definition for a snapshot UUID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function snapshot_id_arg(): array {
+		return array(
+			'description'       => __( 'UUID of the snapshot.', 'swift-menu-duplicator' ),
+			'type'              => 'string',
+			'required'          => true,
+			'sanitize_callback' => 'sanitize_text_field',
 		);
 	}
 
@@ -221,6 +360,291 @@ class Menu_REST_Controller {
 		);
 	}
 
+	/**
+	 * Imports a menu from an export payload.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function import_menu( WP_REST_Request $request ) {
+		$importer = new Menu_Importer();
+		$payload  = $importer->validate( (array) $request->get_param( 'payload' ) );
+
+		if ( is_wp_error( $payload ) ) {
+			return $this->error_response( $payload );
+		}
+
+		$menu_id = $importer->import(
+			$payload,
+			(string) $request->get_param( 'name' ),
+			(string) $request->get_param( 'find' ),
+			(string) $request->get_param( 'replace' )
+		);
+
+		if ( is_wp_error( $menu_id ) ) {
+			return $this->error_response( $menu_id );
+		}
+
+		$term = get_term( $menu_id, 'nav_menu' );
+
+		return rest_ensure_response(
+			array(
+				'id'       => $menu_id,
+				'name'     => $term instanceof WP_Term ? $term->name : '',
+				'slug'     => $term instanceof WP_Term ? $term->slug : '',
+				'edit_url' => admin_url( 'nav-menus.php?action=edit&menu=' . $menu_id ),
+			)
+		);
+	}
+
+	/**
+	 * Lists a menu's snapshots (metadata only, without the stored payload).
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function list_snapshots( WP_REST_Request $request ) {
+		$menu_id = (int) $request->get_param( 'id' );
+
+		if ( ! $this->menu_exists( $menu_id ) ) {
+			return $this->error_response(
+				new WP_Error( 'invalid_menu', __( 'Menu not found.', 'swift-menu-duplicator' ) )
+			);
+		}
+
+		return rest_ensure_response( $this->prepare_snapshots( $menu_id ) );
+	}
+
+	/**
+	 * Saves a snapshot of the menu's current state.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function create_snapshot( WP_REST_Request $request ) {
+		$menu_id = (int) $request->get_param( 'id' );
+
+		if ( ! $this->menu_exists( $menu_id ) ) {
+			return $this->error_response(
+				new WP_Error( 'invalid_menu', __( 'Menu not found.', 'swift-menu-duplicator' ) )
+			);
+		}
+
+		$duplicator = new Menu_Duplicator();
+
+		if ( ! $duplicator->save_snapshot( $menu_id, (string) $request->get_param( 'label' ) ) ) {
+			return $this->error_response(
+				new WP_Error( 'snapshot_failed', __( 'Could not save snapshot.', 'swift-menu-duplicator' ) )
+			);
+		}
+
+		$response = rest_ensure_response( $this->prepare_snapshots( $menu_id ) );
+		$response->set_status( 201 );
+
+		return $response;
+	}
+
+	/**
+	 * Restores a menu from one of its snapshots.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function restore_snapshot( WP_REST_Request $request ) {
+		$duplicator = new Menu_Duplicator();
+		$restored   = $duplicator->restore_snapshot(
+			(int) $request->get_param( 'id' ),
+			(string) $request->get_param( 'snapshot_id' )
+		);
+
+		if ( is_wp_error( $restored ) ) {
+			return $this->error_response( $restored );
+		}
+
+		return rest_ensure_response(
+			array(
+				'restored'  => $restored,
+				'snapshots' => $this->prepare_snapshots( (int) $request->get_param( 'id' ) ),
+			)
+		);
+	}
+
+	/**
+	 * Deletes a single snapshot.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function delete_snapshot( WP_REST_Request $request ) {
+		$menu_id    = (int) $request->get_param( 'id' );
+		$duplicator = new Menu_Duplicator();
+
+		if ( ! $duplicator->delete_snapshot( $menu_id, (string) $request->get_param( 'snapshot_id' ) ) ) {
+			return $this->error_response(
+				new WP_Error( 'invalid_snapshot', __( 'Snapshot not found.', 'swift-menu-duplicator' ) )
+			);
+		}
+
+		return rest_ensure_response(
+			array(
+				'deleted'   => true,
+				'snapshots' => $this->prepare_snapshots( $menu_id ),
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// Schemas.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Schema for responses describing a menu.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_menu_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-menu',
+			'type'       => 'object',
+			'properties' => array(
+				'id'       => array(
+					'description' => __( 'Term ID of the menu.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+				'name'     => array(
+					'description' => __( 'Menu name.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'slug'     => array(
+					'description' => __( 'Menu slug.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'edit_url' => array(
+					'description' => __( 'Admin URL for editing the menu.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Schema for responses describing a duplicated menu item.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_item_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-menu-item',
+			'type'       => 'object',
+			'properties' => array(
+				'id'         => array(
+					'description' => __( 'Post ID of the new menu item.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+				'title'      => array(
+					'description' => __( 'Menu item title.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'menu_order' => array(
+					'description' => __( 'Position of the item within the menu.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Schema for the export payload.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_export_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-export',
+			'type'       => 'object',
+			'properties' => array(
+				'version'  => array(
+					'description' => __( 'Plugin version that produced the export.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'exported' => array(
+					'description' => __( 'Export timestamp.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'site_url' => array(
+					'description' => __( 'Home URL of the site the export came from.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+				'menu'     => array(
+					'description' => __( 'Menu name, slug, and description.', 'swift-menu-duplicator' ),
+					'type'        => 'object',
+					'readonly'    => true,
+				),
+				'items'    => array(
+					'description' => __( 'Menu items, each with meta and a portable object reference.', 'swift-menu-duplicator' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'items'       => array( 'type' => 'object' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Schema for snapshot descriptors.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_snapshot_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-snapshot',
+			'type'       => 'object',
+			'properties' => array(
+				'id'      => array(
+					'description' => __( 'Snapshot UUID.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'label'   => array(
+					'description' => __( 'Human-readable snapshot label.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'created' => array(
+					'description' => __( 'Unix timestamp of when the snapshot was taken.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+				'items'   => array(
+					'description' => __( 'Number of menu items captured.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+			),
+		);
+	}
+
 	// -----------------------------------------------------------------------
 	// Permission callback.
 	// -----------------------------------------------------------------------
@@ -264,6 +688,45 @@ class Menu_REST_Controller {
 	// -----------------------------------------------------------------------
 
 	/**
+	 * Whether a nav_menu term exists.
+	 *
+	 * @param int $menu_id Term ID.
+	 *
+	 * @return bool
+	 */
+	private function menu_exists( int $menu_id ): bool {
+		$term = get_term( $menu_id, 'nav_menu' );
+
+		return ! is_wp_error( $term ) && $term instanceof WP_Term;
+	}
+
+	/**
+	 * Reduces stored snapshots to the descriptor fields the API exposes.
+	 *
+	 * The stored payload itself is deliberately left out — it can be large, and
+	 * the export endpoint already serves menu contents.
+	 *
+	 * @param int $menu_id Menu term ID.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function prepare_snapshots( int $menu_id ): array {
+		$snapshots = ( new Menu_Duplicator() )->get_snapshots( $menu_id );
+
+		return array_map(
+			static function ( array $snapshot ): array {
+				return array(
+					'id'      => (string) $snapshot['id'],
+					'label'   => (string) $snapshot['label'],
+					'created' => (int) $snapshot['created'],
+					'items'   => isset( $snapshot['data']['items'] ) ? count( $snapshot['data']['items'] ) : 0,
+				);
+			},
+			$snapshots
+		);
+	}
+
+	/**
 	 * Converts a WP_Error into a REST error response with an appropriate
 	 * HTTP status code.
 	 *
@@ -275,8 +738,13 @@ class Menu_REST_Controller {
 		$code = $error->get_error_code();
 
 		$status_map = array(
-			'invalid_menu' => 404,
-			'invalid_item' => 404,
+			'invalid_menu'      => 404,
+			'invalid_item'      => 404,
+			'invalid_snapshot'  => 404,
+			'missing_key'       => 400,
+			'missing_menu_name' => 400,
+			'invalid_items'     => 400,
+			'too_many_items'    => 400,
 		);
 
 		$status = $status_map[ $code ] ?? 500;
