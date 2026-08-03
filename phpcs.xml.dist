@@ -93,12 +93,6 @@
         </properties>
     </rule>
 
-    <!-- Define the custom capability for WordPress -->
-    <rule ref="WordPress.WP.Capabilities">
-        <properties>
-            <property name="custom_capabilities" type="array">
-                <element value="manage_options"/>
-            </property>
-        </properties>
-    </rule>
+    <!-- The plugin gates every action on core capabilities (edit_theme_options,
+         manage_network, activate_plugins); no custom capabilities are registered. -->
 </ruleset>
