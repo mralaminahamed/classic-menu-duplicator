@@ -42,6 +42,7 @@ class Menu_Admin {
 		// Snapshot actions.
 		add_action( 'wp_ajax_swmd_save_snapshot', array( $this, 'handle_ajax_save_snapshot' ) );
 		add_action( 'wp_ajax_swmd_get_snapshots', array( $this, 'handle_ajax_get_snapshots' ) );
+		add_action( 'wp_ajax_swmd_restore_snapshot', array( $this, 'handle_ajax_restore_snapshot' ) );
 		add_action( 'wp_ajax_swmd_delete_snapshot', array( $this, 'handle_ajax_delete_snapshot' ) );
 
 		// Auto-snapshot before core saves a menu so every manual save is captured.
@@ -107,6 +108,10 @@ class Menu_Admin {
 				'savingSnapshotLabel'  => __( 'Saving…', 'swift-menu-duplicator' ),
 				'noSnapshotsText'      => __( 'No snapshots saved yet.', 'swift-menu-duplicator' ),
 				'snapshotSavedText'    => __( 'Snapshot saved.', 'swift-menu-duplicator' ),
+				'restoreLabel'         => __( 'Restore', 'swift-menu-duplicator' ),
+				'restoringLabel'       => __( 'Restoring…', 'swift-menu-duplicator' ),
+				'snapshotRestoredText' => __( 'Menu restored from snapshot.', 'swift-menu-duplicator' ),
+				'confirmRestoreText'   => __( 'Replace the current menu items with this snapshot? The current state is saved as a new snapshot first.', 'swift-menu-duplicator' ),
 				'confirmDeleteText'    => __( 'Delete this snapshot?', 'swift-menu-duplicator' ),
 				// Modal strings.
 				'modalHeading'         => __( 'Duplicate Menu', 'swift-menu-duplicator' ),
@@ -305,6 +310,42 @@ class Menu_Admin {
 	}
 
 	/**
+	 * Restores the current menu from one of its snapshots.
+	 *
+	 * @return void
+	 */
+	public function handle_ajax_restore_snapshot(): void {
+		$this->verify_nonce_and_capability();
+
+		$menu_id     = isset( $_POST['menu_id'] ) ? absint( $_POST['menu_id'] ) : 0;
+		$snapshot_id = isset( $_POST['snapshot_id'] )
+			? sanitize_text_field( wp_unslash( $_POST['snapshot_id'] ) )
+			: '';
+
+		if ( $menu_id <= 0 || '' === $snapshot_id ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Invalid parameters.', 'swift-menu-duplicator' ) ),
+				400
+			);
+		}
+
+		$duplicator = new Menu_Duplicator();
+		$restored   = $duplicator->restore_snapshot( $menu_id, $snapshot_id );
+
+		if ( is_wp_error( $restored ) ) {
+			$status = 'invalid_snapshot' === $restored->get_error_code() ? 404 : 500;
+			wp_send_json_error( array( 'message' => $restored->get_error_message() ), $status );
+		}
+
+		wp_send_json_success(
+			array(
+				'restored'  => $restored,
+				'snapshots' => $this->prepare_snapshots_for_response( $duplicator->get_snapshots( $menu_id ) ),
+			)
+		);
+	}
+
+	/**
 	 * Deletes a specific snapshot by UUID.
 	 *
 	 * @return void
@@ -348,10 +389,15 @@ class Menu_Admin {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Automatically saves a snapshot before WordPress updates a menu.
+	 * Automatically saves a snapshot when WordPress updates a menu.
 	 *
-	 * Fires on the `wp_update_nav_menu` action (priority 5, before core
-	 * processes the update) so the snapshot captures the pre-save state.
+	 * Core fires `wp_update_nav_menu` from wp_update_nav_menu_object() once the
+	 * menu *term* has been written but before nav-menus.php saves the item
+	 * posts, so the snapshot still captures the item state as it was before the
+	 * save. The same action also fires on menu creation (wp_create_nav_menu()),
+	 * including the menus this plugin creates when duplicating or importing;
+	 * empty menus are skipped so those paths do not fill the stack with
+	 * snapshots of nothing.
 	 *
 	 * @param int $menu_id Term ID of the menu being updated.
 	 *
@@ -359,6 +405,12 @@ class Menu_Admin {
 	 */
 	public function auto_snapshot_on_save( int $menu_id ): void {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return;
+		}
+
+		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
+
+		if ( empty( $items ) ) {
 			return;
 		}
 

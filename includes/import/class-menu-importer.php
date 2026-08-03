@@ -65,10 +65,10 @@ class Menu_Importer {
 	 * @return array<string,mixed>|WP_Error Validated payload or WP_Error.
 	 */
 	public function validate( array $data ) {
-		$required = array( 'menu', 'items' );
-
-		foreach ( $required as $key ) {
-			if ( empty( $data[ $key ] ) ) {
+		// Presence, not truthiness: an export of an empty menu carries a valid
+		// but empty "items" array and must still import.
+		foreach ( array( 'menu', 'items' ) as $key ) {
+			if ( ! array_key_exists( $key, $data ) ) {
 				return new WP_Error(
 					'missing_key',
 					sprintf(
@@ -80,7 +80,7 @@ class Menu_Importer {
 			}
 		}
 
-		if ( empty( $data['menu']['name'] ) ) {
+		if ( ! is_array( $data['menu'] ) || empty( $data['menu']['name'] ) ) {
 			return new WP_Error( 'missing_menu_name', __( 'Import file does not contain a menu name.', 'swift-menu-duplicator' ) );
 		}
 
@@ -185,6 +185,11 @@ class Menu_Importer {
 		 */
 		$resolved_name = (string) apply_filters( 'swift_menu_duplicator_import_menu_name', $resolved_name, $payload );
 
+		// Core rejects a duplicate menu name outright. Importing a file back
+		// into the site it came from is a normal restore flow, so pick the next
+		// free variant instead of failing.
+		$resolved_name = $this->resolve_unique_menu_name( $resolved_name );
+
 		$new_term = wp_create_nav_menu( $resolved_name );
 
 		if ( is_wp_error( $new_term ) ) {
@@ -204,15 +209,46 @@ class Menu_Importer {
 		 */
 		do_action( 'swift_menu_duplicator_before_import_menu', $new_menu_id, $payload );
 
+		$id_map = $this->import_items( $payload, $new_menu_id, $find, $replace );
+
 		/**
-		 * Maps each original export item ID to its newly inserted post ID.
+		 * Fires after all items have been imported.
 		 *
-		 * @var array<int,int> $id_map
+		 * @since 1.0.0
+		 *
+		 * @param int $new_menu_id New menu term ID.
+		 * @param array<int,int> $id_map Map of original => new item IDs.
+		 * @param array $payload Full import payload.
 		 */
+		do_action( 'swift_menu_duplicator_after_import_menu', $new_menu_id, $id_map, $payload );
+
+		return $new_menu_id;
+	}
+
+	/**
+	 * Inserts every item of a payload into an existing nav_menu term.
+	 *
+	 * Runs the same two-pass insert used by import(): items are created
+	 * first, then parent references are re-mapped to the new post IDs.
+	 * Exposed separately so a snapshot restore can refill an existing menu
+	 * without creating a new term.
+	 *
+	 * @param array<string,mixed> $payload Validated import payload.
+	 * @param int                 $menu_id Destination menu term ID.
+	 * @param string              $find    Optional. URL string to search for.
+	 * @param string              $replace Optional. URL string to replace with.
+	 *
+	 * @return array<int,int> Map of payload item IDs to newly created post IDs.
+	 */
+	public function import_items( array $payload, int $menu_id, string $find = '', string $replace = '' ): array {
 		$id_map = array();
 
+		if ( empty( $payload['items'] ) || ! is_array( $payload['items'] ) ) {
+			return $id_map;
+		}
+
 		foreach ( $payload['items'] as $item ) {
-			$new_id = $this->insert_item( $item, $new_menu_id, $find, $replace );
+			$new_id = $this->insert_item( $item, $menu_id, $find, $replace );
 
 			if ( is_wp_error( $new_id ) ) {
 				// Non-fatal: log when WP_DEBUG_LOG is enabled and continue with remaining items.
@@ -243,18 +279,7 @@ class Menu_Importer {
 			}
 		}
 
-		/**
-		 * Fires after all items have been imported.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param int $new_menu_id New menu term ID.
-		 * @param array<int,int> $id_map Map of original => new item IDs.
-		 * @param array $payload Full import payload.
-		 */
-		do_action( 'swift_menu_duplicator_after_import_menu', $new_menu_id, $id_map, $payload );
-
-		return $new_menu_id;
+		return $id_map;
 	}
 
 	// -----------------------------------------------------------------------
@@ -277,6 +302,8 @@ class Menu_Importer {
 				'post_type'    => 'nav_menu_item',
 				'post_status'  => isset( $item['status'] ) ? sanitize_key( $item['status'] ) : 'publish',
 				'post_title'   => isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '',
+				// Item description; kses-filtered because the payload is user-supplied.
+				'post_content' => isset( $item['content'] ) ? wp_kses_post( (string) $item['content'] ) : '',
 				'post_excerpt' => isset( $item['excerpt'] ) ? sanitize_text_field( $item['excerpt'] ) : '',
 				'menu_order'   => isset( $item['menu_order'] ) ? absint( $item['menu_order'] ) : 0,
 				'post_parent'  => 0,
@@ -329,6 +356,36 @@ class Menu_Importer {
 		do_action( 'swift_menu_duplicator_after_import_item', $new_id, $item );
 
 		return $new_id;
+	}
+
+	/**
+	 * Returns a menu name that is not already taken on the current site.
+	 *
+	 * Appends an incrementing numeric suffix — "Main Menu", "Main Menu (2)",
+	 * "Main Menu (3)" — until a free name is found.
+	 *
+	 * @param string $name Desired menu name.
+	 *
+	 * @return string Name that no existing nav_menu term uses.
+	 */
+	private function resolve_unique_menu_name( string $name ): string {
+		if ( ! wp_get_nav_menu_object( $name ) ) {
+			return $name;
+		}
+
+		$suffix = 2;
+
+		do {
+			$candidate = sprintf(
+				/* translators: 1: menu name, 2: numeric suffix making the name unique */
+				_x( '%1$s (%2$d)', 'imported menu name suffix', 'swift-menu-duplicator' ),
+				$name,
+				$suffix
+			);
+			++$suffix;
+		} while ( wp_get_nav_menu_object( $candidate ) && $suffix < 1000 );
+
+		return $candidate;
 	}
 
 	/**

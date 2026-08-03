@@ -253,8 +253,9 @@ class Menu_Admin_Page {
 
 		$transient_key = 'swmd_import_state_' . get_current_user_id();
 
-		// Resolve JSON: either from a fresh upload or from a previously
-		// base64-encoded hidden field (re-submitted from the preview step).
+		// Resolve JSON from one of three sources: a fresh upload, JSON pasted
+		// into the textarea, or the base64-encoded hidden field re-submitted
+		// from the preview step.
 		$json = '';
 
 		if ( ! empty( $_FILES['swmd_json_file']['tmp_name'] ) ) {
@@ -277,6 +278,22 @@ class Menu_Admin_Page {
 
 			$json = Filesystem::read( $tmp );
 			$json = ( false === $json ) ? '' : $json;
+		} elseif ( ! empty( $_POST['swmd_json_paste'] ) ) {
+			// Raw JSON typed or pasted by the user. Only unslashed here — the
+			// importer validates the structure and sanitizes every field.
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$json      = (string) wp_unslash( $_POST['swmd_json_paste'] );
+			$max_bytes = (int) apply_filters( 'swift_menu_duplicator_max_import_bytes', 2 * MB_IN_BYTES );
+
+			if ( strlen( $json ) > $max_bytes ) {
+				set_transient(
+					$transient_key,
+					array( 'error' => __( 'The pasted JSON exceeds the size limit.', 'swift-menu-duplicator' ) ),
+					60
+				);
+				wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) );
+				exit;
+			}
 		} elseif ( ! empty( $_POST['swmd_json_data'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			$json = base64_decode( sanitize_text_field( wp_unslash( $_POST['swmd_json_data'] ) ), true );
@@ -522,6 +539,12 @@ class Menu_Admin_Page {
 		$new_name       = isset( $_POST['menu_name'] )
 			? sanitize_text_field( wp_unslash( $_POST['menu_name'] ) )
 			: '';
+		$find           = isset( $_POST['find'] )
+			? sanitize_text_field( wp_unslash( $_POST['find'] ) )
+			: '';
+		$replace        = isset( $_POST['replace'] )
+			? sanitize_text_field( wp_unslash( $_POST['replace'] ) )
+			: '';
 
 		if ( $source_menu_id <= 0 || $target_blog_id <= 0 ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid menu or site ID.', 'swift-menu-duplicator' ) ), 400 );
@@ -544,7 +567,7 @@ class Menu_Admin_Page {
 		switch_to_blog( $target_blog_id );
 
 		$importer    = new Menu_Importer();
-		$new_menu_id = $importer->import( $payload, $new_name );
+		$new_menu_id = $importer->import( $payload, $new_name, $find, $replace );
 
 		restore_current_blog();
 

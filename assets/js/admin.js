@@ -379,6 +379,37 @@
 				'<span class="swmd-snapshot-date">' + $( '<span>' ).text( snap.created_human ).html() + '</span>'
 			);
 
+			var $restore = $( '<button type="button" class="swmd-snapshot-restore button-link"></button>' ).text( swmdData.restoreLabel );
+
+			$restore.on( 'click', function () {
+				// eslint-disable-next-line no-alert
+				if ( ! window.confirm( swmdData.confirmRestoreText ) ) {
+					return;
+				}
+
+				$restore.prop( 'disabled', true ).text( swmdData.restoringLabel );
+
+				ajaxRequest( 'swmd_restore_snapshot', { snapshot_id: snap.id } )
+					.done( function ( response ) {
+						if ( response.success ) {
+							showToast( swmdData.snapshotRestoredText, 'success' );
+							// Reload so the menu editor re-renders the restored items.
+							setTimeout( function () { window.location.reload(); }, 800 );
+							return;
+						}
+
+						var msg = ( response.data && response.data.message ) ? response.data.message : swmdData.errorMessage;
+						showToast( msg, 'error' );
+						$restore.prop( 'disabled', false ).text( swmdData.restoreLabel );
+					} )
+					.fail( function () {
+						showToast( swmdData.errorMessage, 'error' );
+						$restore.prop( 'disabled', false ).text( swmdData.restoreLabel );
+					} );
+			} );
+
+			$li.append( $restore );
+
 			var $del = $( '<button type="button" class="swmd-snapshot-delete button-link" aria-label="Delete">&times;</button>' );
 
 			$del.on( 'click', function () {

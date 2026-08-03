@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace SwiftMenuDuplicator\Core;
 
+use SwiftMenuDuplicator\Import\Menu_Importer;
 use WP_Error;
 use WP_Post;
 use WP_Term;
@@ -123,7 +124,7 @@ class Menu_Duplicator {
 		$id_map = array();
 
 		foreach ( $source_items as $item ) {
-			$new_item_id = $this->duplicate_menu_item( $item, $new_menu_id, $id_map );
+			$new_item_id = $this->duplicate_menu_item( $item, $new_menu_id );
 
 			if ( is_wp_error( $new_item_id ) ) {
 				// Non-fatal: log when WP_DEBUG_LOG is enabled and continue with remaining items.
@@ -308,6 +309,8 @@ class Menu_Duplicator {
 			$exported_items[] = array(
 				'id'         => $item->ID,
 				'title'      => $item->post_title,
+				// Core stores the item's "Description" field in post_content.
+				'content'    => $item->post_content,
 				'excerpt'    => $item->post_excerpt,
 				'status'     => $item->post_status,
 				'menu_order' => $item->menu_order,
@@ -406,6 +409,89 @@ class Menu_Duplicator {
 	}
 
 	/**
+	 * Restores a menu to the state captured in one of its snapshots.
+	 *
+	 * A safety snapshot of the current state is taken first, then every
+	 * existing item in the menu is deleted and the snapshot's items are
+	 * re-inserted with their hierarchy re-mapped. The menu term itself is
+	 * kept — only its items are replaced — so theme-location assignments
+	 * and the menu ID survive the restore.
+	 *
+	 * @param int    $menu_id     Term ID of the menu to restore.
+	 * @param string $snapshot_id UUID of the snapshot to restore from.
+	 *
+	 * @return int|WP_Error Number of items restored, or WP_Error on failure.
+	 */
+	public function restore_snapshot( int $menu_id, string $snapshot_id ) {
+		$term = get_term( $menu_id, 'nav_menu' );
+
+		if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
+			return new WP_Error(
+				'invalid_menu',
+				__( 'Menu not found.', 'swift-menu-duplicator' )
+			);
+		}
+
+		$snapshot = null;
+
+		foreach ( $this->get_snapshots( $menu_id ) as $candidate ) {
+			if ( isset( $candidate['id'] ) && $candidate['id'] === $snapshot_id ) {
+				$snapshot = $candidate;
+				break;
+			}
+		}
+
+		if ( null === $snapshot || empty( $snapshot['data']['items'] ) ) {
+			return new WP_Error(
+				'invalid_snapshot',
+				__( 'Snapshot not found.', 'swift-menu-duplicator' )
+			);
+		}
+
+		/**
+		 * Fires before a menu is rolled back to a snapshot.
+		 *
+		 * @since 1.0.3
+		 *
+		 * @param int    $menu_id     Term ID of the menu being restored.
+		 * @param string $snapshot_id UUID of the snapshot being restored.
+		 */
+		do_action( 'swift_menu_duplicator_before_restore_snapshot', $menu_id, $snapshot_id );
+
+		// Safety net: capture the state we are about to overwrite.
+		$this->save_snapshot(
+			$menu_id,
+			__( 'Auto-snapshot (before restore)', 'swift-menu-duplicator' )
+		);
+
+		// Remove the menu's current items.
+		$current_items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
+
+		if ( is_array( $current_items ) ) {
+			foreach ( $current_items as $current_item ) {
+				wp_delete_post( $current_item->ID, true );
+			}
+		}
+
+		// Re-insert the snapshot's items into the same menu term.
+		$importer = new Menu_Importer();
+		$id_map   = $importer->import_items( $snapshot['data'], $menu_id );
+
+		/**
+		 * Fires after a menu has been rolled back to a snapshot.
+		 *
+		 * @since 1.0.3
+		 *
+		 * @param int            $menu_id     Term ID of the restored menu.
+		 * @param string         $snapshot_id UUID of the restored snapshot.
+		 * @param array<int,int> $id_map      Map of snapshot item IDs to new item IDs.
+		 */
+		do_action( 'swift_menu_duplicator_after_restore_snapshot', $menu_id, $snapshot_id, $id_map );
+
+		return count( $id_map );
+	}
+
+	/**
 	 * Deletes a specific snapshot by its UUID.
 	 *
 	 * @param int    $menu_id     Term ID of the menu.
@@ -440,18 +526,22 @@ class Menu_Duplicator {
 	/**
 	 * Duplicates a single nav_menu_item post and its postmeta.
 	 *
-	 * @param WP_Post        $item        Original menu item post object.
-	 * @param int            $new_menu_id Term ID of the destination menu.
-	 * @param array<int,int> $id_map      Already-processed original=>new ID pairs.
+	 * The item description lives in post_content (that is where core's
+	 * wp_update_nav_menu_item() stores the "Description" field), so it is
+	 * copied alongside the title and excerpt.
+	 *
+	 * @param WP_Post $item        Original menu item post object.
+	 * @param int     $new_menu_id Term ID of the destination menu.
 	 *
 	 * @return int|WP_Error New post ID, or WP_Error on failure.
 	 */
-	private function duplicate_menu_item( WP_Post $item, int $new_menu_id, array $id_map ) {
+	private function duplicate_menu_item( WP_Post $item, int $new_menu_id ) {
 		$new_item_id = wp_insert_post(
 			array(
 				'post_type'    => 'nav_menu_item',
 				'post_status'  => $item->post_status,
 				'post_title'   => $item->post_title,
+				'post_content' => $item->post_content,
 				'post_excerpt' => $item->post_excerpt,
 				'menu_order'   => $item->menu_order,
 				'post_parent'  => 0,
@@ -465,7 +555,7 @@ class Menu_Duplicator {
 
 		wp_set_object_terms( $new_item_id, array( $new_menu_id ), 'nav_menu' );
 
-		$this->copy_item_postmeta( $item->ID, $new_item_id, $id_map );
+		$this->copy_item_postmeta( $item->ID, $new_item_id );
 
 		/**
 		 * Fires after a single nav_menu_item has been duplicated.
@@ -492,7 +582,7 @@ class Menu_Duplicator {
 	 * @return int|WP_Error New post ID of the cloned item, or WP_Error.
 	 */
 	private function clone_item_recursive( WP_Post $item, int $menu_id, array $children_map, array &$id_map ) {
-		$new_item_id = $this->duplicate_menu_item( $item, $menu_id, $id_map );
+		$new_item_id = $this->duplicate_menu_item( $item, $menu_id );
 
 		if ( is_wp_error( $new_item_id ) ) {
 			return $new_item_id;
@@ -536,13 +626,12 @@ class Menu_Duplicator {
 	 * The _menu_item_menu_item_parent meta is intentionally copied as-is
 	 * at this stage; the caller re-maps it after all items are processed.
 	 *
-	 * @param int            $source_id Source nav_menu_item post ID.
-	 * @param int            $dest_id   Destination nav_menu_item post ID.
-	 * @param array<int,int> $id_map    Already-processed original=>new ID pairs.
+	 * @param int $source_id Source nav_menu_item post ID.
+	 * @param int $dest_id   Destination nav_menu_item post ID.
 	 *
 	 * @return void
 	 */
-	private function copy_item_postmeta( int $source_id, int $dest_id, array $id_map ): void {
+	private function copy_item_postmeta( int $source_id, int $dest_id ): void {
 		foreach ( $this->get_meta_keys() as $key ) {
 			$value = get_post_meta( $source_id, $key, true );
 
