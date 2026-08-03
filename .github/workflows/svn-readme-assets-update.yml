@@ -1,29 +1,104 @@
 name: Plugin asset/readme update
+
+# Pushes readme.txt and the directory assets to WordPress.org SVN without
+# cutting a release. The listing page (description, FAQ, screenshots, banners)
+# renders from SVN trunk, so a typo fix or a new screenshot does not need a
+# version bump.
+
 on:
   push:
     branches:
       - trunk
-    # Negative patterns (prefixed !) prevent runs triggered solely by working
-    # files inside .wordpress-org/ that never reach WordPress.org SVN anyway.
+    # Negative patterns keep working files inside .wordpress-org/ from
+    # triggering a sync — they never reach WordPress.org anyway.
     paths:
       - '.wordpress-org/**'
-      - '!.wordpress-org/*.draft.svg'
       - '!.wordpress-org/BRAND.md'
-      - '!.wordpress-org/README.md'
+      - '!.wordpress-org/*.draft.svg'
       - 'readme.txt'
+  workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: svn-assets
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+# ---------------------------------------------------------------------------
+#   verify ── sync
+#
+#   verify : stage the payload and prove it is complete before any SVN write
+#   sync   : push readme.txt and the staged assets to SVN trunk
+# ---------------------------------------------------------------------------
 jobs:
-  trunk:
-    name: Push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
 
-      # Stage a curated assets directory that excludes design drafts
-      # (*.draft.svg) and internal docs (BRAND.md). The 10up asset action
-      # has no .distignore equivalent for the assets folder, so the
-      # filtering happens here and the action is pointed at the staged dir.
+  # -------------------------------------------------------------------------
+  # JOB 1 — verify: prove the staged payload is what should be published.
+  #
+  # The sync mirrors rather than merges, so an incomplete payload deletes
+  # assets from a live listing. Checking first makes that failure loud and
+  # local instead of silent and public — the staging script has already
+  # shipped one bug that produced an empty payload.
+  # -------------------------------------------------------------------------
+  verify:
+    name: "Verify: staged payload"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Stage WordPress.org assets
+        run: bash resources/scripts/stage-wp-org-assets.sh
+
+      - name: Check the payload is complete
+        run: |
+          MISSING=0
+
+          for f in icon.svg icon-128x128.png icon-256x256.png \
+                   banner-772x250.png banner-1544x500.png; do
+            if [ ! -f ".wp-org-staged/$f" ]; then
+              echo "::error::Required asset missing from staging: $f"
+              MISSING=1
+            fi
+          done
+
+          # Screenshots are optional in principle, but shipping fewer than the
+          # readme has captions for leaves the listing with broken entries.
+          CAPTIONS=$(awk '/^== Screenshots ==/{f=1;next} /^== /{f=0} f&&/^[0-9]+\./{c++} END{print c+0}' readme.txt)
+          SHOTS=$(find .wp-org-staged -maxdepth 1 -name 'screenshot-*.png' | wc -l)
+
+          if [ "$CAPTIONS" -ne "$SHOTS" ]; then
+            echo "::error::readme.txt lists $CAPTIONS screenshot captions but $SHOTS screenshots are staged."
+            MISSING=1
+          fi
+
+          # BRAND.md is internal and must never reach a public directory.
+          if [ -f ".wp-org-staged/BRAND.md" ]; then
+            echo "::error::BRAND.md reached the staging directory."
+            MISSING=1
+          fi
+
+          [ "$MISSING" -eq 0 ] || exit 1
+
+          echo "Staged payload:"
+          find .wp-org-staged -type f | sort
+
+  # -------------------------------------------------------------------------
+  # JOB 2 — sync: push to WordPress.org SVN.
+  # -------------------------------------------------------------------------
+  sync:
+    name: "Sync: readme + assets to SVN"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: verify
+    steps:
+      - uses: actions/checkout@v6
+
       - name: Stage WordPress.org assets
         run: bash resources/scripts/stage-wp-org-assets.sh
 
@@ -33,7 +108,15 @@ jobs:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           # Mirror, do not merge: anything in the SVN assets directory that is
-          # not in the staged payload is removed. Without this the 1.0.1-era
-          # icon, banners, and screenshots would linger alongside the new ones.
+          # not in the staged payload is removed. Without this, assets from
+          # earlier releases linger alongside the current ones indefinitely.
           IGNORE_OTHER_FILES: false
           ASSETS_DIR: .wp-org-staged
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Asset / readme sync"
+            echo "- Listing: https://wordpress.org/plugins/swift-menu-duplicator/"
+          } >> "$GITHUB_STEP_SUMMARY"

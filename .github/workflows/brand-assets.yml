@@ -35,10 +35,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: brand-assets-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
-    name: Render icon and banners
+    name: "Render: icon + banners"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       artifact-name: ${{ steps.meta.outputs.artifact-name }}
 

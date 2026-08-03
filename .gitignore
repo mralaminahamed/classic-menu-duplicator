@@ -5,6 +5,9 @@ vendor/
 # Build outputs
 build/
 dist/
+/.wp-org-staged/
+/svn-work/
+/wordpress/
 release/
 
 # Logs
