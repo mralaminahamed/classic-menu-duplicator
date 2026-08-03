@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace SwiftMenuDuplicator\Rest;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Navigation_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
 use WP_Error;
 use WP_Post;
@@ -245,8 +246,106 @@ class Menu_REST_Controller {
 				'schema' => array( $this, 'get_snapshot_schema' ),
 			)
 		);
+		// GET /swift-menu-duplicator/v1/navigations
+		register_rest_route(
+			self::NAMESPACE,
+			'/navigations',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'list_navigations' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+				),
+				'schema' => array( $this, 'get_navigation_schema' ),
+			)
+		);
+
+		// POST /swift-menu-duplicator/v1/navigations/{id}/duplicate
+		register_rest_route(
+			self::NAMESPACE,
+			'/navigations/(?P<id>[\d]+)/duplicate',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'duplicate_navigation' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'id'    => $this->navigation_id_arg(),
+						'title' => array(
+							'description'       => __( 'Optional title for the duplicate.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+				),
+				'schema' => array( $this, 'get_navigation_schema' ),
+			)
+		);
+
+		// GET /swift-menu-duplicator/v1/navigations/{id}/export
+		register_rest_route(
+			self::NAMESPACE,
+			'/navigations/(?P<id>[\d]+)/export',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'export_navigation' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array( 'id' => $this->navigation_id_arg() ),
+				),
+				'schema' => array( $this, 'get_navigation_export_schema' ),
+			)
+		);
+
+		// POST /swift-menu-duplicator/v1/navigations/import
+		register_rest_route(
+			self::NAMESPACE,
+			'/navigations/import',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'import_navigation' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'payload' => array(
+							'description' => __( 'Navigation export payload.', 'swift-menu-duplicator' ),
+							'type'        => 'object',
+							'required'    => true,
+						),
+						'title'   => array(
+							'description'       => __( 'Optional title for the imported menu.', 'swift-menu-duplicator' ),
+							'type'              => 'string',
+							'required'          => false,
+							'default'           => '',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+				),
+				'schema' => array( $this, 'get_navigation_schema' ),
+			)
+		);
 	}
 
+	/**
+	 * Shared arg definition for a navigation post ID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function navigation_id_arg(): array {
+		return array(
+			'description'       => __( 'Post ID of the block navigation menu.', 'swift-menu-duplicator' ),
+			'type'              => 'integer',
+			'required'          => true,
+			'minimum'           => 1,
+			'sanitize_callback' => 'absint',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+	}
+
+	/**
+	 * Shared arg definition for the menu term ID.
 	/**
 	 * Shared arg definition for the menu term ID.
 	 *
@@ -498,6 +597,96 @@ class Menu_REST_Controller {
 		);
 	}
 
+	/**
+	 * Lists the site's block navigation menus.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function list_navigations( WP_REST_Request $request ) {
+		unset( $request );
+
+		$duplicator = new Navigation_Duplicator();
+
+		return rest_ensure_response(
+			array_map(
+				static function ( WP_Post $post ) use ( $duplicator ): array {
+					return array(
+						'id'       => $post->ID,
+						'title'    => $post->post_title,
+						'slug'     => $post->post_name,
+						'status'   => $post->post_status,
+						'edit_url' => $duplicator->get_edit_url( $post->ID ),
+					);
+				},
+				$duplicator->get_all()
+			)
+		);
+	}
+
+	/**
+	 * Duplicates a block navigation menu.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function duplicate_navigation( WP_REST_Request $request ) {
+		$duplicator = new Navigation_Duplicator();
+		$new_id     = $duplicator->duplicate(
+			(int) $request->get_param( 'id' ),
+			(string) $request->get_param( 'title' )
+		);
+
+		if ( is_wp_error( $new_id ) ) {
+			return $this->error_response( $new_id );
+		}
+
+		return $this->navigation_response( $new_id, $duplicator );
+	}
+
+	/**
+	 * Exports a block navigation menu as a JSON payload.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function export_navigation( WP_REST_Request $request ) {
+		$payload = ( new Navigation_Duplicator() )->export( (int) $request->get_param( 'id' ) );
+
+		if ( is_wp_error( $payload ) ) {
+			return $this->error_response( $payload );
+		}
+
+		return rest_ensure_response( $payload );
+	}
+
+	/**
+	 * Imports a block navigation menu from an export payload.
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public function import_navigation( WP_REST_Request $request ) {
+		$duplicator = new Navigation_Duplicator();
+		$payload    = $duplicator->validate( (array) $request->get_param( 'payload' ) );
+
+		if ( is_wp_error( $payload ) ) {
+			return $this->error_response( $payload );
+		}
+
+		$new_id = $duplicator->import( $payload, (string) $request->get_param( 'title' ) );
+
+		if ( is_wp_error( $new_id ) ) {
+			return $this->error_response( $new_id );
+		}
+
+		return $this->navigation_response( $new_id, $duplicator );
+	}
+
 	// -----------------------------------------------------------------------
 	// Schemas.
 	// -----------------------------------------------------------------------
@@ -645,6 +834,82 @@ class Menu_REST_Controller {
 		);
 	}
 
+	/**
+	 * Schema for responses describing a block navigation menu.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_navigation_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-navigation',
+			'type'       => 'object',
+			'properties' => array(
+				'id'       => array(
+					'description' => __( 'Post ID of the navigation menu.', 'swift-menu-duplicator' ),
+					'type'        => 'integer',
+					'readonly'    => true,
+				),
+				'title'    => array(
+					'description' => __( 'Navigation menu title.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'slug'     => array(
+					'description' => __( 'Navigation menu slug.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'status'   => array(
+					'description' => __( 'Post status.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'edit_url' => array(
+					'description' => __( 'Site Editor URL for the navigation menu.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Schema for the block navigation export payload.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function get_navigation_export_schema(): array {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'swift-menu-duplicator-navigation-export',
+			'type'       => 'object',
+			'properties' => array(
+				'version'    => array(
+					'description' => __( 'Plugin version that produced the export.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'type'       => array(
+					'description' => __( 'Payload type; always "wp_navigation" here.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'navigation' => array(
+					'description' => __( 'Navigation title, slug, and status.', 'swift-menu-duplicator' ),
+					'type'        => 'object',
+					'readonly'    => true,
+				),
+				'content'    => array(
+					'description' => __( 'Block markup of the navigation menu.', 'swift-menu-duplicator' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+			),
+		);
+	}
+
 	// -----------------------------------------------------------------------
 	// Permission callback.
 	// -----------------------------------------------------------------------
@@ -701,6 +966,28 @@ class Menu_REST_Controller {
 	}
 
 	/**
+	 * Builds the standard response body for a navigation menu.
+	 *
+	 * @param int                   $post_id    Navigation post ID.
+	 * @param Navigation_Duplicator $duplicator Duplicator instance, for the edit URL.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	private function navigation_response( int $post_id, Navigation_Duplicator $duplicator ) {
+		$post = get_post( $post_id );
+
+		return rest_ensure_response(
+			array(
+				'id'       => $post_id,
+				'title'    => $post instanceof WP_Post ? $post->post_title : '',
+				'slug'     => $post instanceof WP_Post ? $post->post_name : '',
+				'status'   => $post instanceof WP_Post ? $post->post_status : '',
+				'edit_url' => $duplicator->get_edit_url( $post_id ),
+			)
+		);
+	}
+
+	/**
 	 * Reduces stored snapshots to the descriptor fields the API exposes.
 	 *
 	 * The stored payload itself is deliberately left out — it can be large, and
@@ -738,13 +1025,16 @@ class Menu_REST_Controller {
 		$code = $error->get_error_code();
 
 		$status_map = array(
-			'invalid_menu'      => 404,
-			'invalid_item'      => 404,
-			'invalid_snapshot'  => 404,
-			'missing_key'       => 400,
-			'missing_menu_name' => 400,
-			'invalid_items'     => 400,
-			'too_many_items'    => 400,
+			'invalid_menu'             => 404,
+			'invalid_item'             => 404,
+			'invalid_snapshot'         => 404,
+			'invalid_navigation'       => 404,
+			'missing_key'              => 400,
+			'missing_menu_name'        => 400,
+			'missing_navigation_title' => 400,
+			'invalid_items'            => 400,
+			'too_many_items'           => 400,
+			'too_large'                => 400,
 		);
 
 		$status = $status_map[ $code ] ?? 500;

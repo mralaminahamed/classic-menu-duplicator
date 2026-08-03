@@ -4,7 +4,9 @@
  *
  * @package SwiftMenuDuplicator
  *
- * @var \SwiftMenuDuplicator\Admin\Menu_Table $table   Prepared list table instance.
+ * @var \SwiftMenuDuplicator\Admin\Menu_Table      $table                Prepared menus table.
+ * @var \SwiftMenuDuplicator\Admin\Navigation_Table $navigation_table     Prepared navigation table, or null.
+ * @var bool                                        $has_block_navigation  Whether to offer the navigation tab.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,6 +18,8 @@ $transient_key = 'swmd_import_state_' . get_current_user_id();
 $import_state  = get_transient( $transient_key );
 $deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $duplicated    = isset( $_GET['duplicated'] ) ? absint( $_GET['duplicated'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$nav_created   = isset( $_GET['nav_duplicated'] ) ? absint( $_GET['nav_duplicated'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$nav_trashed   = isset( $_GET['nav_trashed'] ) ? absint( $_GET['nav_trashed'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 if ( $import_state ) {
 	delete_transient( $transient_key );
@@ -57,22 +61,56 @@ if ( $import_state ) {
 		</div>
 	<?php endif; ?>
 
+	<?php if ( $nav_created > 0 ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %d: number of duplicated navigation menus */
+					esc_html( _n( '%d navigation menu duplicated.', '%d navigation menus duplicated.', $nav_created, 'swift-menu-duplicator' ) ),
+					(int) $nav_created
+				);
+				?>
+			</p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $nav_trashed > 0 ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %d: number of navigation menus moved to trash */
+					esc_html( _n( '%d navigation menu moved to the trash.', '%d navigation menus moved to the trash.', $nav_trashed, 'swift-menu-duplicator' ) ),
+					(int) $nav_trashed
+				);
+				?>
+			</p>
+		</div>
+	<?php endif; ?>
+
 	<!-- ── Tab navigation ──────────────────────────────────── -->
 	<nav class="nav-tab-wrapper swmd-tab-nav">
 		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=menus' ) ); ?>"
 			class="nav-tab <?php echo esc_attr( 'menus' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'All Menus', 'swift-menu-duplicator' ); ?>
 		</a>
-		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) ); ?>"
-			class="nav-tab <?php echo esc_attr( 'import' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-			<?php esc_html_e( 'Import JSON', 'swift-menu-duplicator' ); ?>
+		<?php if ( $has_block_navigation ) : ?>
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=navigation' ) ); ?>"
+			class="nav-tab <?php echo esc_attr( 'navigation' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+			<?php esc_html_e( 'Navigation (Block)', 'swift-menu-duplicator' ); ?>
 		</a>
+		<?php endif; ?>
 		<?php if ( is_multisite() && current_user_can( 'manage_network' ) ) : ?>
 		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=multisite' ) ); ?>"
 			class="nav-tab <?php echo esc_attr( 'multisite' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'Copy to Site', 'swift-menu-duplicator' ); ?>
 		</a>
 		<?php endif; ?>
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=import' ) ); ?>"
+			class="nav-tab <?php echo esc_attr( 'import' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+			<?php esc_html_e( 'Import JSON', 'swift-menu-duplicator' ); ?>
+		</a>
 	</nav>
 
 	<!-- ── All Menus tab ───────────────────────────────────── -->
@@ -246,6 +284,19 @@ if ( $import_state ) {
 			</form>
 		</div>
 		<?php endif; ?>
+	</div>
+
+	<!-- ── Navigation (Block) tab ──────────────────────────── -->
+	<?php elseif ( 'navigation' === $active_tab && $has_block_navigation && $navigation_table ) : ?>
+	<div class="swmd-tab-panel">
+		<h2><?php esc_html_e( 'Block Navigation Menus', 'swift-menu-duplicator' ); ?></h2>
+		<p class="description">
+			<?php esc_html_e( 'These are the navigation menus a block theme renders. Duplicating one copies its block markup; edit the copy in the Site Editor.', 'swift-menu-duplicator' ); ?>
+		</p>
+		<form id="swmd-navigation-table-form" method="post">
+			<?php wp_nonce_field( 'swmd_bulk_delete', 'swmd_bulk_nonce' ); ?>
+			<?php $navigation_table->display(); ?>
+		</form>
 	</div>
 
 	<!-- ── Copy to Site tab (multisite only) ───────────────── -->

@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace SwiftMenuDuplicator\Cli;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Navigation_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
 use SwiftMenuDuplicator\Utils\Filesystem;
 use WP_CLI;
@@ -47,6 +48,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  *     # Copy a menu to another site on a multisite network
  *     $ wp swift-menu-duplicator copy-to-site 42 --target-blog=3
+ *
+ *     # Duplicate a block-theme navigation menu
+ *     $ wp swift-menu-duplicator navigation duplicate 12
  *
  *     # Work with snapshots
  *     $ wp swift-menu-duplicator snapshot list 42
@@ -446,6 +450,181 @@ class Menu_CLI_Command extends WP_CLI_Command {
 		}
 
 		WP_CLI::success( 'Snapshot deleted.' );
+	}
+
+	/**
+	 * Lists, duplicates, exports, or imports block-theme navigation menus.
+	 *
+	 * Block themes render `wp_navigation` posts rather than classic menus;
+	 * these operate on those.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <operation>
+	 * : One of list, duplicate, export, or import.
+	 *
+	 * [<id-or-file>]
+	 * : Navigation post ID for duplicate/export, or the JSON file for import.
+	 *
+	 * [--title=<title>]
+	 * : Title for the duplicate or import.
+	 *
+	 * [--output=<file>]
+	 * : Path to write to (export only).
+	 *
+	 * [--porcelain]
+	 * : Output only the new post ID.
+	 *
+	 * [--format=<format>]
+	 * : Output format for list.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - yaml
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp swift-menu-duplicator navigation list
+	 *     $ wp swift-menu-duplicator navigation duplicate 12 --title="Header (Staging)"
+	 *     $ wp swift-menu-duplicator navigation export 12 --output=./header.json
+	 *     $ wp swift-menu-duplicator navigation import ./header.json
+	 *
+	 * @subcommand navigation
+	 *
+	 * @param string[] $args       Positional arguments (operation, id or file).
+	 * @param string[] $assoc_args Named arguments.
+	 *
+	 * @return void
+	 */
+	public function navigation( array $args, array $assoc_args ): void {
+		$operation = (string) ( $args[0] ?? '' );
+
+		if ( ! in_array( $operation, array( 'list', 'duplicate', 'export', 'import' ), true ) ) {
+			WP_CLI::error( 'Operation must be one of: list, duplicate, export, import.' );
+		}
+
+		$duplicator = new Navigation_Duplicator();
+		$porcelain  = (bool) get_flag_value( $assoc_args, 'porcelain', false );
+		$title      = (string) get_flag_value( $assoc_args, 'title', '' );
+
+		if ( 'list' === $operation ) {
+			$rows = array_map(
+				static function ( \WP_Post $post ): array {
+					return array(
+						'id'       => $post->ID,
+						'title'    => $post->post_title,
+						'status'   => $post->post_status,
+						'modified' => $post->post_modified,
+					);
+				},
+				$duplicator->get_all()
+			);
+
+			if ( empty( $rows ) ) {
+				WP_CLI::log( 'No block navigation menus found.' );
+
+				return;
+			}
+
+			format_items(
+				(string) get_flag_value( $assoc_args, 'format', 'table' ),
+				$rows,
+				array( 'id', 'title', 'status', 'modified' )
+			);
+
+			return;
+		}
+
+		if ( 'import' === $operation ) {
+			$file = (string) ( $args[1] ?? '' );
+
+			if ( '' === $file || ! file_exists( $file ) ) {
+				WP_CLI::error( sprintf( 'File not found: %s', $file ) );
+			}
+
+			$json = Filesystem::read( $file );
+
+			if ( false === $json ) {
+				WP_CLI::error( sprintf( 'Could not read file: %s', $file ) );
+			}
+
+			$data = json_decode( $json, true );
+
+			if ( ! is_array( $data ) ) {
+				WP_CLI::error( 'The file does not contain a valid navigation export.' );
+			}
+
+			$payload = $duplicator->validate( $data );
+
+			if ( is_wp_error( $payload ) ) {
+				WP_CLI::error( $payload->get_error_message() );
+			}
+
+			$new_id = $duplicator->import( $payload, $title );
+
+			if ( is_wp_error( $new_id ) ) {
+				WP_CLI::error( $new_id->get_error_message() );
+			}
+
+			if ( $porcelain ) {
+				WP_CLI::line( (string) $new_id );
+
+				return;
+			}
+
+			WP_CLI::success( sprintf( 'Imported navigation menu (ID: %d).', $new_id ) );
+
+			return;
+		}
+
+		$post_id = (int) ( $args[1] ?? 0 );
+
+		if ( $post_id <= 0 ) {
+			WP_CLI::error( 'Please provide a valid navigation menu post ID.' );
+		}
+
+		if ( 'duplicate' === $operation ) {
+			$new_id = $duplicator->duplicate( $post_id, $title );
+
+			if ( is_wp_error( $new_id ) ) {
+				WP_CLI::error( $new_id->get_error_message() );
+			}
+
+			if ( $porcelain ) {
+				WP_CLI::line( (string) $new_id );
+
+				return;
+			}
+
+			WP_CLI::success(
+				sprintf( 'Duplicated navigation menu %d → %d.', $post_id, $new_id )
+			);
+
+			return;
+		}
+
+		$payload = $duplicator->export( $post_id );
+
+		if ( is_wp_error( $payload ) ) {
+			WP_CLI::error( $payload->get_error_message() );
+		}
+
+		$default_file = sanitize_file_name( $payload['navigation']['slug'] );
+		$default_file = ( '' !== $default_file ? $default_file : 'navigation' ) . '-navigation-export.json';
+		$output_file  = (string) get_flag_value( $assoc_args, 'output', $default_file );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$json = wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+		if ( false === $json || ! Filesystem::write( $output_file, $json ) ) {
+			WP_CLI::error( sprintf( 'Could not write to file: %s', $output_file ) );
+		}
+
+		WP_CLI::success( sprintf( 'Exported navigation menu %d to %s', $post_id, $output_file ) );
 	}
 
 	/**
