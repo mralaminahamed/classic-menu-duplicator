@@ -45,6 +45,10 @@ WordPress ships no way to copy a navigation menu — rebuilding one by hand is s
 - **URL find & replace** for staging → production migrations
 - Items whose target does not exist on the destination degrade to custom links rather than pointing at unrelated content
 
+**Deletion safety**
+- Deleting a menu captures it first; an **Undo** link restores the menu, its items, and its theme locations
+- Recoverable for an hour by default (`swift_menu_duplicator_undo_ttl`)
+
 **Block themes**
 - Duplicate, export, and import `wp_navigation` posts — the Navigation menus block themes actually render
 - Dedicated **Navigation (Block)** tab with row-level duplicate/export, bulk duplicate and trash, link counts, and Site Editor links
@@ -127,6 +131,9 @@ wp swift-menu-duplicator navigation list|duplicate|export|import [<id-or-file>] 
 | `swift_menu_duplicator_after_import_menu` | action | After a successful import |
 | `swift_menu_duplicator_before_restore_snapshot` | action | Before a menu is rolled back to a snapshot |
 | `swift_menu_duplicator_after_restore_snapshot` | action | After a snapshot restore completes |
+| `swift_menu_duplicator_after_undo_delete` | action | After a deleted menu is restored |
+| `swift_menu_duplicator_undo_ttl` | filter | How long a deleted menu stays recoverable (default 1 hour) |
+| `swift_menu_duplicator_undo_limit` | filter | How many deleted menus the buffer keeps (default 20) |
 | `swift_menu_duplicator_import_menu_name` | filter | Change the name given to an imported menu |
 
 ## How it works
@@ -138,6 +145,7 @@ wp swift-menu-duplicator navigation list|duplicate|export|import [<id-or-file>] 
 | REST | `Menu_REST_Controller` | `/swift-menu-duplicator/v1/` endpoints |
 | Core | `Menu_Duplicator` | Two-pass clone + JSON export |
 | Core | `Navigation_Duplicator` | Block navigation (`wp_navigation`) clone, export, import |
+| Core | `Menu_Undo` | Capture-before-delete buffer and restore |
 | Import | `Menu_Importer` | JSON parse, field sanitization, URL find & replace |
 | CLI | `Menu_CLI_Command` | `wp swift-menu-duplicator` commands |
 | Compat | `Menu_Compat` | WPML / Polylang shims |

@@ -1,66 +1,66 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Swift Menu Duplicator 1.0.6\n"
+"Project-Id-Version: Swift Menu Duplicator 1.0.7\n"
 "Report-Msgid-Bugs-To: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-03T09:11:14+00:00\n"
+"POT-Creation-Date: 2026-08-03T09:19:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.13.0-alpha-3eb2dd7\n"
 "X-Domain: swift-menu-duplicator\n"
 
-#: includes/admin/class-menu-admin-page.php:88
-#: includes/admin/class-menu-admin-page.php:89
-#: includes/admin/class-menu-admin-page.php:319
-#: templates/admin/menu-manager.php:29
+#: includes/admin/class-menu-admin-page.php:94
+#: includes/admin/class-menu-admin-page.php:95
+#: includes/admin/class-menu-admin-page.php:443
+#: templates/admin/menu-manager.php:30
 msgid "Menu Manager"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:113
+#: includes/admin/class-menu-admin-page.php:119
 msgid "Menus per page"
 msgstr ""
 
 #. translators: %d: numeric site ID on a multisite network
-#: includes/admin/class-menu-admin-page.php:205
-#: templates/admin/menu-manager.php:352
+#: includes/admin/class-menu-admin-page.php:211
+#: templates/admin/menu-manager.php:367
 msgid "Site %d"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:221
+#: includes/admin/class-menu-admin-page.php:227
 msgid "Copy to site…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:222
+#: includes/admin/class-menu-admin-page.php:228
 msgid "Copying…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:223
+#: includes/admin/class-menu-admin-page.php:229
 msgid "Copied!"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:224
+#: includes/admin/class-menu-admin-page.php:230
 msgid "Select destination site"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:225
+#: includes/admin/class-menu-admin-page.php:231
 #: includes/admin/class-menu-admin.php:107
 msgid "Exporting…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:226
+#: includes/admin/class-menu-admin-page.php:232
 #: includes/admin/class-menu-admin.php:101
 #: includes/admin/class-menu-admin.php:104
 msgid "Duplicating…"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:227
+#: includes/admin/class-menu-admin-page.php:233
 msgid "Duplicated!"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:228
+#: includes/admin/class-menu-admin-page.php:234
 #: includes/admin/class-menu-admin.php:103
 #: includes/admin/class-menu-admin.php:124
 #: includes/admin/class-menu-table.php:93
@@ -70,86 +70,98 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:229
+#: includes/admin/class-menu-admin-page.php:235
 #: includes/admin/class-menu-admin.php:106
 #: includes/admin/class-menu-table.php:194
 #: includes/admin/class-navigation-table.php:142
 msgid "Export JSON"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:230
+#: includes/admin/class-menu-admin-page.php:236
 #: includes/admin/class-menu-admin.php:127
 msgid "Action failed. Please try again."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:231
+#: includes/admin/class-menu-admin-page.php:237
 msgid "Delete selected menus? This cannot be undone."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:294
+#: includes/admin/class-menu-admin-page.php:300
 msgid "This theme is a block theme: its navigation lives in Navigation blocks, not in the classic menus listed here."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:298
+#: includes/admin/class-menu-admin-page.php:304
 msgid "Edit navigation in the Site Editor"
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:324
-msgid "Nav Menus"
-msgstr ""
-
-#: includes/admin/class-menu-admin-page.php:346
-msgid "You do not have sufficient permissions to access this page."
-msgstr ""
-
-#: includes/admin/class-menu-admin-page.php:390
-#: includes/admin/class-menu-admin-page.php:898
-#: includes/admin/class-menu-admin-page.php:971
+#: includes/admin/class-menu-admin-page.php:369
+#: includes/admin/class-menu-admin-page.php:514
+#: includes/admin/class-menu-admin-page.php:1027
+#: includes/admin/class-menu-admin-page.php:1100
 #: includes/admin/class-menu-admin.php:454
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:415
+#. translators: %s: comma-separated list of deleted menu names
+#: includes/admin/class-menu-admin-page.php:413
+msgid "Deleted menu: %s. It can still be restored."
+msgid_plural "Deleted menus: %s. They can still be restored."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/class-menu-admin-page.php:423
+msgid "Undo"
+msgstr ""
+
+#: includes/admin/class-menu-admin-page.php:448
+msgid "Nav Menus"
+msgstr ""
+
+#: includes/admin/class-menu-admin-page.php:470
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: includes/admin/class-menu-admin-page.php:539
 msgid "The uploaded file is invalid or exceeds the size limit."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:434
+#: includes/admin/class-menu-admin-page.php:558
 msgid "The pasted JSON exceeds the size limit."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:659
-#: includes/admin/class-menu-admin-page.php:697
+#: includes/admin/class-menu-admin-page.php:788
+#: includes/admin/class-menu-admin-page.php:826
 msgid "No menus selected."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:744
+#: includes/admin/class-menu-admin-page.php:873
 msgid "ZIP export requires the PHP ZipArchive extension."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:751
+#: includes/admin/class-menu-admin-page.php:880
 msgid "Could not create ZIP archive."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:780
+#: includes/admin/class-menu-admin-page.php:909
 msgid "None of the selected menus could be exported."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:828
-#: includes/admin/class-menu-admin-page.php:857
+#: includes/admin/class-menu-admin-page.php:957
+#: includes/admin/class-menu-admin-page.php:986
 msgid "Invalid navigation menu ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:894
-#: includes/admin/class-menu-admin-page.php:967
+#: includes/admin/class-menu-admin-page.php:1023
+#: includes/admin/class-menu-admin-page.php:1096
 #: includes/admin/class-menu-admin.php:447
 msgid "Security check failed."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:914
+#: includes/admin/class-menu-admin-page.php:1043
 msgid "Invalid menu or site ID."
 msgstr ""
 
-#: includes/admin/class-menu-admin-page.php:919
+#: includes/admin/class-menu-admin-page.php:1048
 msgid "Destination site not found."
 msgstr ""
 
@@ -212,7 +224,7 @@ msgid "New menu name"
 msgstr ""
 
 #: includes/admin/class-menu-admin.php:125
-#: templates/admin/menu-manager.php:208
+#: templates/admin/menu-manager.php:223
 msgid "Cancel"
 msgstr ""
 
@@ -256,7 +268,7 @@ msgid "menus"
 msgstr ""
 
 #: includes/admin/class-menu-table.php:52
-#: templates/admin/menu-manager.php:252
+#: templates/admin/menu-manager.php:267
 msgid "Menu Name"
 msgstr ""
 
@@ -600,191 +612,198 @@ msgstr ""
 msgid "You do not have permission to perform this action."
 msgstr ""
 
-#: templates/admin/menu-manager.php:32
+#: templates/admin/menu-manager.php:33
 msgid "+ New Menu"
 msgstr ""
 
 #. translators: %d: number of deleted menus
-#: templates/admin/menu-manager.php:42
+#: templates/admin/menu-manager.php:43
 msgid "%d menu deleted."
 msgid_plural "%d menus deleted."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of duplicated menus
-#: templates/admin/menu-manager.php:56
+#: templates/admin/menu-manager.php:57
 msgid "%d menu duplicated."
 msgid_plural "%d menus duplicated."
 msgstr[0] ""
 msgstr[1] ""
 
+#. translators: %d: number of restored menus
+#: templates/admin/menu-manager.php:71
+msgid "%d menu restored. Check its theme locations."
+msgid_plural "%d menus restored. Check their theme locations."
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: %d: number of duplicated navigation menus
-#: templates/admin/menu-manager.php:70
+#: templates/admin/menu-manager.php:85
 msgid "%d navigation menu duplicated."
 msgid_plural "%d navigation menus duplicated."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of navigation menus moved to trash
-#: templates/admin/menu-manager.php:84
+#: templates/admin/menu-manager.php:99
 msgid "%d navigation menu moved to the trash."
 msgid_plural "%d navigation menus moved to the trash."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/admin/menu-manager.php:96
+#: templates/admin/menu-manager.php:111
 msgid "All Menus"
 msgstr ""
 
-#: templates/admin/menu-manager.php:101
+#: templates/admin/menu-manager.php:116
 msgid "Navigation (Block)"
 msgstr ""
 
-#: templates/admin/menu-manager.php:107
+#: templates/admin/menu-manager.php:122
 msgid "Copy to Site"
 msgstr ""
 
-#: templates/admin/menu-manager.php:112
+#: templates/admin/menu-manager.php:127
 msgid "Import JSON"
 msgstr ""
 
 #. translators: 1: menu name, 2: edit link
-#: templates/admin/menu-manager.php:144
+#: templates/admin/menu-manager.php:159
 msgid "Imported \"%1$s\" successfully. %2$s"
 msgstr ""
 
-#: templates/admin/menu-manager.php:149
+#: templates/admin/menu-manager.php:164
 msgid "Edit menu →"
 msgstr ""
 
-#: templates/admin/menu-manager.php:161
+#: templates/admin/menu-manager.php:176
 msgid "Import Preview"
 msgstr ""
 
-#: templates/admin/menu-manager.php:166
+#: templates/admin/menu-manager.php:181
 msgid "Title"
 msgstr ""
 
-#: templates/admin/menu-manager.php:167
+#: templates/admin/menu-manager.php:182
 msgid "Type"
 msgstr ""
 
-#: templates/admin/menu-manager.php:168
+#: templates/admin/menu-manager.php:183
 msgid "URL / Object"
 msgstr ""
 
-#: templates/admin/menu-manager.php:169
+#: templates/admin/menu-manager.php:184
 msgid "Parent ID"
 msgstr ""
 
 #. translators: %d: item count
-#: templates/admin/menu-manager.php:188
+#: templates/admin/menu-manager.php:203
 msgid "%1$d items will be imported as \"%2$s\"."
 msgstr ""
 
-#: templates/admin/menu-manager.php:205
+#: templates/admin/menu-manager.php:220
 msgid "Confirm Import"
 msgstr ""
 
-#: templates/admin/menu-manager.php:217
+#: templates/admin/menu-manager.php:232
 msgid "Import Menu from JSON"
 msgstr ""
 
-#: templates/admin/menu-manager.php:219
+#: templates/admin/menu-manager.php:234
 msgid "Upload a JSON file exported by Swift Menu Duplicator. Optionally replace URLs before importing to adapt menus from a different environment."
 msgstr ""
 
-#: templates/admin/menu-manager.php:229
+#: templates/admin/menu-manager.php:244
 msgid "JSON File"
 msgstr ""
 
-#: templates/admin/menu-manager.php:234
+#: templates/admin/menu-manager.php:249
 msgid "Upload a file, or paste the JSON below."
 msgstr ""
 
-#: templates/admin/menu-manager.php:240
+#: templates/admin/menu-manager.php:255
 msgid "Or Paste JSON"
 msgstr ""
 
-#: templates/admin/menu-manager.php:244
+#: templates/admin/menu-manager.php:259
 msgid "{ \"menu\": { … }, \"items\": [ … ] }"
 msgstr ""
 
-#: templates/admin/menu-manager.php:246
+#: templates/admin/menu-manager.php:261
 msgid "Ignored when a file is uploaded."
 msgstr ""
 
-#: templates/admin/menu-manager.php:256
+#: templates/admin/menu-manager.php:271
 msgid "Leave blank to use name from file"
 msgstr ""
 
-#: templates/admin/menu-manager.php:260
-#: templates/admin/menu-manager.php:372
+#: templates/admin/menu-manager.php:275
+#: templates/admin/menu-manager.php:387
 msgid "URL Replacement"
 msgstr ""
 
-#: templates/admin/menu-manager.php:263
-#: templates/admin/menu-manager.php:375
+#: templates/admin/menu-manager.php:278
+#: templates/admin/menu-manager.php:390
 msgid "Find:"
 msgstr ""
 
-#: templates/admin/menu-manager.php:268
-#: templates/admin/menu-manager.php:380
+#: templates/admin/menu-manager.php:283
+#: templates/admin/menu-manager.php:395
 msgid "Replace:"
 msgstr ""
 
-#: templates/admin/menu-manager.php:273
+#: templates/admin/menu-manager.php:288
 msgid "Applied to all custom link item URLs in the imported menu. Leave both fields blank to skip URL replacement."
 msgstr ""
 
-#: templates/admin/menu-manager.php:281
+#: templates/admin/menu-manager.php:296
 msgid "Preview Import"
 msgstr ""
 
-#: templates/admin/menu-manager.php:292
+#: templates/admin/menu-manager.php:307
 msgid "Block Navigation Menus"
 msgstr ""
 
-#: templates/admin/menu-manager.php:294
+#: templates/admin/menu-manager.php:309
 msgid "These are the navigation menus a block theme renders. Duplicating one copies its block markup; edit the copy in the Site Editor."
 msgstr ""
 
-#: templates/admin/menu-manager.php:305
+#: templates/admin/menu-manager.php:320
 msgid "Copy Menu to Another Site"
 msgstr ""
 
-#: templates/admin/menu-manager.php:307
+#: templates/admin/menu-manager.php:322
 msgid "Copies the selected menu — including all items and hierarchy — to another site in this network. The copied menu is not assigned to any theme location on the destination site."
 msgstr ""
 
-#: templates/admin/menu-manager.php:313
+#: templates/admin/menu-manager.php:328
 msgid "Source Menu"
 msgstr ""
 
-#: templates/admin/menu-manager.php:317
+#: templates/admin/menu-manager.php:332
 msgid "— Select a menu —"
 msgstr ""
 
-#: templates/admin/menu-manager.php:328
+#: templates/admin/menu-manager.php:343
 msgid "Destination Site"
 msgstr ""
 
-#: templates/admin/menu-manager.php:332
+#: templates/admin/menu-manager.php:347
 msgid "— Select a site —"
 msgstr ""
 
-#: templates/admin/menu-manager.php:364
+#: templates/admin/menu-manager.php:379
 msgid "Menu Name on Destination"
 msgstr ""
 
-#: templates/admin/menu-manager.php:368
+#: templates/admin/menu-manager.php:383
 msgid "Leave blank to keep original name"
 msgstr ""
 
-#: templates/admin/menu-manager.php:385
+#: templates/admin/menu-manager.php:400
 msgid "Applied to custom link item URLs on the destination site. Leave both fields blank to copy URLs unchanged."
 msgstr ""
 
-#: templates/admin/menu-manager.php:392
+#: templates/admin/menu-manager.php:407
 msgid "Copy Menu"
 msgstr ""
