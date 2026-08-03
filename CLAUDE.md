@@ -76,6 +76,13 @@ WordPress install five directories up, i.e. the site this plugin lives in.
 - **`wp_update_nav_menu` also fires on menu creation** (`wp_create_nav_menu()`
   routes through `wp_update_nav_menu_object()`), so anything hooked there runs
   during this plugin's own duplicate and import paths.
+- **Two menu systems.** Classic menus are `nav_menu` terms plus `nav_menu_item`
+  posts (`Menu_Duplicator`). Block themes render `wp_navigation` posts whose
+  post_content is block markup (`Navigation_Duplicator`). Every capability on
+  `wp_navigation` maps to `edit_theme_options`, the same gate used elsewhere.
+- **Do not kses navigation block markup by hand.** Block delimiters are HTML
+  comments, which `wp_kses_post()` strips. Pass content to `wp_insert_post()`
+  and let core apply the same filtering the Site Editor gets.
 - **ESLint uses flat config only.** ESLint 10 ignores `.eslintrc.*` entirely.
 
 ## Releasing

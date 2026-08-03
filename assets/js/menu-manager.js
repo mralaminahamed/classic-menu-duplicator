@@ -63,14 +63,36 @@
 					}, 800 );
 				} else {
 					notice( ( response.data && response.data.message ) || swmdManagerData.errorMessage, 'error' );
-					$link.text( 'Duplicate' );
+					$link.text( swmdManagerData.duplicateLabel );
 				}
 			} )
 			.fail( function() {
 				notice( swmdManagerData.errorMessage, 'error' );
-				$link.text( 'Duplicate' );
+				$link.text( swmdManagerData.duplicateLabel );
 			} );
 	} );
+
+	/**
+	 * Posts a hidden form so the browser treats the response as a download.
+	 *
+	 * @param {string} action AJAX action name.
+	 * @param {Array}  fields Extra hidden fields as {name, value} pairs.
+	 * @param {string} nonce  Nonce to send; falls back to the localized one.
+	 * @return {void}
+	 */
+	function submitDownloadForm( action, fields, nonce ) {
+		const $form = $( '<form>', { method: 'POST', action: swmdManagerData.ajaxUrl, target: '_self' } );
+
+		[ { name: 'action', value: action }, { name: 'nonce', value: nonce || swmdManagerData.nonce } ]
+			.concat( fields )
+			.forEach( function( field ) {
+				$form.append( $( '<input type="hidden" />' ).attr( 'name', field.name ).val( field.value ) );
+			} );
+
+		$( 'body' ).append( $form );
+		$form.trigger( 'submit' );
+		$form.remove();
+	}
 
 	// -----------------------------------------------------------------------
 	// Row action: Delete (confirm before following the core delete URL).
@@ -96,22 +118,10 @@
 
 		$link.text( swmdManagerData.exportingLabel );
 
-		const $form = $( '<form>', { method: 'POST', action: swmdManagerData.ajaxUrl, target: '_self' } );
-
-		[
-			{ name: 'action', value: 'swmd_bulk_export_zip' },
-			{ name: 'nonce', value: nonce },
-			{ name: 'menu_ids[]', value: menuId },
-		].forEach( function( f ) {
-			$form.append( $( '<input type="hidden" />' ).attr( 'name', f.name ).val( f.value ) );
-		} );
-
-		$( 'body' ).append( $form );
-		$form.trigger( 'submit' );
-		$form.remove();
+		submitDownloadForm( 'swmd_bulk_export_zip', [ { name: 'menu_ids[]', value: menuId } ], nonce );
 
 		setTimeout( function() {
-			$link.text( 'Export JSON' );
+			$link.text( swmdManagerData.exportLabel );
 		}, 2000 );
 	} );
 
@@ -167,19 +177,61 @@
 		}
 
 		if ( 'swmd_bulk_export' === action ) {
-			const $form = $( '<form>', { method: 'POST', action: swmdManagerData.ajaxUrl, target: '_self' } );
-
-			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'action' ).val( 'swmd_bulk_export_zip' ) );
-			$form.append( $( '<input type="hidden" />' ).attr( 'name', 'nonce' ).val( swmdManagerData.nonce ) );
-
-			ids.forEach( function( id ) {
-				$form.append( $( '<input type="hidden" />' ).attr( 'name', 'menu_ids[]' ).val( id ) );
-			} );
-
-			$( 'body' ).append( $form );
-			$form.trigger( 'submit' );
-			$form.remove();
+			submitDownloadForm(
+				'swmd_bulk_export_zip',
+				ids.map( function( id ) {
+					return { name: 'menu_ids[]', value: id };
+				} ),
+			);
 		}
+	} );
+
+	// -----------------------------------------------------------------------
+	// Navigation (Block) tab: duplicate / export row actions.
+	// -----------------------------------------------------------------------
+
+	$( document ).on( 'click', '.swmd-row-duplicate-navigation', function( e ) {
+		e.preventDefault();
+
+		const $link = $( this );
+		const navigationId = parseInt( $link.data( 'navigation-id' ), 10 );
+
+		$link.text( swmdManagerData.duplicatingLabel );
+
+		ajax( 'swmd_duplicate_navigation', { navigation_id: navigationId } )
+			.done( function( response ) {
+				if ( response.success ) {
+					notice( swmdManagerData.duplicatedLabel, 'success' );
+					setTimeout( function() {
+						window.location.reload();
+					}, 800 );
+					return;
+				}
+
+				notice( ( response.data && response.data.message ) || swmdManagerData.errorMessage, 'error' );
+				$link.text( swmdManagerData.duplicateLabel );
+			} )
+			.fail( function() {
+				notice( swmdManagerData.errorMessage, 'error' );
+				$link.text( swmdManagerData.duplicateLabel );
+			} );
+	} );
+
+	$( document ).on( 'click', '.swmd-row-export-navigation', function( e ) {
+		e.preventDefault();
+
+		const $link = $( this );
+		const navigationId = parseInt( $link.data( 'navigation-id' ), 10 );
+
+		$link.text( swmdManagerData.exportingLabel );
+
+		submitDownloadForm( 'swmd_export_navigation', [
+			{ name: 'navigation_id', value: navigationId },
+		], $link.data( 'nonce' ) );
+
+		setTimeout( function() {
+			$link.text( swmdManagerData.exportLabel );
+		}, 2000 );
 	} );
 
 	// -----------------------------------------------------------------------

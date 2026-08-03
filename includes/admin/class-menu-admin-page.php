@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace SwiftMenuDuplicator\Admin;
 
 use SwiftMenuDuplicator\Core\Menu_Duplicator;
+use SwiftMenuDuplicator\Core\Navigation_Duplicator;
 use SwiftMenuDuplicator\Import\Menu_Importer;
 use SwiftMenuDuplicator\Utils\Filesystem;
 use WP_Term;
@@ -55,6 +56,10 @@ class Menu_Admin_Page {
 
 		// AJAX for multisite copy (network-admin capable users only).
 		add_action( 'wp_ajax_swmd_copy_to_site', array( $this, 'handle_ajax_copy_to_site' ) );
+
+		// AJAX for block-theme navigation menus.
+		add_action( 'wp_ajax_swmd_duplicate_navigation', array( $this, 'handle_ajax_duplicate_navigation' ) );
+		add_action( 'wp_ajax_swmd_export_navigation', array( $this, 'handle_ajax_export_navigation' ) );
 
 		// Persist the Screen Options "Menus per page" value.
 		add_filter( 'set_screen_option_swmd_menus_per_page', array( $this, 'save_screen_option' ), 10, 3 );
@@ -220,6 +225,8 @@ class Menu_Admin_Page {
 				'exportingLabel'        => __( 'Exporting…', 'swift-menu-duplicator' ),
 				'duplicatingLabel'      => __( 'Duplicating…', 'swift-menu-duplicator' ),
 				'duplicatedLabel'       => __( 'Duplicated!', 'swift-menu-duplicator' ),
+				'duplicateLabel'        => __( 'Duplicate', 'swift-menu-duplicator' ),
+				'exportLabel'           => __( 'Export JSON', 'swift-menu-duplicator' ),
 				'errorMessage'          => __( 'Action failed. Please try again.', 'swift-menu-duplicator' ),
 				'confirmBulkDeleteText' => __( 'Delete selected menus? This cannot be undone.', 'swift-menu-duplicator' ),
 			)
@@ -341,6 +348,14 @@ class Menu_Admin_Page {
 
 		$table = new Menu_Table();
 		$table->prepare_items();
+
+		$has_block_navigation = $this->has_block_navigation();
+		$navigation_table     = null;
+
+		if ( $has_block_navigation ) {
+			$navigation_table = new Navigation_Table();
+			$navigation_table->prepare_items();
+		}
 
 		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/menu-manager.php';
 	}
@@ -511,6 +526,12 @@ class Menu_Admin_Page {
 			return;
 		}
 
+		if ( in_array( $action, array( 'swmd_bulk_duplicate_navigation', 'swmd_bulk_delete_navigation' ), true ) ) {
+			$this->handle_navigation_bulk_action( $action );
+
+			return;
+		}
+
 		$ids = isset( $_POST['menu_ids'] ) ? array_map( 'absint', (array) $_POST['menu_ids'] ) : array();
 		$ids = array_values( array_filter( $ids ) );
 
@@ -548,6 +569,49 @@ class Menu_Admin_Page {
 	}
 
 	/**
+	 * Applies a bulk action to the selected block navigation menus.
+	 *
+	 * Deletion goes to the trash rather than deleting outright: navigation
+	 * posts support revisions and are recoverable in the Site Editor.
+	 *
+	 * @param string $action Bulk action name.
+	 *
+	 * @return void
+	 */
+	private function handle_navigation_bulk_action( string $action ): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by the caller.
+		$ids = isset( $_POST['navigation_ids'] ) ? array_map( 'absint', (array) $_POST['navigation_ids'] ) : array();
+		$ids = array_values( array_filter( $ids ) );
+
+		if ( empty( $ids ) ) {
+			wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=navigation' ) );
+			exit;
+		}
+
+		$duplicator = new Navigation_Duplicator();
+		$done       = 0;
+
+		foreach ( $ids as $id ) {
+			if ( 'swmd_bulk_delete_navigation' === $action ) {
+				if ( wp_trash_post( $id ) ) {
+					++$done;
+				}
+
+				continue;
+			}
+
+			if ( ! is_wp_error( $duplicator->duplicate( $id ) ) ) {
+				++$done;
+			}
+		}
+
+		$arg = 'swmd_bulk_delete_navigation' === $action ? 'nav_trashed' : 'nav_duplicated';
+
+		wp_safe_redirect( admin_url( 'themes.php?page=swmd-menu-manager&tab=navigation&' . $arg . '=' . $done ) );
+		exit;
+	}
+
+	/**
 	 * Returns the bulk action chosen in either tablenav selector.
 	 *
 	 * WP_List_Table names the bottom selector `action2`; core's own
@@ -557,7 +621,13 @@ class Menu_Admin_Page {
 	 * @return string Action name, or an empty string when none was chosen.
 	 */
 	private function current_bulk_action(): string {
-		$allowed = array( 'swmd_bulk_delete', 'swmd_bulk_duplicate', 'swmd_bulk_export' );
+		$allowed = array(
+			'swmd_bulk_delete',
+			'swmd_bulk_duplicate',
+			'swmd_bulk_export',
+			'swmd_bulk_duplicate_navigation',
+			'swmd_bulk_delete_navigation',
+		);
 
 		foreach ( array( 'action', 'action2' ) as $field ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The caller verifies the nonce before acting on this value.
@@ -719,6 +789,92 @@ class Menu_Admin_Page {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		readfile( $zip_file );
 		Filesystem::delete( $zip_file );
+		exit;
+	}
+
+	/**
+	 * Whether the Navigation (Block) tab should be offered.
+	 *
+	 * Shown for block themes — where classic menus are not what the front end
+	 * renders — and for any site that already has block navigation menus, since
+	 * a classic theme can still have them from a previous theme.
+	 *
+	 * @return bool
+	 */
+	public function has_block_navigation(): bool {
+		if ( ! post_type_exists( Navigation_Duplicator::POST_TYPE ) ) {
+			return false;
+		}
+
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			return true;
+		}
+
+		return array() !== ( new Navigation_Duplicator() )->get_all( 1 );
+	}
+
+	/**
+	 * Duplicates a block navigation menu via AJAX.
+	 *
+	 * @return void
+	 */
+	public function handle_ajax_duplicate_navigation(): void {
+		$this->verify_nonce_and_capability();
+
+		$post_id = isset( $_POST['navigation_id'] ) ? absint( $_POST['navigation_id'] ) : 0;
+		$title   = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+
+		if ( $post_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid navigation menu ID.', 'swift-menu-duplicator' ) ), 400 );
+		}
+
+		$duplicator = new Navigation_Duplicator();
+		$new_id     = $duplicator->duplicate( $post_id, $title );
+
+		if ( is_wp_error( $new_id ) ) {
+			wp_send_json_error( array( 'message' => $new_id->get_error_message() ), 500 );
+		}
+
+		wp_send_json_success(
+			array(
+				'new_navigation_id' => $new_id,
+				'edit_url'          => $duplicator->get_edit_url( $new_id ),
+			)
+		);
+	}
+
+	/**
+	 * Streams a block navigation menu as a JSON download.
+	 *
+	 * @return void
+	 */
+	public function handle_ajax_export_navigation(): void {
+		$this->verify_nonce_and_capability();
+
+		$post_id = isset( $_POST['navigation_id'] ) ? absint( $_POST['navigation_id'] ) : 0;
+
+		if ( $post_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid navigation menu ID.', 'swift-menu-duplicator' ) ), 400 );
+		}
+
+		$payload = ( new Navigation_Duplicator() )->export( $post_id );
+
+		if ( is_wp_error( $payload ) ) {
+			wp_send_json_error( array( 'message' => $payload->get_error_message() ), 404 );
+		}
+
+		$slug = '' !== $payload['navigation']['slug']
+			? sanitize_file_name( $payload['navigation']['slug'] )
+			: 'navigation';
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $slug . '-navigation-export.json"' );
+		header( 'X-Content-Type-Options: nosniff' );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		echo wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
 		exit;
 	}
 

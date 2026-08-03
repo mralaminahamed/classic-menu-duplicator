@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.4
+Stable tag:        1.0.5
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,13 @@ Duplicate WordPress menus in one click. Snapshot revisions, export/import JSON, 
 * **URL find & replace** — swap domain names during import for staging → production migrations
 * **Dry-run preview** — review what will be imported before making any changes to the database
 
+=== Block Themes ===
+
+* Duplicate, export, and import the **Navigation menus block themes actually render** (`wp_navigation` posts), not just classic menus
+* A dedicated **Navigation (Block)** tab in the Menu Manager, with per-row Duplicate and Export JSON plus bulk duplicate and trash
+* Link counts per menu, and one-click access to the Site Editor
+* Available from WP-CLI and the REST API alongside the classic-menu commands
+
 === Multisite Support ===
 
 * Copy any menu to another site in your WordPress Multisite network
@@ -61,6 +68,10 @@ Full REST API at `/wp-json/swift-menu-duplicator/v1/` for headless and block-edi
 * `POST /menus/{id}/snapshots` — save a snapshot
 * `POST /menus/{id}/snapshots/{snapshot_id}` — restore a snapshot
 * `DELETE /menus/{id}/snapshots/{snapshot_id}` — delete a snapshot
+* `GET  /navigations` — list block navigation menus
+* `POST /navigations/{id}/duplicate` — duplicate a block navigation menu
+* `GET  /navigations/{id}/export` — export a block navigation menu
+* `POST /navigations/import` — import a block navigation menu
 
 Permission is controlled by the `swift_menu_duplicator_rest_permission` filter (defaults to `edit_theme_options`).
 
@@ -73,6 +84,7 @@ Full command-line support under the `wp swift-menu-duplicator` command group:
 * `wp swift-menu-duplicator import <file> [--name=<name>] [--find=<str>] [--replace=<str>] [--dry-run] [--porcelain]` — import from JSON
 * `wp swift-menu-duplicator copy-to-site <menu-id> --target-blog=<id> [--name=<name>] [--find=<str>] [--replace=<str>]` — copy to a sub-site
 * `wp swift-menu-duplicator snapshot list|save|restore|delete <menu-id> [--label=<label>] [--id=<uuid>]` — manage snapshots
+* `wp swift-menu-duplicator navigation list|duplicate|export|import [<id-or-file>] [--title=<title>] [--output=<file>]` — block navigation menus
 
 === Multilingual Compatibility ===
 
@@ -132,7 +144,9 @@ Yes. Translation and language meta keys are automatically stripped from duplicat
 
 = Does it work with block themes? =
 
-It manages **classic** menus (the `nav_menu` taxonomy). Block themes render Navigation blocks instead, which WordPress stores separately, and they hide **Appearance → Menus** unless the theme opts into menu or widget support. On a block theme the Menu Manager still works for any classic menus you have — for example ones a plugin or a classic child theme still uses — and the plugin tells you so on the screen, with a link to the Site Editor. Duplicating Navigation blocks is not supported.
+Yes. Block themes render Navigation blocks (`wp_navigation` posts) rather than classic menus, and the Menu Manager has a **Navigation (Block)** tab for exactly those: duplicate, export, import, bulk duplicate, and move to trash, with an Edit in Site Editor link on every row. Classic menus keep their own tab, so a site part-way through a theme migration can manage both.
+
+The tab appears when the active theme is a block theme, or whenever the site already has block navigation menus — a classic theme can still have them left over from a previous theme.
 
 = Is it compatible with WooCommerce / HPOS? =
 
@@ -167,6 +181,13 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 5. WP-CLI `duplicate` and `export` commands in a terminal.
 
 == Changelog ==
+
+= 1.0.5 =
+* Feature: **Block theme support.** Navigation menus stored as `wp_navigation` posts — the ones block themes actually render — can now be duplicated, exported, and imported. A new "Navigation (Block)" tab in the Menu Manager lists them with per-row Duplicate and Export JSON, bulk duplicate and trash, link counts, and a link into the Site Editor. Previously the plugin only told block-theme users that it did not apply to them.
+* Feature: WP-CLI `wp swift-menu-duplicator navigation list|duplicate|export|import`.
+* Feature: REST endpoints `GET /navigations`, `POST /navigations/{id}/duplicate`, `GET /navigations/{id}/export`, and `POST /navigations/import`, each with a schema.
+* Changed: The Menu Manager tabs are ordered All Menus, Navigation (Block), Copy to Site, Import JSON.
+* Fix: The Menu Manager's "+ New Menu" button opened the last-edited menu instead of the create-a-menu screen.
 
 = 1.0.4 =
 * Fix: Duplication and import now write menu items through core's `wp_update_nav_menu_item()` instead of inserting posts and postmeta directly. Core normalises the item meta and fires `wp_add_nav_menu_item` / `wp_update_nav_menu_item`, so WPML, Polylang, caching, and mega-menu plugins finally see cloned items.
@@ -224,6 +245,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.5 =
+Adds block theme support: the navigation menus block themes render (`wp_navigation`) can now be duplicated, exported, and imported from the admin, WP-CLI, and REST.
 
 = 1.0.4 =
 Duplication and import now go through WordPress's own menu-item API, so translation and caching plugins see cloned items, and cross-site imports re-resolve their targets by slug instead of trusting raw IDs. Adds snapshot REST/CLI endpoints, new Menu Manager columns, and styles for the import screen.
