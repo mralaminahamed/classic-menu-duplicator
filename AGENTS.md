@@ -57,9 +57,20 @@ composer makepot     # Generate .pot file
 ### Class Files
 ```
 includes/
-├── class-menu-admin.php       # Admin UI and AJAX
-└── class-menu-duplicator.php  # Core duplication logic
+├── admin/class-menu-admin.php        # nav-menus.php toolbar + AJAX
+├── admin/class-menu-admin-page.php   # Menu Manager page, import, multisite copy
+├── admin/class-menu-table.php        # WP_List_Table of nav_menu terms
+├── cli/class-menu-cli-command.php    # WP-CLI command group
+├── compat/class-menu-compat.php      # WPML / Polylang compatibility
+├── core/class-menu-duplicator.php    # Duplication, export, snapshots
+├── import/class-menu-importer.php    # JSON parse / preview / import
+├── rest/class-menu-rest-controller.php # REST routes
+└── utils/class-filesystem.php        # WP_Filesystem wrapper
 ```
+
+Each subdirectory maps to a namespace under `SwiftMenuDuplicator\` (e.g.
+`includes/core/` → `SwiftMenuDuplicator\Core`). Autoloading is classmap-based
+over `includes/`.
 
 ### Naming Conventions
 - Classes: `PascalCase` (e.g., `Menu_Duplicator`)
@@ -87,7 +98,7 @@ public function duplicate_menu( int $menu_id ) {}
 - **Escape output**: `esc_html__()`, `esc_attr__()`, `esc_url()`, `esc_js()`
 - **Sanitize input**: `sanitize_text_field()`, `absint()`, `wp_kses()`
 - **Nonces**: `wp_create_nonce()`, `check_admin_referer()`
-- **Capabilities**: `current_user_can( 'manage_options' )`
+- **Capabilities**: `current_user_can( 'edit_theme_options' )` (menu actions), `manage_network` (multisite copy)
 - **Database**: `$wpdb->prepare()` with placeholders
 
 ```php
@@ -136,15 +147,19 @@ $msg = sprintf( __( 'Menu #%d', 'swift-menu-duplicator' ), $menu_id );
 ## 6. File Organization
 
 ```
-includes/
-├── class-menu-admin.php       # Admin UI, enqueue scripts, AJAX handler
-└── class-menu-duplicator.php  # Core duplication logic
+includes/                      # See "Class Files" above for the full tree
 
 assets/js/
-└── admin.js                   # Frontend JavaScript
+├── admin.js                   # nav-menus.php editor integration
+└── menu-manager.js            # Menu Manager page
+
+templates/admin/
+└── menu-manager.php           # Menu Manager markup
+
+tests/php/src/                 # PHPUnit tests, mirroring includes/
 
 languages/
-└── swift-menu-duplicator.pot     # Translation template
+└── swift-menu-duplicator.pot  # Translation template
 ```
 
 ---
@@ -178,7 +193,10 @@ Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
 ## 9. Important Hooks
 
 - `admin_enqueue_scripts` — Enqueue admin assets
-- `wp_ajax_swmd_duplicate_menu` — Handle AJAX duplication request
+- `wp_ajax_swmd_duplicate_menu` / `swmd_duplicate_item` / `swmd_export_menu` — Menu editor actions
+- `wp_ajax_swmd_save_snapshot` / `swmd_get_snapshots` / `swmd_restore_snapshot` / `swmd_delete_snapshot` — Snapshot actions
+- `wp_ajax_swmd_bulk_duplicate` / `swmd_bulk_export_zip` / `swmd_copy_to_site` — Menu Manager actions
+- `wp_update_nav_menu` — Auto-snapshot before a menu save
 
 ---
 
@@ -186,7 +204,7 @@ Types: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
 
 1. Validate nonce using `wp_verify_nonce()` or `check_admin_referer()`
 2. Use nonces for all AJAX/admin form submissions
-3. Check capabilities before privileged operations (`manage_options`)
+3. Check capabilities before privileged operations (`edit_theme_options`; `manage_network` for cross-site copy)
 4. Sanitize all input — never trust `$_GET`, `$_POST`, `$_REQUEST`
 5. Escape all output
 
