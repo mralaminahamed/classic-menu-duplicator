@@ -4,7 +4,7 @@ Tags:              menus, navigation, duplicate, copy, menu manager
 Requires at least: 6.0
 Tested up to:      7.0
 Requires PHP:      7.4
-Stable tag:        1.0.6
+Stable tag:        1.0.7
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,6 +43,12 @@ Duplicate WordPress menus in one click. Snapshot revisions, export/import JSON, 
 * Import from a JSON file upload or paste JSON directly into the text area
 * **URL find & replace** — swap domain names during import for staging → production migrations
 * **Dry-run preview** — review what will be imported before making any changes to the database
+
+=== Deletion Safety ===
+
+* Deleting a menu — from the Menu Manager, the row action, or the Delete Menu button in the editor — captures it first
+* An **Undo** link appears while the deletion is still recoverable (one hour by default, filterable)
+* Restoring recreates the menu and its items and puts it back in the theme locations it occupied
 
 === Block Themes ===
 
@@ -99,6 +105,8 @@ Full command-line support under the `wp swift-menu-duplicator` command group:
 * `swift_menu_duplicator_before_duplicate_item` / `swift_menu_duplicator_after_duplicate_menu_item` — fired around item duplication
 * `swift_menu_duplicator_after_import_menu` — fired after a successful import
 * `swift_menu_duplicator_before_restore_snapshot` / `swift_menu_duplicator_after_restore_snapshot` — fired around a snapshot restore
+* `swift_menu_duplicator_after_undo_delete` — fired after a deleted menu is restored
+* `swift_menu_duplicator_undo_ttl` / `swift_menu_duplicator_undo_limit` — how long deletions stay recoverable, and how many are kept
 * `swift_menu_duplicator_item_meta_keys` — control which meta keys are copied
 * `swift_menu_duplicator_compat_excluded_meta_keys` — extend the multilingual meta exclusion list
 * `wp_update_nav_menu` — triggers auto-snapshot before every menu save
@@ -182,6 +190,10 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 
 == Changelog ==
 
+= 1.0.7 =
+* Feature: **Deleting a menu can now be undone.** The menu is captured before deletion — including which theme locations it occupied — and an Undo link appears while it is still recoverable (one hour by default, filterable via `swift_menu_duplicator_undo_ttl`). Restoring recreates the menu, its items, and its location assignments. Covers the Menu Manager's bulk delete, the row Delete action, and the Delete Menu button in the menu editor.
+* Note: A restored menu receives a new ID, because WordPress does not allow a term ID to be reused. Anything referencing the old menu by ID needs updating; theme locations are handled automatically.
+
 = 1.0.6 =
 * Accessibility: The Duplicate Menu dialog now traps Tab focus, moves focus to the name field when it opens, returns focus to the button that opened it when it closes, and marks the page behind it inert where the browser supports it.
 * Accessibility: The snapshot panel is reachable and operable by keyboard — Escape closes it, Tab stays inside it, focus moves into it on open and back out on close, and the toggle button reports its state with `aria-expanded`.
@@ -253,6 +265,9 @@ Export the source menu to JSON (admin UI or `wp swift-menu-duplicator export`), 
 * Developer hooks and filters throughout for extensibility.
 
 == Upgrade Notice ==
+
+= 1.0.7 =
+Deleting a menu is no longer permanent: it is captured beforehand and can be restored — with its theme locations — for an hour afterwards.
 
 = 1.0.6 =
 Accessibility release: keyboard focus management for the duplicate dialog and snapshot panel, screen-reader announcements for notices, translatable accessible names, and visible focus styles.
