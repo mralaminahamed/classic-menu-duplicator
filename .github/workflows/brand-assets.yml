@@ -71,10 +71,11 @@ jobs:
       - name: Install Chromium
         run: yarn playwright install --with-deps chromium
 
+      # The config asks for `channel: 'chrome'`; the runner image ships Google
+      # Chrome, so this resolves without a browser download. Chromium is
+      # installed above as a fallback for images that do not.
       - name: Render brand assets
         run: yarn playwright test --config=playwright.wporg-shots.config.ts --project=brand
-        env:
-          PLAYWRIGHT_CHROMIUM_CHANNEL: ''
 
       - name: Verify output dimensions
         run: |
@@ -104,4 +105,8 @@ jobs:
           path: |
             .wordpress-org/icon-*.png
             .wordpress-org/banner-*.png
+          # .wordpress-org is a dotted directory, and upload-artifact skips
+          # hidden paths by default — the render succeeded and the upload then
+          # found nothing.
+          include-hidden-files: true
           if-no-files-found: error
