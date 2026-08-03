@@ -4,8 +4,10 @@
  *
  * Fired automatically by WordPress when the user clicks "Delete" on the
  * Plugins screen. Removes all data written by the plugin to the database:
- * any options stored under the plugin's prefix. No nav_menu terms or
- * nav_menu_item posts are removed — those belong to the site owner.
+ * options and transients stored under the plugin's prefix, plus the term
+ * meta the plugin attaches to nav_menu terms (snapshots and creation
+ * timestamps). No nav_menu terms or nav_menu_item posts are removed —
+ * those belong to the site owner.
  *
  * @package SwiftMenuDuplicator
  * @link    https://developer.wordpress.org/plugins/plugin-basics/uninstall-methods/
@@ -84,6 +86,34 @@ function swift_menu_duplicator_delete_transients(): void {
 }
 
 /**
+ * Removes the term meta the plugin attaches to nav_menu terms.
+ *
+ * Covers `_swmd_snapshots` (the snapshot stack written by the snapshot
+ * feature) and `_swmd_created` (the creation timestamp shown in the Menu
+ * Manager table). The menus themselves are left untouched.
+ *
+ * @return void
+ */
+function swift_menu_duplicator_delete_term_meta(): void {
+	$menus = get_terms(
+		array(
+			'taxonomy'   => 'nav_menu',
+			'hide_empty' => false,
+			'fields'     => 'ids',
+		)
+	);
+
+	if ( is_wp_error( $menus ) || ! is_array( $menus ) ) {
+		return;
+	}
+
+	foreach ( $menus as $menu_id ) {
+		delete_term_meta( (int) $menu_id, '_swmd_snapshots' );
+		delete_term_meta( (int) $menu_id, '_swmd_created' );
+	}
+}
+
+/**
  * Multisite: runs the cleanup routine across every blog in the network.
  *
  * Switches to each blog in turn, executes the single-site cleanup
@@ -111,6 +141,7 @@ function swift_menu_duplicator_network_uninstall(): void {
 		switch_to_blog( (int) $blog_id );
 		swift_menu_duplicator_delete_options();
 		swift_menu_duplicator_delete_transients();
+		swift_menu_duplicator_delete_term_meta();
 		restore_current_blog();
 	}
 }
@@ -124,4 +155,5 @@ if ( is_multisite() ) {
 } else {
 	swift_menu_duplicator_delete_options();
 	swift_menu_duplicator_delete_transients();
+	swift_menu_duplicator_delete_term_meta();
 }
