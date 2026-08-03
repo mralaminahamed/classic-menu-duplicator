@@ -201,3 +201,40 @@
 .swmd-duplicate-item:hover {
 	color: #135e96;
 }
+
+/* ── Focus visibility ────────────────────────────────────────── */
+
+/*
+ * The injected controls are buttons and links inside a panel that WordPress
+ * does not style, so they need their own focus ring. Matches core's admin
+ * focus treatment (2px #2271b1 outline with a small offset).
+ */
+#swmd-snapshot-panel :focus-visible,
+#swmd-modal :focus-visible,
+.swmd-duplicate-item:focus-visible,
+.swmd-snapshot-restore:focus-visible,
+.swmd-snapshot-delete:focus-visible,
+#swmd-snapshot-close:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+	border-radius: 2px;
+}
+
+/* The panel itself takes focus when opened; it should not draw a ring. */
+#swmd-snapshot-panel:focus {
+	outline: none;
+}
+
+/* Keep the delete affordance discoverable for keyboard users, not just hover. */
+.swmd-snapshot-item:focus-within .swmd-snapshot-delete {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.swmd-toast,
+	#swmd-modal-overlay,
+	#swmd-snapshot-panel {
+		transition: none;
+	}
+}

@@ -79,7 +79,7 @@ class Menu_Admin {
 		wp_enqueue_script(
 			'swmd-admin',
 			SWIFT_MENU_DUPLICATOR_URL . 'assets/js/admin.js',
-			array( 'jquery' ),
+			array( 'jquery', 'wp-a11y' ),
 			file_exists( $asset_file )
 				? (string) filemtime( $asset_file )
 				: SWIFT_MENU_DUPLICATOR_VERSION,
@@ -116,6 +116,8 @@ class Menu_Admin {
 				'snapshotRestoredText' => __( 'Menu restored from snapshot.', 'swift-menu-duplicator' ),
 				'confirmRestoreText'   => __( 'Replace the current menu items with this snapshot? The current state is saved as a new snapshot first.', 'swift-menu-duplicator' ),
 				'confirmDeleteText'    => __( 'Delete this snapshot?', 'swift-menu-duplicator' ),
+				'deleteSnapshotLabel'  => __( 'Delete snapshot', 'swift-menu-duplicator' ),
+				'closeLabel'           => __( 'Close snapshot panel', 'swift-menu-duplicator' ),
 				// Modal strings.
 				'modalHeading'         => __( 'Duplicate Menu', 'swift-menu-duplicator' ),
 				'modalNameLabel'       => __( 'New menu name', 'swift-menu-duplicator' ),

@@ -101,6 +101,29 @@ class Menu_Admin_Test extends SwiftMenuDuplicatorTestCase {
 		}
 	}
 
+	/**
+	 * @covers Menu_Admin::enqueue_scripts
+	 */
+	public function test_enqueue_scripts_localizes_accessible_names(): void {
+		$this->admin->enqueue_scripts( 'nav-menus.php' );
+
+		$data = wp_scripts()->get_data( 'swmd-admin', 'data' );
+
+		// Accessible names must be translatable, not hardcoded in the script.
+		$this->assertStringContainsString( 'deleteSnapshotLabel', $data );
+		$this->assertStringContainsString( 'closeLabel', $data );
+	}
+
+	/**
+	 * @covers Menu_Admin::enqueue_scripts
+	 */
+	public function test_enqueue_scripts_depends_on_wp_a11y(): void {
+		$this->admin->enqueue_scripts( 'nav-menus.php' );
+
+		// wp.a11y.speak() announces toasts to screen readers.
+		$this->assertContains( 'wp-a11y', wp_scripts()->registered['swmd-admin']->deps );
+	}
+
 	// -----------------------------------------------------------------------
 	// Menus table.
 	// -----------------------------------------------------------------------
