@@ -57,6 +57,10 @@ WordPress install five directories up, i.e. the site this plugin lives in.
   Multisite copy. Not `manage_options`.
 - **A menu item's description lives in `post_content`**, not in postmeta. Any
   code that copies items must carry it.
+- **Deleting a menu is captured, not prevented.** `Menu_Undo` exports the menu
+  into a per-user transient before `wp_delete_nav_menu()` runs — core deletes
+  the items before the term, so no hook inside that function is early enough.
+  A restored menu gets a new term ID; theme locations are re-applied.
 - **Plugin data in the database**: term meta `_swmd_snapshot` (one row per
   snapshot, capped by `swift_menu_duplicator_snapshot_limit`), the legacy
   `_swmd_snapshots` stack from 1.0.3 and earlier, and `_swmd_created`. New
