@@ -86,3 +86,18 @@ tree.sh
 .vuepress/dist/
 .hugo_build.lock
 .mcp.json
+
+# Listing-asset tooling. These render the WordPress.org icon, banners and
+# screenshots; none of it runs on a site, and the images they produce are
+# uploaded from .wordpress-org/ by the assets workflow, not shipped in the zip.
+#
+# The .ts extension is the point: a `*.config.js` rule does not match
+# `playwright.wporg-shots.config.ts`, so these configs were being packaged.
+playwright*.config.ts
+playwright*.config.js
+
+# Playwright run artefacts — traces, error contexts, failure screenshots.
+test-results/
+
+# (/resources/ is already excluded above.)
+
