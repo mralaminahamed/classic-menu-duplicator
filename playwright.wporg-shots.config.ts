@@ -8,8 +8,9 @@ import { defineConfig } from '@playwright/test';
  *   yarn assets:shots   — screenshots (drives a logged-in WordPress admin)
  *
  * Uses `channel: 'chrome'` so it drives an already-installed Chrome rather
- * than requiring `playwright install`, and pins the viewport to 1440x900 so
- * every screenshot in .wordpress-org/ comes out the same size.
+ * than requiring `playwright install`. Screenshots are captured at 1720x1010
+ * and composed onto a 1200x900 branded canvas, so every image in
+ * .wordpress-org/ comes out the same size whatever the source page.
  *
  * The two projects differ in what they need: `shots` drives a logged-in
  * WordPress install, so it depends on `setup`; `brand` only renders local
@@ -30,7 +31,12 @@ export default defineConfig( {
 			dependencies: [ 'setup' ],
 			use: {
 				channel: 'chrome',
-				viewport: { width: 1440, height: 900 },
+				// The capture viewport, wider than the 1200x900 canvas the frames
+				// compose onto: the card fills with `object-fit: cover`, so a
+				// source much wider than ~1.83:1 loses its left and right edges.
+				// wporg-shots.spec.ts re-asserts this before every test, since
+				// composing a frame changes the viewport.
+				viewport: { width: 1720, height: 1010 },
 				storageState: 'tests/e2e/.auth/admin.json',
 			},
 		},
