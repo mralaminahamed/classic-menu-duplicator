@@ -176,3 +176,105 @@
 		max-width: 100%;
 	}
 }
+
+/* ---------------------------------------------------------------------------
+ * Our Plugins tab
+ *
+ * Lives here rather than inline in the template, which is where it started:
+ * this stylesheet is already enqueued for the page, so an inline block was a
+ * second place to look for the same screen's rules and skipped the cache
+ * busting the rest of them get from filemtime().
+ * ------------------------------------------------------------------------- */
+
+.swmd-our-plugins .swmd-plugin-grid {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 320px, 1fr ) );
+	gap: 16px;
+	margin-top: 20px;
+}
+
+.swmd-our-plugins .swmd-plugin-card {
+	display: flex;
+	flex-direction: column;
+	padding: 16px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.swmd-our-plugins .swmd-plugin-head {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.swmd-our-plugins .swmd-plugin-icon {
+	flex: 0 0 auto;
+	width: 48px;
+	height: 48px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+/* min-width: 0 so a long plugin name wraps instead of widening the card. */
+.swmd-our-plugins .swmd-plugin-heading {
+	flex: 1;
+	min-width: 0;
+}
+
+.swmd-our-plugins .swmd-plugin-name {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.swmd-our-plugins .swmd-plugin-meta,
+.swmd-our-plugins .swmd-plugin-rating {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 2px 0 0;
+	color: #646970;
+	font-size: 12px;
+}
+
+.swmd-our-plugins .swmd-plugin-rating span:first-child {
+	color: #dba617;
+}
+
+.swmd-our-plugins .swmd-plugin-state {
+	flex: 0 0 auto;
+	padding: 2px 8px;
+	border: 1px solid #c3c4c7;
+	border-radius: 9999px;
+	color: #646970;
+	font-size: 11px;
+	text-transform: uppercase;
+}
+
+.swmd-our-plugins .swmd-plugin-state.is-active {
+	border-color: #00a32a;
+	color: #00a32a;
+}
+
+/* flex: 1 so the buttons line up across cards holding different amounts of text. */
+.swmd-our-plugins .swmd-plugin-desc {
+	flex: 1;
+	margin: 12px 0 0;
+	color: #3c434a;
+}
+
+.swmd-our-plugins .swmd-plugin-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 16px 0 0;
+}
+
+/* One column where the grid's 320px minimum no longer fits. */
+@media screen and ( max-width: 782px ) {
+
+	.swmd-our-plugins .swmd-plugin-grid {
+		grid-template-columns: 1fr;
+	}
+}
