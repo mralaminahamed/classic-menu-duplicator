@@ -126,6 +126,17 @@ if ( $import_state ) {
 			class="nav-tab <?php echo esc_attr( 'import' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 			<?php esc_html_e( 'Import JSON', 'swift-menu-duplicator' ); ?>
 		</a>
+		<?php
+		/*
+		 * Last, and deliberately so. The four before it are the work; this one
+		 * is the author's other plugins, and a promotional tab that sits before
+		 * the task somebody opened the screen to do is an interruption.
+		 */
+		?>
+		<a href="<?php echo esc_url( admin_url( 'themes.php?page=swmd-menu-manager&tab=plugins' ) ); ?>"
+			class="nav-tab <?php echo esc_attr( 'plugins' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+			<?php esc_html_e( 'Our Plugins', 'swift-menu-duplicator' ); ?>
+		</a>
 	</nav>
 
 	<!-- ── All Menus tab ───────────────────────────────────── -->
@@ -410,6 +421,21 @@ if ( $import_state ) {
 			<div id="swmd-copy-result"></div>
 		</div>
 	</div>
+
+	<!-- ── Our Plugins tab ─────────────────────────────────── -->
+	<?php elseif ( 'plugins' === $active_tab ) : ?>
+		<?php
+		/*
+		 * `$plugins` and `$error` are what the partial reads. Unpacked here
+		 * rather than inside it, so the partial stays a plain template with two
+		 * documented variables instead of reaching into a differently-named
+		 * array it did not ask for.
+		 */
+		$plugins = $our_plugins['plugins'];
+		$error   = $our_plugins['error'];
+
+		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/our-plugins.php';
+		?>
 	<?php endif; ?>
 
 </div><!-- .wrap -->

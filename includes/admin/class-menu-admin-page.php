@@ -470,6 +470,9 @@ class Menu_Admin_Page {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'swift-menu-duplicator' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading which tab to render, not acting on it.
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'menus';
+
 		$table = new Menu_Table();
 		$table->prepare_items();
 
@@ -480,6 +483,19 @@ class Menu_Admin_Page {
 			$navigation_table = new Navigation_Table();
 			$navigation_table->prepare_items();
 		}
+
+		/*
+		 * Only for the tab that shows it. The listing is a WordPress.org
+		 * request behind a transient, and asking for it while somebody is
+		 * looking at their menus would put a third-party call in the path of a
+		 * screen that has nothing to do with it.
+		 */
+		$our_plugins = 'plugins' === $active_tab
+			? ( new Our_Plugins() )->get_plugins_with_state()
+			: array(
+				'plugins' => array(),
+				'error'   => '',
+			);
 
 		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/menu-manager.php';
 	}

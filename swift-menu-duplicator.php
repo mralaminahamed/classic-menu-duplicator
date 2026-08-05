@@ -34,7 +34,6 @@ declare( strict_types=1 );
 
 use SwiftMenuDuplicator\Admin\Menu_Admin;
 use SwiftMenuDuplicator\Admin\Menu_Admin_Page;
-use SwiftMenuDuplicator\Admin\Our_Plugins_Page;
 use SwiftMenuDuplicator\Cli\Menu_CLI_Command;
 use SwiftMenuDuplicator\Compat\Menu_Compat;
 use SwiftMenuDuplicator\Rest\Menu_REST_Controller;
@@ -65,9 +64,6 @@ function swift_menu_duplicator_bootstrap(): void {
 
 	// Tier 2: dedicated admin page (table, import, multisite copy).
 	( new Menu_Admin_Page() )->register_hooks();
-
-	// Tier 2: the author's other plugins, beside the Menu Manager.
-	( new Our_Plugins_Page() )->register_hooks();
 
 	// Tier 3: REST API endpoints.
 	( new Menu_REST_Controller() )->register_hooks();

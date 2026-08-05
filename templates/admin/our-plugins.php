@@ -1,6 +1,9 @@
 <?php
 /**
- * Template: Our Plugins admin page.
+ * Partial: the Menu Manager's "Our Plugins" tab.
+ *
+ * Included by templates/admin/menu-manager.php, so it opens no wrapper and
+ * prints no page heading of its own.
  *
  * @package SwiftMenuDuplicator
  *
@@ -13,9 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<div class="wrap swmd-our-plugins">
-	<h1><?php esc_html_e( 'Our Plugins', 'swift-menu-duplicator' ); ?></h1>
-
+<div class="swmd-our-plugins">
 	<p class="description">
 		<?php esc_html_e( 'Other plugins from the people who made this one, listed straight from the WordPress.org directory.', 'swift-menu-duplicator' ); ?>
 	</p>
@@ -143,95 +144,3 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	<?php endif; ?>
 </div>
-
-<style>
-	/*
-	 * Inline rather than a stylesheet of its own. This is one screen with a
-	 * dozen rules and no JavaScript; a separate file would be another HTTP
-	 * request and another build artefact for markup that exists in one place.
-	 */
-	.swmd-our-plugins .swmd-plugin-grid {
-		display: grid;
-		grid-template-columns: repeat( auto-fill, minmax( 320px, 1fr ) );
-		gap: 16px;
-		margin-top: 20px;
-	}
-
-	.swmd-our-plugins .swmd-plugin-card {
-		display: flex;
-		flex-direction: column;
-		padding: 16px;
-		background: #fff;
-		border: 1px solid #c3c4c7;
-		border-radius: 4px;
-	}
-
-	.swmd-our-plugins .swmd-plugin-head {
-		display: flex;
-		gap: 12px;
-		align-items: flex-start;
-	}
-
-	.swmd-our-plugins .swmd-plugin-icon {
-		flex: 0 0 auto;
-		width: 48px;
-		height: 48px;
-		object-fit: cover;
-		border-radius: 4px;
-	}
-
-	/* min-width: 0 so a long plugin name wraps instead of widening the card. */
-	.swmd-our-plugins .swmd-plugin-heading {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.swmd-our-plugins .swmd-plugin-name {
-		margin: 0;
-		font-size: 14px;
-		line-height: 1.4;
-	}
-
-	.swmd-our-plugins .swmd-plugin-meta,
-	.swmd-our-plugins .swmd-plugin-rating {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		margin: 2px 0 0;
-		color: #646970;
-		font-size: 12px;
-	}
-
-	.swmd-our-plugins .swmd-plugin-rating span:first-child {
-		color: #dba617;
-	}
-
-	.swmd-our-plugins .swmd-plugin-state {
-		flex: 0 0 auto;
-		padding: 2px 8px;
-		border: 1px solid #c3c4c7;
-		border-radius: 9999px;
-		color: #646970;
-		font-size: 11px;
-		text-transform: uppercase;
-	}
-
-	.swmd-our-plugins .swmd-plugin-state.is-active {
-		border-color: #00a32a;
-		color: #00a32a;
-	}
-
-	/* flex: 1 so the buttons line up across cards holding different amounts of text. */
-	.swmd-our-plugins .swmd-plugin-desc {
-		flex: 1;
-		margin: 12px 0 0;
-		color: #3c434a;
-	}
-
-	.swmd-our-plugins .swmd-plugin-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		margin: 16px 0 0;
-	}
-</style>

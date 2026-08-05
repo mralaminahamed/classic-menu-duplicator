@@ -1,19 +1,18 @@
 <?php
 /**
- * Test suite for Our_Plugins_Page.
+ * Test suite for Our_Plugins.
  *
  * @package SwiftMenuDuplicator
  */
 
 namespace SwiftMenuDuplicator\Test\Admin;
 
-use ReflectionMethod;
-use SwiftMenuDuplicator\Admin\Our_Plugins_Page;
+use SwiftMenuDuplicator\Admin\Our_Plugins;
 use WP_Error;
 use WP_UnitTestCase;
 
 /**
- * Exercises the Our Plugins screen.
+ * Exercises the Menu Manager's "Our Plugins" tab.
  *
  * The listing comes from the WordPress.org directory, so `plugins_api` is
  * filtered rather than called: what matters here is that the answer is cached,
@@ -21,7 +20,7 @@ use WP_UnitTestCase;
  * the action links carry core's own nonces, and that an unreachable directory
  * degrades to a message instead of a fatal.
  */
-class Our_Plugins_Page_Test extends WP_UnitTestCase {
+class Our_Plugins_Test extends WP_UnitTestCase {
 
 	/**
 	 * Set up test.
@@ -106,10 +105,7 @@ class Our_Plugins_Page_Test extends WP_UnitTestCase {
 	 * @return array{plugins: array<int, array<string, mixed>>, error: string}
 	 */
 	private function listing(): array {
-		$method = new ReflectionMethod( Our_Plugins_Page::class, 'get_plugins_with_state' );
-		$method->setAccessible( true );
-
-		return $method->invoke( new Our_Plugins_Page() );
+		return ( new Our_Plugins() )->get_plugins_with_state();
 	}
 
 	/**

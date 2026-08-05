@@ -14,10 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class Our_Plugins_Page
+ * Class Our_Plugins
  *
- * Adds an "Our Plugins" screen beside the Menu Manager, listing everything else
- * the author publishes with its state on this site.
+ * Supplies the Menu Manager's "Our Plugins" tab: everything else the author
+ * publishes, with its state on this site.
+ *
+ * A tab rather than a screen of its own. The point of this list is to be seen
+ * by people who use this plugin, and those people are already on the Menu
+ * Manager — a submenu under Plugins is where it belongs by classification and
+ * nowhere near where anybody would find it.
  *
  * The list is asked of WordPress.org rather than written down here. A hard-coded
  * list is wrong the day a plugin is released, renamed or retired, and it cannot
@@ -29,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * rollback on a fatal — reimplementing any of that inside a menu plugin would
  * be a liability rather than a convenience.
  */
-class Our_Plugins_Page {
+class Our_Plugins {
 
 	/**
 	 * The WordPress.org username whose plugins are listed.
@@ -55,44 +60,6 @@ class Our_Plugins_Page {
 	 * shorter than a release cycle.
 	 */
 	private const CACHE_TTL = 12 * HOUR_IN_SECONDS;
-
-	/**
-	 * Registers the WordPress hooks this class needs.
-	 *
-	 * @return void
-	 */
-	public function register_hooks(): void {
-		add_action( 'admin_menu', array( $this, 'register_menu_page' ) );
-	}
-
-	/**
-	 * Registers the Plugins → Our Plugins submenu page.
-	 *
-	 * Under `plugins.php`, not under Appearance beside the Menu Manager.
-	 * Appearance is for themes and menus; a list of plugins has nothing to do
-	 * with either, and it only landed there because that is where the rest of
-	 * this plugin lives. Beside "Installed Plugins" and "Add New Plugin" is
-	 * where somebody would actually look for it.
-	 *
-	 * The move settles the capability too. Everything else here is gated on
-	 * `edit_theme_options`, which is right for editing menus and wrong for a
-	 * screen whose buttons install and activate software: WordPress hides the
-	 * Plugins menu itself from anyone without `activate_plugins`, and a page
-	 * hanging off it should not be reachable by people who cannot see its
-	 * parent.
-	 *
-	 * @return void
-	 */
-	public function register_menu_page(): void {
-		add_submenu_page(
-			'plugins.php',
-			__( 'Our Plugins', 'swift-menu-duplicator' ),
-			__( 'Our Plugins', 'swift-menu-duplicator' ),
-			'activate_plugins',
-			'swmd-our-plugins',
-			array( $this, 'render_page' )
-		);
-	}
 
 	/**
 	 * The author's plugins, as the directory reports them.
@@ -241,7 +208,7 @@ class Our_Plugins_Page {
 	 *
 	 * @return array{plugins: array<int, array<string, mixed>>, error: string}
 	 */
-	private function get_plugins_with_state(): array {
+	public function get_plugins_with_state(): array {
 		$directory = $this->from_directory();
 		$entries   = array();
 
@@ -288,27 +255,5 @@ class Our_Plugins_Page {
 			'plugins' => $entries,
 			'error'   => $directory['error'],
 		);
-	}
-
-	/**
-	 * Renders the Our Plugins screen.
-	 *
-	 * @return void
-	 */
-	public function render_page(): void {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			wp_die( esc_html__( 'You do not have permission to view this page.', 'swift-menu-duplicator' ) );
-		}
-
-		if ( ! function_exists( 'is_plugin_active' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		$listing = $this->get_plugins_with_state();
-
-		$plugins = $listing['plugins'];
-		$error   = $listing['error'];
-
-		include SWIFT_MENU_DUPLICATOR_DIR . 'templates/admin/our-plugins.php';
 	}
 }
