@@ -66,20 +66,29 @@ class Our_Plugins_Page {
 	}
 
 	/**
-	 * Registers the Appearance → Our Plugins submenu page.
+	 * Registers the Plugins → Our Plugins submenu page.
 	 *
-	 * Under `themes.php` beside the Menu Manager, because that is where this
-	 * plugin already lives; a second top-level menu for one informational screen
-	 * would cost more of the sidebar than it is worth.
+	 * Under `plugins.php`, not under Appearance beside the Menu Manager.
+	 * Appearance is for themes and menus; a list of plugins has nothing to do
+	 * with either, and it only landed there because that is where the rest of
+	 * this plugin lives. Beside "Installed Plugins" and "Add New Plugin" is
+	 * where somebody would actually look for it.
+	 *
+	 * The move settles the capability too. Everything else here is gated on
+	 * `edit_theme_options`, which is right for editing menus and wrong for a
+	 * screen whose buttons install and activate software: WordPress hides the
+	 * Plugins menu itself from anyone without `activate_plugins`, and a page
+	 * hanging off it should not be reachable by people who cannot see its
+	 * parent.
 	 *
 	 * @return void
 	 */
 	public function register_menu_page(): void {
 		add_submenu_page(
-			'themes.php',
+			'plugins.php',
 			__( 'Our Plugins', 'swift-menu-duplicator' ),
 			__( 'Our Plugins', 'swift-menu-duplicator' ),
-			'edit_theme_options',
+			'activate_plugins',
 			'swmd-our-plugins',
 			array( $this, 'render_page' )
 		);
@@ -287,7 +296,7 @@ class Our_Plugins_Page {
 	 * @return void
 	 */
 	public function render_page(): void {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
 			wp_die( esc_html__( 'You do not have permission to view this page.', 'swift-menu-duplicator' ) );
 		}
 
