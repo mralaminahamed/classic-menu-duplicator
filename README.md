@@ -2,149 +2,178 @@
 
 <img src=".wordpress-org/icon-256x256.png" alt="Swift Menu Duplicator icon" width="96" height="96">
 
-# Swift Menu Duplicator — Developer Guide
+# Swift Menu Duplicator
 
-**Duplicate navigation menus and their items, snapshot revisions, export and import as JSON, and drive all of it from WP-CLI or REST.**
+[![WordPress plugin version](https://img.shields.io/wordpress/plugin/v/swift-menu-duplicator?style=flat-square)](https://wordpress.org/plugins/swift-menu-duplicator/)
+[![WordPress version tested up to](https://img.shields.io/wordpress/plugin/tested/swift-menu-duplicator?style=flat-square)](https://wordpress.org/plugins/swift-menu-duplicator/)
+[![Minimum PHP version required](https://img.shields.io/wordpress/plugin/required-php/swift-menu-duplicator?style=flat-square)](https://wordpress.org/plugins/swift-menu-duplicator/)
+[![Total downloads from WordPress.org](https://img.shields.io/wordpress/plugin/dt/swift-menu-duplicator?style=flat-square)](https://wordpress.org/plugins/swift-menu-duplicator/advanced/)
+[![License GPL v2 or later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue?style=flat-square)](LICENSE)
 
-[![Version](https://img.shields.io/badge/version-1.1.0-21759b.svg)](https://github.com/mralaminahamed/swift-menu-duplicator)
-[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/)
-[![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://php.net/)
-[![PHPStan](https://img.shields.io/badge/PHPStan-Level%204-brightgreen.svg)](https://phpstan.org/)
-[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+Duplicate menus and their items, snapshot revisions, export and import as JSON, and drive all of it from WP-CLI or REST.
 
 </div>
 
-> This is the **contributor / technical** guide. For the public plugin listing — features, screenshots, changelog, upgrade notices — see [`readme.txt`](readme.txt).
+![Swift Menu Duplicator Menu Manager listing menus with item counts, snapshots and bulk actions](.wordpress-org/screenshot-1.png)
 
-| Requirement   | Minimum | Tested up to |
-|---------------|---------|--------------|
-| **WordPress** | 6.0     | 7.0          |
-| **PHP**       | 7.4     | —            |
+## Quick Start
 
-Current version **1.1.0** · License **GPL-2.0-or-later** · Tooling **Yarn** + Composer · Delivered free on WordPress.org
+Install from the WordPress admin — **Plugins → Add New**, search for "Swift Menu Duplicator", then **Install Now** and **Activate**.
 
----
+To run it from source instead:
 
-## What it is
+```bash
+git clone https://github.com/mralaminahamed/swift-menu-duplicator.git
+cd swift-menu-duplicator
+composer install
+yarn install
+```
 
-WordPress has no way to copy a menu. Rebuilding one by hand is tedious and error-prone, and
-the moment you want the same structure on a second site there is no path at all beyond
-clicking it out again.
+Minimum WordPress, PHP, and tested-up-to versions are shown in the badges above; `readme.txt` and the plugin header are the source of truth. Node.js 20+ is needed for development only.
 
-This plugin adds the missing operations — duplicate, snapshot, export, import, bulk-manage,
-and copy across a multisite network — and exposes every one of them through **three surfaces
-that share one implementation**: the admin screen, WP-CLI, and REST. Automating a menu
-migration therefore does not mean reimplementing what the UI does.
+## What It Does
 
----
+WordPress has no way to copy a menu. Rebuilding one by hand is tedious and error-prone, and wanting the same structure on a second site leaves you clicking it out again.
+
+This plugin adds the operations that are missing — duplicate, snapshot, restore, export, import, bulk-manage, and copy across a multisite network — and exposes every one of them through the admin, WP-CLI, and REST.
+
+Classic `nav_menu` menus and block-theme `wp_navigation` posts are both supported, which matters because block themes do not store menus the way the Appearance → Menus screen does.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| Duplicate | Menus and their full item tree, with parent relationships remapped |
+| Snapshots | Save a revision, restore it later; restoring snapshots the current state first |
+| Undo | Deleting a menu can be undone, theme locations included |
+| Export / import | JSON, with size and item-count limits that are filterable |
+| Block themes | `wp_navigation` menus duplicated, exported and imported |
+| Menu Manager | Slug, description and snapshot columns, sortable counts, bulk actions |
+| Multisite | Copy a menu to another site on the network |
+| WP-CLI | Every operation, plus `snapshot` and `navigation` subcommands |
+| REST API | Routes under `swift-menu-duplicator/v1`, each publishing a schema |
+
+## Screenshots
+
+<details>
+<summary>View all screenshots</summary>
+
+### Duplicate
+
+![Duplicating a menu with its items](.wordpress-org/screenshot-2.png)
+
+### Snapshots
+
+![Snapshot list with restore actions](.wordpress-org/screenshot-3.png)
+
+### Export and import
+
+![Exporting a menu to JSON and importing one back](.wordpress-org/screenshot-4.png)
+
+### Settings
+
+![Plugin settings](.wordpress-org/screenshot-5.png)
+
+</details>
+
+## Development
+
+```bash
+# PHP
+composer test                # PHPUnit
+composer test-f -- --filter SomeTest
+composer lint                # WordPress coding standards
+composer lint:fix            # Auto-fix
+composer analyze             # phpcs + phpstan
+composer lint:review         # Stricter directory-review ruleset
+composer release             # Build and package
+
+# JavaScript / CSS
+yarn lint                    # JS + CSS
+yarn lint:js:fix             # Auto-fix JS
+yarn lint:css:fix            # Auto-fix CSS
+yarn assets:shots            # WordPress.org screenshots
+yarn assets:brand            # Icon and banners
+```
+
+> The PHPUnit configuration connects to MySQL as `root` with no password. On a machine set up differently the suite fails to bootstrap rather than reporting test failures — set the credentials in `phpunit.xml` first.
 
 ## Architecture
 
-### PHP — `includes/` (PSR-4 `SwiftMenuDuplicator\`)
-
-| Dir       | Responsibility                                                   |
-|-----------|-------------------------------------------------------------------|
-| `core/`   | Duplication, snapshots, and the menu-item tree walk                |
-| `import/` | JSON import and export                                             |
-| `admin/`  | Admin screens, bulk actions, and assets                            |
-| `rest/`   | REST routes (`swift-menu-duplicator/v1`)                           |
-| `cli/`    | WP-CLI commands                                                    |
-| `compat/` | Third-party menu-plugin interoperability                           |
-| `utils/`  | Shared helpers                                                     |
-
-The thing worth understanding is that `core/` owns the operations outright. `admin/`, `rest/`
-and `cli/` are three ways of asking for the same work, which is why a menu duplicated from the
-command line is identical to one duplicated from the screen — there is no second code path to
-drift.
-
-Menu items are a **tree**, not a list: children reference parents by ID, so duplication has to
-remap every parent reference to the newly created item rather than copying rows verbatim. That
-remapping is the part to read first.
-
-### Repo map
-
-```
-swift-menu-duplicator.php   Bootstrap
-includes/                   PHP (PSR-4 SwiftMenuDuplicator\)
-templates/                  Admin markup
-assets/                     Admin CSS/JS
-resources/                  Brand/source assets
-tests/php/                  PHPUnit
-tests/e2e/                  Playwright
-languages/                  Translations
-.wordpress-org/             Directory assets: icon, banners, screenshots
+```mermaid
+flowchart LR
+    A["Admin screen"] --> D["core/"]
+    B["WP-CLI"] --> D
+    C["REST"] --> D
+    D --> E["Menu item tree<br/>parent IDs remapped"]
+    D --> F["Snapshots"]
+    D --> G["JSON import / export"]
 ```
 
----
+PHP lives under the PSR-4 namespace `SwiftMenuDuplicator\`:
 
-## Getting started
-
-```bash
-composer install     # PHP dependencies + dev tooling
-yarn install         # lint tooling and asset scripts
+```
+swift-menu-duplicator.php    Bootstrap
+includes/
+  core/                      Duplication, snapshots, the item-tree walk
+  import/                    JSON import and export
+  admin/                     Admin screens, bulk actions, assets
+  rest/                      REST routes (swift-menu-duplicator/v1)
+  cli/                       WP-CLI commands
+  compat/                    Third-party menu-plugin interoperability
+  utils/                     Shared helpers
 ```
 
----
+`core/` owns the operations outright — admin, REST and CLI are three ways of asking for the same work, which is why a menu duplicated from the command line is identical to one duplicated from the screen.
 
-## Testing
+Menu items are a **tree**, not a list: children reference parents by ID, so duplication remaps every parent reference to the newly created item rather than copying rows verbatim. That remapping is the part to read first.
 
-```bash
-composer test                        # PHPUnit
-composer test-f -- --filter SomeTest
+## Extensibility
+
+```php
+// Name the duplicated menu
+add_filter( 'swift_menu_duplicator_new_menu_name', function( $name, $original ) {
+    return $name;
+}, 10, 2 );
+
+// React after a menu is duplicated
+add_action( 'swift_menu_duplicator_after_duplicate_menu', function( $new_id, $original_id ) {
+    // custom logic
+}, 10, 2 );
+
+// Import limits
+add_filter( 'swift_menu_duplicator_max_import_bytes', function( $bytes ) { return $bytes; } );
+add_filter( 'swift_menu_duplicator_max_import_items', function( $items ) { return $items; } );
+
+// How many snapshots to keep, and how long undo lasts
+add_filter( 'swift_menu_duplicator_snapshot_limit', function( $limit ) { return $limit; } );
+add_filter( 'swift_menu_duplicator_undo_ttl', function( $seconds ) { return $seconds; } );
+
+// Who may use the REST routes
+add_filter( 'swift_menu_duplicator_rest_permission', function( $allowed ) { return $allowed; } );
 ```
 
-Playwright specs live in `tests/e2e/`.
+## Security
 
-> The PHPUnit config connects as `root` with no password. On a machine where that is not how
-> MySQL is set up, the suite fails to bootstrap rather than reporting test failures — set the
-> database credentials in `phpunit.xml` before concluding anything is broken.
+- Every REST route and WP-CLI command is capability-gated, and the gate is filterable through `swift_menu_duplicator_rest_permission`
+- Admin actions are nonce-checked
+- Imports are bounded by size and item-count limits before anything is written
+- No analytics, telemetry, or phone-home
 
----
+Report vulnerabilities privately — see the [security policy](SECURITY.md).
 
-## Code quality
+## Changelog
 
-```bash
-composer lint          # WordPress Coding Standards
-composer lint:fix      # auto-fix
-composer analyze       # phpcs + phpstan (level 4)
-composer lint:review   # the stricter directory-review ruleset
-yarn lint              # JS + CSS
-```
+The complete version history lives in [CHANGELOG.md](CHANGELOG.md), in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. [`readme.txt`](readme.txt) carries only the most recent releases, and is rendered on the [WordPress.org changelog page](https://wordpress.org/plugins/swift-menu-duplicator/#developers).
 
----
+## Contributing
 
-## Internationalization
+Bug reports, feature requests, and pull requests are welcome. Read the [contributing guide](CONTRIBUTING.md) before opening a pull request, and file issues on the [issue tracker](https://github.com/mralaminahamed/swift-menu-duplicator/issues).
 
-```bash
-composer makepot
-```
+## Maintainer
 
-Text domain `swift-menu-duplicator`. Translations live in `languages/`.
+Al Amin Ahamed — [alaminahamed.com](https://alaminahamed.com) · [@mralaminahamed](https://github.com/mralaminahamed)
 
----
+## License
 
-## Release
-
-```bash
-composer release
-yarn assets:shots      # WordPress.org screenshots
-yarn assets:brand      # icon and banners
-```
-
----
-
-## Links
-
-- [WordPress.org listing](https://wordpress.org/plugins/swift-menu-duplicator/)
-- [Public readme](readme.txt) — features, screenshots, changelog
-
----
-
-## Contributing · Security · License
-
-Issues and pull requests are welcome. Please run `composer analyze` and `composer test`
-before opening one.
-
-Report security issues privately rather than in a public issue.
-
-GPL-2.0-or-later, as declared in the plugin header.
+[GPL-2.0-or-later](LICENSE)
